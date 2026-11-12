@@ -88,6 +88,9 @@ struct QuickAddChip: Identifiable, Hashable {
     var marks: [String] = []
     /// The value for VoiceOver when it differs (1.12): a red lab value says "low" or "high".
     var spokenValue: String?
+    /// 1.12 (Ben, Nov 12): an optional second choice that is OFF until chosen ("Also start the redose reminder"). The bar starts it
+    /// among the chips left out (`QuickAdd.offByDefault`), so a tap puts it on; every other chip is on until a tap leaves it out.
+    var offByDefault = false
 
     var text: String { destination + " · " + value }
     var spokenText: String { destination + " · " + (spokenValue ?? value) }
@@ -348,6 +351,11 @@ enum QuickAdd {
             let given = IntraopAntibiotic.read(s.text, record: record, now: now)
             for range in given.ranges { s.mask(range) }
             antibiotics = given.findings
+            // Heparin given in the case ("heparin 26000 at 0810"), recorded in Heparin & ACT's log; an infusion, a rate, subcutaneous
+            // heparin and the rest are declined and stay in the line for the readers that take them.
+            let heparin = IntraopHeparin.read(s.text, record: record, now: now)
+            for range in heparin.ranges { s.mask(range) }
+            antibiotics += heparin.findings
         }
         // 1.11: the disposition from any tab; the ECG, the stress test and the cardiac answers are the preoperative
         // workup (on the Intraoperative tab they are set aside, as the history is).
@@ -3308,9 +3316,15 @@ enum QuickAdd {
             let (destination, value) = describe(f, r)
             // An antibiotic dose's label carries the time ("now" is the minute it is read), so its chip is known by the finding.
             var keyed = f.id + "|" + value
-            if case .antibioticDose = f.change { keyed = f.id }
+            var isOptional = false
+            switch f.change {
+            case .antibioticDose, .heparinDose: keyed = f.id
+            case .antibioticReminder: keyed = f.id; isOptional = true
+            default: break
+            }
             var chip = QuickAddChip(id: keyed, findings: [f], destination: destination, value: value,
                                     status: PatientNote.status(f, in: r), note: f.note)
+            chip.offByDefault = isOptional
             if let lab = labMarks(f, r) {
                 chip.marks = lab.marks
                 chip.spokenValue = lab.spoken
@@ -3322,6 +3336,15 @@ enum QuickAdd {
         if let i = out.firstIndex(where: { $0.id.hasPrefix("plan-anesthetic|") }),
            !out.contains(where: { c in c.findings.contains(where: { $0.id == "procedure" }) && on(c) }) {
             out[i].status = .conflicts("needs the procedure")
+        }
+        // The optional redose reminder belongs to its dose: with no course to turn on and its dose chip left out, it has nothing to start.
+        for i in out.indices {
+            guard case .antibioticReminder(let d) = out[i].findings[0].change, r.timers.course(d.drug) == nil else { continue }
+            let doseOn = out.contains { c in
+                if case .antibioticDose(let x) = c.findings[0].change { return x == d && on(c) }
+                return false
+            }
+            if !doseOn { out[i].status = .conflicts("needs the dose") }
         }
         // Blood: the running total on the last chip left on for each product, so it is what the chips add.
         var keys: [String] = []
@@ -3344,6 +3367,12 @@ enum QuickAdd {
 
     /// A chip that sets a case total ("PRBC: total 2 units"), not one that adds ("PRBC +2").
     private static func isTotal(_ c: QuickAddChip) -> Bool { blood(c) != nil && c.value.contains(": total ") }
+
+    /// The chips that start OFF (1.12): the optional second choices. The bar adds these to the chips it leaves out when it first shows
+    /// them; a tap then puts one on, and `changes` files only what is on.
+    static func offByDefault(_ chips: [QuickAddChip]) -> Set<String> {
+        Set(chips.filter(\.offByDefault).map(\.id))
+    }
 
     /// The changes of the chips to file: those not dropped, that can be added.
     static func changes(_ chips: [QuickAddChip], dropped: Set<String> = []) -> [PatientNoteChange] {

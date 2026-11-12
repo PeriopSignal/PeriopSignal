@@ -674,20 +674,27 @@ private struct LegacyListRow: View {
 struct IntraopMedicationsPage: View {
     @Environment(PatientStore.self) private var patient
     @Environment(ReferenceStore.self) private var refs
-    /// Opens Case Timers at its antibiotic card. The editor pages push it as a page of My Patient's stack (the sheet is
-    /// presented from the tab under them); without one the sheet opens.
-    var openCaseTimers: (() -> Void)? = nil
+    /// Opens Case Timers at a card (its scroll id: the antibiotic card, the Heparin & ACT section). The editor pages push it as a page
+    /// of My Patient's stack (the sheet is presented from the tab under them); without one the sheet opens.
+    var openCaseTimers: ((String) -> Void)? = nil
+    /// Opens a reference route by its key ("quickref:ashp-surgical-prophylaxis") as a page of My Patient's stack. Without one the
+    /// "Which antibiotic?" link is left out: this host cannot push a reference page.
+    var openRoute: ((String) -> Void)? = nil
+
+    @State private var abxOpen = LaunchSeed.bool("ps.meds.abx")
+    @State private var hepOpen = LaunchSeed.bool("ps.meds.hep")
 
     static let notableTitle = "Notable medications"
     static let notableNote = "Choose a medication to record it; a dose is printed only if you type one, and none is suggested. A milrinone bolus or inhaled milrinone is not an infusion: type a drip under Infusions."
     static let otherLabel = "Other medications & interventions"
     static let otherPrompt = "Antibiotic and time, steroids, reversal, positioning"
-    static let antibioticsTitle = "Antibiotics in Case Timers"
-    static let antibioticsNote = "Read from Case Timers for this case: the drug and dose it holds, the last dose given and the next redose due. Change them in Case Timers, or type it in the bar: \(IntraopAntibiotic.barExample)."
+    static let antibioticsTitle = "Antibiotics"
+    static let antibioticsNote = "Record a dose here, or type it in the bar: \(IntraopAntibiotic.barExample). No timer runs unless you turn the redose reminder on; an antibiotic started in Case Timers shows here too, with its next redose."
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             TimelineView(.everyMinute) { ctx in antibiotics(now: ctx.date) }
+            TimelineView(.everyMinute) { ctx in heparin(now: ctx.date) }
             notable
             PatientGroup(title: nil) {
                 PatientTextField(label: Self.otherLabel, prompt: Self.otherPrompt,
@@ -722,22 +729,80 @@ struct IntraopMedicationsPage: View {
                         .accessibilityLabel(l.tabText + (l.overdue ? ", redose overdue" : ""))
                     if i < lines.count - 1 { Hairline().padding(.leading, 14) }
                 }
-                if let link = IntraopAntibiotic.pageLink(hasAntibiotics: !lines.isEmpty, caseTimersShown: shown,
-                                                         child: CaseTimerEngine.isChild(patient.record)) {
+                if let link = IntraopAntibiotic.pageLink(hasAntibiotics: !lines.isEmpty, caseTimersShown: shown) {
+                    Hairline().padding(.leading, 14)
+                    quietLink(link, open: abxOpen, hint: "Opens the entry here") { withAnimation(.snappy) { abxOpen.toggle() } }
+                        .accessibilityLabel(lines.isEmpty ? "Add an antibiotic" : "Add an antibiotic or a redose")
+                    if abxOpen {
+                        AbxEntryRow(onDone: { withAnimation(.snappy) { abxOpen = false } })
+                            .padding(.horizontal, 14).padding(.bottom, 10)
+                    }
+                }
+                // The card of recommended agents by surgery (Reference), where this host can push a reference page.
+                if let openRoute {
                     Hairline().padding(.leading, 14)
                     Button {
                         Haptics.light()
-                        if let openCaseTimers { openCaseTimers() } else { CaseTimersUI.shared.openAntibiotic() }
+                        openRoute("quickref:" + IntraopAntibiotic.referenceID)
                     } label: {
-                        Text(link)
-                            .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.action)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 14).padding(.vertical, 10)
-                            .contentShape(Rectangle())
+                        ReferenceLinkLabel(title: IntraopAntibiotic.referenceLink).padding(.horizontal, 14).padding(.vertical, 10)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(lines.isEmpty ? "Add an antibiotic in Case Timers" : "Add an antibiotic or a redose in Case Timers")
-                    .accessibilityHint("Opens Case Timers at the antibiotic card")
+                    .accessibilityHint("Opens the surgical prophylaxis reference")
+                }
+                if shown {
+                    Hairline().padding(.leading, 14)
+                    quietLink(IntraopAntibiotic.openCaseTimersLink, open: nil, hint: "Opens Case Timers at the antibiotic card") {
+                        Haptics.light()
+                        if let openCaseTimers { openCaseTimers(CaseTimersView.antibioticCardID) } else { CaseTimersUI.shared.openAntibiotic() }
+                    }
+                }
+            }
+        }
+    }
+
+    /// A quiet action link in a group: the words in the action colour (a "+ Name" link says Open to VoiceOver while its entry is open).
+    private func quietLink(_ title: String, open: Bool?, hint: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Text(title).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.action)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14).padding(.vertical, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(open == true ? "Open" : "")
+        .accessibilityHint(hint)
+    }
+
+    // MARK: Heparin, from Case Timers' one Heparin & ACT log
+
+    @ViewBuilder private func heparin(now: Date) -> some View {
+        let text = CaseHeparin.text(patient.record, now: now)
+        let shown = DraftGate.shows("caseTimers")
+        if text != nil || shown {
+            PatientGroup(title: IntraopHeparin.groupTitle, note: IntraopHeparin.groupNote) {
+                Text(text ?? IntraopAntibiotic.noneCharted)
+                    .font(PS.sys(size: 14.5)).foregroundStyle(text == nil ? PS.fg3 : PS.fg)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                if shown, refs.caseTimers != nil {
+                    Hairline().padding(.leading, 14)
+                    quietLink(IntraopHeparin.addLink, open: hepOpen, hint: "Opens the entry here") { withAnimation(.snappy) { hepOpen.toggle() } }
+                        .accessibilityLabel("Add a heparin dose")
+                    if hepOpen {
+                        HeparinEntryRow(onDone: { withAnimation(.snappy) { hepOpen = false } })
+                            .padding(.horizontal, 14).padding(.bottom, 10)
+                    }
+                    Hairline().padding(.leading, 14)
+                    quietLink(IntraopHeparin.openLink, open: nil, hint: "Opens Case Timers at Heparin & ACT") {
+                        Haptics.light()
+                        if let openCaseTimers { openCaseTimers(CaseTimersView.heparinCardID) } else { CaseTimersUI.shared.openHeparin() }
+                    }
                 }
             }
         }

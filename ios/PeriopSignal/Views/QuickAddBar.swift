@@ -24,6 +24,9 @@ struct QuickAddBar: View {
     @State private var readText = ""
     /// Chips left out, by chip id.
     @State private var dropped: Set<String> = []
+    /// The optional chips (off until chosen, `QuickAddChip.offByDefault`) already shown for this line: each starts among `dropped` the
+    /// first time it is shown, so a tap puts it on and a re-read does not turn it off again.
+    @State private var offered: Set<String> = []
     /// Meanings chosen for ambiguous abbreviations, by AmbiguousAbbreviation.id (for this line only).
     @State private var choices: [String: String] = [:]
     /// The user's own abbreviations, on this phone only (the full note's list).
@@ -187,6 +190,8 @@ struct QuickAddBar: View {
     private func chipView(_ c: QuickAddChip) -> some View {
         let out = dropped.contains(c.id)
         let off = out || !c.canAdd
+        // An optional choice that is not chosen yet is an offer, not a deleted item: no strike-through, and "+" says a tap adds it.
+        let offer = out && c.offByDefault && c.canAdd
         return Button {
             guard c.canAdd else { return }
             Haptics.light()
@@ -195,8 +200,8 @@ struct QuickAddBar: View {
             HStack(alignment: .firstTextBaseline, spacing: 5) {
                 Text(c.destination).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(off ? PS.fg3 : PS.accent2)
                 // An out-of-range lab value is bold red with no H or L after it (1.12).
-                Text(off ? AttributedString(c.value) : markedString(c.value, marks: c.marks, size: 13)).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(off ? PS.fg3 : PS.fg)
-                    .strikethrough(out, color: PS.fg3)
+                Text(off ? AttributedString(c.value) : markedString(c.value, marks: c.marks, size: 13)).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(offer ? PS.fg2 : (off ? PS.fg3 : PS.fg))
+                    .strikethrough(out && !offer, color: PS.fg3)
                 if let s = c.statusText {
                     Text(s).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(statusColor(c.status))
                 }
@@ -210,8 +215,8 @@ struct QuickAddBar: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(c.spokenText + (c.statusText.map { ", " + $0 } ?? ""))
-        .accessibilityValue(out ? "Left out" : (c.canAdd ? "Will be added" : "Not added"))
-        .accessibilityHint(c.canAdd ? (out ? "Puts it back" : "Leaves it out") : "")
+        .accessibilityValue(offer ? "Not chosen" : (out ? "Left out" : (c.canAdd ? "Will be added" : "Not added")))
+        .accessibilityHint(c.canAdd ? (offer ? "Adds it" : (out ? "Puts it back" : "Leaves it out")) : "")
         .accessibilityAddTraits(c.canAdd && !out ? .isSelected : [])
     }
 
@@ -324,6 +329,7 @@ struct QuickAddBar: View {
             reading = nil
             readText = ""
             dropped = []
+            offered = []
             return
         }
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
@@ -331,7 +337,15 @@ struct QuickAddBar: View {
         withAnimation(.snappy) {
             reading = q
             readText = t
+            startOffered(q)
         }
+    }
+
+    /// The optional chips of a reading start among the chips left out, once each (QuickAdd.offByDefault).
+    private func startOffered(_ q: QuickAddReading) {
+        let fresh = QuickAdd.offByDefault(QuickAdd.chips(q, record: patient.record)).subtracting(offered)
+        offered.formUnion(fresh)
+        dropped.formUnion(fresh)
     }
 
     private func handle(_ old: String, _ new: String) {
@@ -364,8 +378,9 @@ struct QuickAddBar: View {
         guard !chosen.isEmpty else { return Haptics.light() }
         // One discrete step in the store's Undo history, whatever was typed just before.
         patient.update(discrete: true) { PatientNote.apply(QuickAdd.changes(chosen), to: &$0) }
-        // An antibiotic dose starts Case Timers' redose reminder: ask for notifications once, as Case Timers does.
-        if QuickAdd.changes(chosen).contains(where: { if case .antibioticDose = $0 { return true } else { return false } }) {
+        // A dose is recorded without a timer (1.12, Nov 12): ask for notifications only when a reminder is actually turned on (the
+        // optional redose reminder chip, or a redose for a course that is already timed), and once, as Case Timers does.
+        if IntraopAntibiotic.startsReminder(QuickAdd.changes(chosen), before: before) {
             CaseTimerNotifier.shared.requestPermissionIfNeeded()
         }
         Haptics.success()
@@ -393,6 +408,7 @@ struct QuickAddBar: View {
         reading = nil
         readText = ""
         dropped = []
+        offered = []
         choices = [:]
     }
 
@@ -430,6 +446,7 @@ struct QuickAddBar: View {
             text = t
             reading = q
             readText = t
+            startOffered(q)
         }
         if LaunchSeed.bool("ps.quickadd.add") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { add() }

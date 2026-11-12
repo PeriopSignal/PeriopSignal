@@ -53,10 +53,13 @@ final class H112Tests: XCTestCase {
         return try XCTUnwrap(found.first)
     }
 
+    /// Files the chips as the bar's Add does (1.12 follow-up, Nov 12): the optional second choices start left out
+    /// (`QuickAdd.offByDefault`), so only what is on by default is filed.
     private func filed(_ line: String, into record: PatientRecord, at when: Date? = nil) -> PatientRecord {
         var r = record
         let q = read(line, record: record, at: when)
-        PatientNote.apply(QuickAdd.changes(QuickAdd.chips(q, record: record)), to: &r)
+        let chips = QuickAdd.chips(q, record: record)
+        PatientNote.apply(QuickAdd.changes(chips, dropped: QuickAdd.offByDefault(chips)), to: &r)
         return r
     }
 
@@ -158,14 +161,14 @@ final class H112Tests: XCTestCase {
 
     // MARK: 2. The bar reads an antibiotic given in the case
 
-    func testVancAndADoseIsADoseLoggedInCaseTimersAtNow() throws {
+    func testVancAndADoseIsADoseRecordedAtNow() throws {
         let q = read("vanc 1 g")
         let d = try dose("vanc 1 g")
         XCTAssertEqual(d, IntraopAntibioticDose(drug: "vancomycin", given: "1 g", time: now, redose: false))
         let f = try XCTUnwrap(q.findings.first)
         XCTAssertEqual(f.section, QuickAdd.intraop, "the Intraoperative group of the review")
-        XCTAssertEqual(f.label, "Vancomycin 1 g: dose logged in Case Timers at 09:30")
-        XCTAssertEqual(QuickAdd.chips(q, record: adult()).first?.text, "Intraop · Vancomycin 1 g: dose logged in Case Timers at 09:30")
+        XCTAssertEqual(f.label, "Vancomycin 1 g: recorded at 09:30")
+        XCTAssertEqual(QuickAdd.chips(q, record: adult()).first?.text, "Intraop · Vancomycin 1 g: recorded at 09:30")
         XCTAssertEqual(q.findings.count, 1, "nothing else is read from the line")
         XCTAssertTrue(q.unread.isEmpty, "nothing is left unread: \(q.unread)")
     }
@@ -355,13 +358,16 @@ final class H112Tests: XCTestCase {
 
     // MARK: Filing: what Case Timers' own Start and "Redose given" do
 
-    func testADrugNotInCaseTimersStartsACourseLikeItsOwnStartWithTheDefaultPick() throws {
+    func testADrugNotInTheListStartsACourseRecordedOnly() throws {
+        // 1.12 follow-up (Nov 12): the bar records only; it no longer starts Case Timers' redose reminders (was: "starts a course like
+        // its own Start with the default pick").
         var base = adult()
         base.fluids["ebl"] = 300
         let r = filed("vanc 1 g at 0810", into: base)
         let c = try XCTUnwrap(r.timers.course("vancomycin"))
         XCTAssertEqual(r.timers.antibiotics.count, 1)
-        XCTAssertNil(c.everyMinutes, "the drug's sourced interval, none for a drug without one")
+        XCTAssertTrue(c.recordOnly)
+        XCTAssertNil(c.everyMinutes, "no interval chosen: the default one when the reminders are turned on")
         XCTAssertEqual(c.doses.count, 1)
         XCTAssertEqual(c.doses[0].time, at(8, 10))
         XCTAssertEqual(c.doses[0].ebl, 300, "the blood loss at the time, for the 1,500 mL rule")
@@ -427,7 +433,9 @@ final class H112Tests: XCTestCase {
         store.update(discrete: true, now: Date(timeIntervalSince1970: 1000)) { $0.weightKg = 82; $0.fluids["ebl"] = 100 }
         let before = store.record
         let q = read("vanc 1 g at 0810, cefazolin 2 g at 0805", record: before)
-        let chosen = QuickAdd.chips(q, record: before)
+        let all = QuickAdd.chips(q, record: before)
+        XCTAssertEqual(all.count, 3, "the two doses and cefazolin's optional redose reminder")
+        let chosen = all.filter { !$0.offByDefault }
         XCTAssertEqual(chosen.count, 2)
         store.update(discrete: true, now: Date(timeIntervalSince1970: 1000.3)) { PatientNote.apply(QuickAdd.changes(chosen), to: &$0) }
         let after = store.record
@@ -445,13 +453,19 @@ final class H112Tests: XCTestCase {
         XCTAssertEqual(r.timers.course("vancomycin")?.doses.first?.ebl, 800)
     }
 
-    func testTheRemindersRunFromAFiledDose() throws {
+    func testNoReminderRunsFromAFiledDoseUntilTheReminderIsChosen() throws {
+        // 1.12 follow-up (Nov 12): was "the reminders run from a filed dose". Recorded only: none, of any kind.
         let d = try timerData()
         let r = filed("cefazolin 2 g at 0810, vanc 1 g at 0815", into: adult(), at: at(9, 0))
-        let rem = CaseTimerEngine.reminders(r.timers, record: r, data: d)
+        XCTAssertTrue(CaseTimerEngine.reminders(r.timers, record: r, data: d).isEmpty)
+        // With the optional chip chosen, cefazolin's redose runs from the dose; vancomycin has no interval to offer.
+        let q = read("cefazolin 2 g at 0810, vanc 1 g at 0815", record: adult(), at: at(9, 0))
+        var on = adult()
+        PatientNote.apply(QuickAdd.changes(QuickAdd.chips(q, record: adult())), to: &on)
+        let rem = CaseTimerEngine.reminders(on.timers, record: on, data: d)
         XCTAssertEqual(rem.first { $0.id == "antibiotic.cefazolin" }?.due, at(12, 10), "four hours from the dose")
-        XCTAssertNil(rem.first { $0.id == "antibiotic.vancomycin" }, "no routine redose")
-        XCTAssertEqual(rem.first { $0.id == "longCase.vancomycin" }?.due, at(16, 15), "the long-case reminder, as for a dose logged in Case Timers")
+        XCTAssertNil(rem.first { $0.id == "antibiotic.vancomycin" })
+        XCTAssertNil(rem.first { $0.id == "longCase.vancomycin" }, "vancomycin stays recorded only")
     }
 
     // MARK: The review's words
@@ -459,25 +473,25 @@ final class H112Tests: XCTestCase {
     func testTheLabelSaysExactlyWhatWillHappen() throws {
         let d = try timerData()
         XCTAssertEqual(try dose("vanc 1 g at 0810"), IntraopAntibioticDose(drug: "vancomycin", given: "1 g", time: at(8, 10), redose: false))
+        // 1.12 follow-up (Nov 12): recorded only, no "Case Timers" and no "next due" (was "dose logged in Case Timers at 08:10").
         XCTAssertEqual(IntraopAntibiotic.label(try dose("vanc 1 g at 0810"), record: adult(), data: d, now: now),
-                       "Vancomycin 1 g: dose logged in Case Timers at 08:10")
-        // A drug with a sourced redose interval: the next dose is told.
+                       "Vancomycin 1 g: recorded at 08:10")
         XCTAssertEqual(IntraopAntibiotic.label(try dose("cefazolin 2 g at 0810"), record: adult(), data: d, now: now),
-                       "Cefazolin 2 g: dose logged in Case Timers at 08:10, next due 12:10")
+                       "Cefazolin 2 g: recorded at 08:10")
         // A course that exists: a redose, and the interval Case Timers holds for it.
         var with = adult()
         with.timers.antibiotics = [AntibioticCourse(drug: "cefazolin", doses: [TimedEntry(time: at(8, 0))])]
         XCTAssertEqual(IntraopAntibiotic.label(try dose("redose cefazolin at 1205", at: at(13, 0)), record: with, data: d, now: at(13, 0)),
-                       "Cefazolin: redose logged in Case Timers at 12:05, next due 16:05")
+                       "Cefazolin: redose logged in Case Timers at 12:05, next due 16:05", "a course already timed keeps its timer")
         with.timers.antibiotics[0].everyMinutes = 180
         XCTAssertEqual(IntraopAntibiotic.label(try dose("cefazolin at 1205", at: at(13, 0)), record: with, data: d, now: at(13, 0)),
                        "Cefazolin: redose logged in Case Timers at 12:05, next due 15:05")
         with.timers.antibiotics[0].everyMinutes = 0
         XCTAssertEqual(IntraopAntibiotic.label(try dose("cefazolin at 1205", at: at(13, 0)), record: with, data: d, now: at(13, 0)),
                        "Cefazolin: redose logged in Case Timers at 12:05", "the redose timer was stopped: no next dose")
-        // Typed "redose" on a drug not yet in Case Timers is still told as a redose.
+        // Typed "redose" on a drug not yet in the list is still told as a redose.
         XCTAssertEqual(IntraopAntibiotic.label(try dose("redose vanc 1 g at 0810"), record: adult(), data: d, now: now),
-                       "Vancomycin 1 g: redose logged in Case Timers at 08:10")
+                       "Vancomycin 1 g: redose recorded at 08:10")
     }
 
     func testTheLabelOfAChildsDoseSaysCaseTimersHasNoAntibioticDosesForAChild() throws {
@@ -516,10 +530,11 @@ final class H112Tests: XCTestCase {
         var r = filed("vanc 1 g at 0810", into: adult(), at: at(8, 20))
         r.setProcedures(PlannedProcedure.parse("CABG x3"))
         let lines = IntraopNotableMedicationLink.lines(r, antibiotics: CaseAntibiotics.lines(r, data: d, now: at(8, 40)))
-        XCTAssertEqual(lines.first?.text, "Vancomycin 1 g · last 08:10 · no routine redose")
+        // 1.12 follow-up (Nov 12): recorded only, so "given 08:10" (was "last 08:10 · no routine redose").
+        XCTAssertEqual(lines.first?.text, "Vancomycin 1 g · given 08:10")
         let blocks = PatientBriefs.handoff(r, now: at(8, 40))
         let b = try XCTUnwrap(blocks.first { $0.key == "infusions" })
-        XCTAssertTrue(b.lines.contains("Antibiotics: Vancomycin 1 g, last 08:10, no routine redose"), "\(b.lines)")
+        XCTAssertTrue(b.lines.contains("Antibiotics: Vancomycin 1 g, given 08:10"), "\(b.lines)")
     }
 
     // MARK: 3. The page shows how to add one
@@ -533,15 +548,16 @@ final class H112Tests: XCTestCase {
 
     func testTheLinkIsInTheAddGrammarAndRespectsTheDraftGate() {
         XCTAssertEqual(IntraopAntibiotic.noneCharted, "None charted")
-        XCTAssertEqual(IntraopAntibiotic.pageLink(hasAntibiotics: false, caseTimersShown: true, child: false), "+ Antibiotic")
-        XCTAssertEqual(IntraopAntibiotic.pageLink(hasAntibiotics: true, caseTimersShown: true, child: false), "+ Antibiotic or redose")
-        XCTAssertNil(IntraopAntibiotic.pageLink(hasAntibiotics: false, caseTimersShown: false, child: false), "Case Timers hidden: no link")
-        XCTAssertNil(IntraopAntibiotic.pageLink(hasAntibiotics: true, caseTimersShown: false, child: false))
-        XCTAssertNil(IntraopAntibiotic.pageLink(hasAntibiotics: false, caseTimersShown: true, child: true), "a child has no antibiotic card in Case Timers")
+        XCTAssertEqual(IntraopAntibiotic.pageLink(hasAntibiotics: false, caseTimersShown: true), "+ Antibiotic")
+        XCTAssertEqual(IntraopAntibiotic.pageLink(hasAntibiotics: true, caseTimersShown: true), "+ Antibiotic or redose")
+        XCTAssertNil(IntraopAntibiotic.pageLink(hasAntibiotics: false, caseTimersShown: false), "Case Timers hidden: no link")
+        XCTAssertNil(IntraopAntibiotic.pageLink(hasAntibiotics: true, caseTimersShown: false))
+        // (1.12 Nov 12: the link opens an entry in place that records the dose as typed, so a child has it too; it was none for a child
+        // while the link opened Case Timers' antibiotic card, which a child does not have.)
     }
 
     @MainActor func testTheGroupsNoteSaysToTypeItInTheBar() {
-        XCTAssertTrue(IntraopMedicationsPage.antibioticsNote.hasSuffix("Change them in Case Timers, or type it in the bar: vanc 1 g at 0810."),
+        XCTAssertTrue(IntraopMedicationsPage.antibioticsNote.contains("or type it in the bar: vanc 1 g at 0810."),
                       IntraopMedicationsPage.antibioticsNote)
         // The example is one the bar reads.
         XCTAssertEqual(doses(read(IntraopAntibiotic.barExample)).first?.drug, "vancomycin")

@@ -107,6 +107,11 @@ enum PatientNoteChange: Hashable {
     // 1.12 follow-up (Ben, Nov 11): an antibiotic given during the case, read by the bar on the Intraoperative tab; filed in
     // Case Timers as its own Start or "Redose given" does (IntraopAntibiotic).
     case antibioticDose(IntraopAntibioticDose)
+    // 1.12 follow-up (Ben, Nov 12): "also start the redose reminder" for the course that dose belongs to (the review's second,
+    // optional choice; off until chosen), and a heparin dose given during the case, recorded in Case Timers' Heparin & ACT log
+    // with the ACT reminder left as it is (IntraopHeparin).
+    case antibioticReminder(IntraopAntibioticDose)
+    case heparinDose(IntraopHeparinDose)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -3838,6 +3843,10 @@ enum PatientNote {
             return .replaces(o == .normal ? "none" : o.label.lowercased())
         case .antibioticDose(let d):
             return IntraopAntibiotic.status(d, in: r)
+        case .antibioticReminder(let d):
+            return IntraopAntibiotic.reminderStatus(d, in: r)
+        case .heparinDose(let d):
+            return IntraopHeparin.status(d, in: r)
         }
     }
 
@@ -4090,6 +4099,10 @@ enum PatientNote {
                 r.echoFindings.setEchoGrade(g, valve: v, lesion: lesion)
             case .antibioticDose(let d):
                 IntraopAntibiotic.apply(d, to: &r)
+            case .antibioticReminder(let d):
+                IntraopAntibiotic.applyReminder(d, to: &r)
+            case .heparinDose(let d):
+                IntraopHeparin.apply(d, to: &r)
             }
         }
         // Ids a finding added that the History details hold (an aneurysm, severe valve disease) go to their place.

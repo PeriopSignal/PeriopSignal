@@ -28,8 +28,14 @@ final class CaseTimersUI {
     var target: String?
 
     /// Opens the timers at the antibiotic card.
-    func openAntibiotic() {
-        target = CaseTimersView.antibioticCardID
+    func openAntibiotic() { show(at: CaseTimersView.antibioticCardID) }
+
+    /// Opens the timers at the Heparin & ACT section (the Medications & Interventions page's "Open Heparin & ACT").
+    func openHeparin() { show(at: CaseTimersView.heparinCardID) }
+
+    /// Opens the timers at a card, by its scroll id.
+    func show(at card: String) {
+        target = card
         open = true
     }
 }
@@ -127,7 +133,7 @@ struct CaseTimersStrip: View {
     @Environment(ReferenceStore.self) private var refs
 
     var body: some View {
-        if DraftGate.shows("caseTimers"), let d = refs.caseTimers, !patient.record.timers.isEmpty {
+        if DraftGate.shows("caseTimers"), let d = refs.caseTimers, patient.record.timers.hasTimers {
             TimelineView(.periodic(from: .now, by: 20)) { ctx in
                 let items = CaseTimerEngine.reminders(patient.record.timers, record: patient.record, data: d)
                 Button { CaseTimersUI.shared.open = true } label: {
@@ -217,6 +223,22 @@ private struct TimerChipRow: View {
                 .accessibilityHint(c.on ? "Tap again to clear" : "")
             }
         }
+    }
+}
+
+/// The app's reference-link look (the arrow in a circle, the action colour, a semibold line), as My Patient's tool links draw it:
+/// "Which antibiotic?" under the antibiotics, here and on the Medications & Interventions page.
+struct ReferenceLinkLabel: View {
+    var title: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.right.circle").font(PS.sys(size: 14, weight: .semibold))
+            Text(title).font(PS.sys(size: 13.5, weight: .semibold)).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundStyle(PS.action)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
 }
 
@@ -396,6 +418,17 @@ struct CaseTimersView: View {
 
     /// The antibiotic card's scroll id.
     static let antibioticCardID = "antibiotic.card"
+    /// The Heparin & ACT section's scroll id.
+    static let heparinCardID = "heparin.card"
+
+    /// A quick reference opened from a link in the timers when they are a sheet.
+    @ViewBuilder private func refDestination(_ route: RefRoute) -> some View {
+        if case .quickref(let id) = route, let ref = refs.quickref(id) {
+            QuickRefView(ref: ref, onOpen: { openLink($0) })
+        } else {
+            ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
+        }
+    }
 
     // Antibiotic
     @State private var abxPending: [String] = []
@@ -425,7 +458,13 @@ struct CaseTimersView: View {
 
     var body: some View {
         Group {
-            if inSheet { NavigationStack { page } } else { page }
+            if inSheet {
+                // The sheet is its own stack, so it carries the destination of the one reference it links to ("Which antibiotic?");
+                // pushed from Reference or My Patient, the host's stack has them all.
+                NavigationStack { page.navigationDestination(for: RefRoute.self) { refDestination($0) } }
+            } else {
+                page
+            }
         }
         .fullScreenCover(item: $webLink) { link in SafariView(url: link.url).ignoresSafeArea() }
         // An antibiotic picked and not logged is not lost by a swipe: the sheet stays until Done asks (1.12 follow-up).
@@ -522,6 +561,7 @@ struct CaseTimersView: View {
         if let target = CaseTimersUI.shared.target {
             CaseTimersUI.shared.target = nil
             if target == Self.antibioticCardID { open.insert(.antibiotic) }
+            if target == Self.heparinCardID { open.insert(.heparin) }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { scrollTarget = target }
         }
         openSections = open
@@ -595,9 +635,11 @@ struct CaseTimersView: View {
     }
     #endif
 
-    private func edit(_ change: (inout CaseTimers) -> Void) {
+    /// `asks`: whether this edit can turn a reminder on, so the notification permission is asked for (1.12: a switch turned off, a dose
+    /// added to a course recorded only, or a course removed asks for nothing).
+    private func edit(asks: Bool = true, _ change: (inout CaseTimers) -> Void) {
         withAnimation(.snappy) { patient.update(discrete: true) { change(&$0.timers) } }
-        CaseTimerNotifier.shared.requestPermissionIfNeeded()
+        if asks { CaseTimerNotifier.shared.requestPermissionIfNeeded() }
     }
 
     private func openLink(_ url: URL) { webLink = WebLink(url: url) }
@@ -742,7 +784,7 @@ struct CaseTimersView: View {
                         .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
                 }
             } else {
-                AddRow(title: "Antibiotic", detail: t.antibiotics.isEmpty ? nil : "\(t.antibiotics.count) running",
+                AddRow(title: "Antibiotic", detail: Self.antibioticDetail(t.antibiotics),
                        open: openSections.contains(.antibiotic)) { toggle(.antibiotic) }
                     .id("antibiotic")
                 if openSections.contains(.antibiotic) { antibioticSection(d) }
@@ -793,7 +835,7 @@ struct CaseTimersView: View {
             ToolCard {
                 ForEach(Array(drugs.enumerated()), id: \.element) { i, drug in
                     if i > 0 { Hairline() }
-                    if let def = d.antibiotic(drug) { antibioticRow(def, d) }
+                    if let def = d.antibiotic(drug) { antibioticRow(def, d) } else if let c = t.course(drug) { typedAntibioticRow(c, d) }
                 }
                 Menu {
                     ForEach(d.antibiotics.filter { !drugs.contains($0.id) }) { a in
@@ -831,9 +873,97 @@ struct CaseTimersView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                // 1.12: the card of recommended agents by surgery, one tap away.
+                Hairline()
+                NavigationLink(value: RefRoute.quickref(IntraopAntibiotic.referenceID)) {
+                    ReferenceLinkLabel(title: IntraopAntibiotic.referenceLink)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Opens the surgical prophylaxis reference")
             }
         }
         .id(Self.antibioticCardID)
+    }
+
+    /// "1 running · 1 recorded" beside + Antibiotic: a course recorded only runs no timer.
+    static func antibioticDetail(_ courses: [AntibioticCourse]) -> String? {
+        let running = courses.filter(\.reminders).count, recorded = courses.count - running
+        var parts: [String] = []
+        if running > 0 { parts.append("\(running) running") }
+        if recorded > 0 { parts.append("\(recorded) recorded") }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// "Redose reminder": off for a course recorded only. On, it is an ordinary timed course at the drug's default interval counted
+    /// from its last dose (overdue at once if that time has passed); off again, the doses stay. Disabled, with the reason, for a drug
+    /// with no redose interval on file, in either position: a timed course of such a drug (started in Case Timers) keeps the long-case
+    /// and blood-loss reminders it started with, because once switched off the switch could not bring them back. Its reminders can
+    /// still be stopped from the running list.
+    @ViewBuilder private func reminderSwitchRow(_ course: AntibioticCourse, _ d: CaseTimerData) -> some View {
+        let can = IntraopAntibiotic.switchEnabled(course.drug, in: d, child: CaseTimerEngine.isChild(r))
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .center, spacing: 10) {
+                Text(IntraopAntibiotic.reminderTitle).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 6)
+                Toggle(IntraopAntibiotic.reminderTitle, isOn: Binding(get: { course.reminders }, set: { on in
+                    Haptics.light()
+                    abxPicks[course.drug] = nil
+                    edit(asks: IntraopAntibiotic.asksPermission(switchingTo: on, hasInterval: can)) {
+                        $0.setAntibioticReminders(on, drug: course.drug, hasInterval: can)
+                    }
+                })).labelsHidden().tint(PS.action).disabled(!can)
+            }
+            if !can {
+                Text(IntraopAntibiotic.noIntervalNote).font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+            } else if !course.reminders, let h = d.antibiotic(course.drug)?.redoseHours {
+                Text("Off: recorded only. On, it counts every \(CaseTimerEngine.interval(h * 60)) from the last dose.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// A course for a drug Case Timers' list does not have (a name typed under Other on the Medications page): it can only be recorded
+    /// here, its doses listed and added to, the reminder switch off and disabled.
+    @ViewBuilder private func typedAntibioticRow(_ course: AntibioticCourse, _ d: CaseTimerData) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(course.drug.capitalized).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 4)
+                Menu {
+                    Button(role: .destructive) {
+                        edit { $0.antibiotics.removeAll { $0.drug == course.drug } }
+                    } label: { Label("Remove \(course.drug.capitalized) from this case", systemImage: "trash") }
+                } label: { Image(systemName: "ellipsis.circle").font(PS.sys(size: 17)).foregroundStyle(PS.fg3) }
+                .accessibilityLabel(course.drug.capitalized + " options")
+            }
+            reminderSwitchRow(course, d)
+            doseLines(course, name: course.drug.capitalized, every: nil, computed: "")
+        }
+    }
+
+    /// The last dose with "Redose given" (a dose now, on the same course), and the log of its doses when there is more than one.
+    @ViewBuilder private func doseLines(_ course: AntibioticCourse, name: String, every: Double?, computed: String) -> some View {
+        if let last = course.last {
+            HStack(spacing: 10) {
+                Text(Self.lastDoseText(last: last, every: every, computed: computed, recordOnly: course.recordOnly))
+                    .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
+                Spacer(minLength: 4)
+                Button("Redose given") {
+                    let ebl = r.fluids["ebl"] ?? 0
+                    edit(asks: course.reminders) { t in
+                        if let i = t.antibiotics.firstIndex(where: { $0.drug == course.drug }) { t.antibiotics[i].doses.append(TimedEntry(time: Date(), ebl: ebl)) }
+                    }
+                }
+                .buttonStyle(CapsuleButtonStyle(prominent: false))
+            }
+            if course.doses.count > 1 {
+                DoseHistory(entries: course.doses, text: { Self.doseText($0, name: name) }) { id in
+                    edit { t in
+                        if let i = t.antibiotics.firstIndex(where: { $0.drug == course.drug }) { t.antibiotics[i].doses.removeAll { $0.id == id } }
+                    }
+                }
+            }
+        }
     }
 
     @ViewBuilder private func antibioticRow(_ def: AntibioticDef, _ d: CaseTimerData) -> some View {
@@ -863,10 +993,14 @@ struct CaseTimersView: View {
                 }
             }
             if let needs = dose.needs { Text(needs).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent) }
-            RecurrenceRow(label: def.redoseHours == nil ? "Redose every (no routine redose)" : "Redose every",
-                          chips: chips, pick: abxPick(def.id, d),
-                          preferred: CaseTimerRecurrence.antibioticPreferred(def, rules: d.antibioticRules),
-                          maxMinutes: CaseTimerRecurrence.antibioticMax)
+            // 1.12: a course that exists has the redose reminder's switch; a course recorded only has no interval to pick.
+            if let course { reminderSwitchRow(course, d) }
+            if course?.recordOnly != true {
+                RecurrenceRow(label: def.redoseHours == nil ? "Redose every (no routine redose)" : "Redose every",
+                              chips: chips, pick: abxPick(def.id, d),
+                              preferred: CaseTimerRecurrence.antibioticPreferred(def, rules: d.antibioticRules),
+                              maxMinutes: CaseTimerRecurrence.antibioticMax)
+            }
             if let n = def.note { Text(n).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true) }
             if let c = def.cardiac, t.heparin.flatMap({ d.purpose($0.purpose) })?.isCardiac == true || r.procedure.lowercased().contains("bypass") {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -878,28 +1012,10 @@ struct CaseTimersView: View {
                 Label(d.antibioticRules.renal, systemImage: "exclamationmark.triangle")
                     .font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.accent).fixedSize(horizontal: false, vertical: true)
             }
-            if let course, let last = course.last {
-                let every = CaseTimerRecurrence.redoseMinutes(course, def: def)
+            if let course {
                 // A dose typed in the quick-add bar is shown as typed beside the last dose when it says more than the computed one.
-                HStack(spacing: 10) {
-                    Text(Self.lastDoseText(last: last, every: every, computed: dose.text))
-                        .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
-                    Spacer(minLength: 4)
-                    Button("Redose given") {
-                        let ebl = r.fluids["ebl"] ?? 0
-                        edit { t in
-                            if let i = t.antibiotics.firstIndex(where: { $0.drug == def.id }) { t.antibiotics[i].doses.append(TimedEntry(time: Date(), ebl: ebl)) }
-                        }
-                    }
-                    .buttonStyle(CapsuleButtonStyle(prominent: false))
-                }
-                if course.doses.count > 1 {
-                    DoseHistory(entries: course.doses, text: { Self.doseText($0, name: def.name) }) { id in
-                        edit { t in
-                            if let i = t.antibiotics.firstIndex(where: { $0.drug == def.id }) { t.antibiotics[i].doses.removeAll { $0.id == id } }
-                        }
-                    }
-                }
+                doseLines(course, name: def.name, every: course.reminders ? CaseTimerRecurrence.redoseMinutes(course, def: def) : nil,
+                          computed: dose.text)
             }
         }
     }
@@ -912,10 +1028,15 @@ struct CaseTimersView: View {
 
     /// "Last dose 08:10 · next 12:10", and "· given: 1 g" when the last dose was typed in the quick-add bar and says more than the
     /// dose computed above it.
-    static func lastDoseText(last: TimedEntry, every: Double?, computed: String) -> String {
+    static func lastDoseText(last: TimedEntry, every: Double?, computed: String, recordOnly: Bool = false) -> String {
         var s = "Last dose " + ClockText.time(last.time)
         if let every { s += " · next " + ClockText.time(last.time.addingTimeInterval(every * 60)) }
-        if let given = IntraopAntibiotic.givenNote(last: last, computed: computed) { s += " · " + given }
+        if recordOnly {
+            // Recorded only: the dose as it was typed, always (no dose of Case Timers' own was given or computed for it).
+            if let g = last.given?.trimmingCharacters(in: .whitespacesAndNewlines), !g.isEmpty { s += " · given: " + g }
+        } else if let given = IntraopAntibiotic.givenNote(last: last, computed: computed) {
+            s += " · " + given
+        }
         return s
     }
 

@@ -11,6 +11,12 @@ import Foundation
 ///   demo-112-hep-empty: the purpose chosen (bypass), nothing logged: the three add buttons.
 ///   demo-112-hep-protamine: the bypass log with a protamine dose 4 minutes ago (a row of the timeline, and the protamine block).
 ///   demo-112-hep-midnight: the bypass log with entries on the day before (the date shows on those rows).
+///
+/// Helper P's demo patients for the no-timer record (seeds start with "demo-112-notimer"), shots 1130-1149:
+///   demo-112-notimer-none: a CABG ×3, 82 kg: no antibiotic and no heparin recorded (the page's entries open on it, the bar has a line).
+///   demo-112-notimer-recorded: cefazolin 2 g recorded only (50 minutes ago) and two heparin doses (26,000 U and 5,000 U) in the one log,
+///     the ACT reminder off.
+///   demo-112-notimer-timed: the same cefazolin with its redose reminder on (an ordinary timed course).
 enum PatientDemo112Heparin {
     static func record(_ seed: String) -> PatientRecord? {
         switch seed {
@@ -20,6 +26,9 @@ enum PatientDemo112Heparin {
         case "demo-112-hep-empty": return empty()
         case "demo-112-hep-protamine": return protamine()
         case "demo-112-hep-midnight": return bypass(shiftMinutes: 24 * 60)
+        case "demo-112-notimer-none": return base("CABG x3")
+        case "demo-112-notimer-recorded": return notimer(timed: false)
+        case "demo-112-notimer-timed": return notimer(timed: true)
         default: return nil
         }
     }
@@ -48,6 +57,21 @@ enum PatientDemo112Heparin {
         h.bypassOn = ago(50)
         if reminderOn { h.actStart = ago(62) } else { h.actOff = true }
         r.timers.heparin = h
+        return r
+    }
+
+    private static func notimer(timed: Bool) -> PatientRecord {
+        var r = base("CABG x3")
+        let now = Date()
+        r.timers.antibiotics = [AntibioticCourse(drug: "cefazolin", doses: [TimedEntry(time: now.addingTimeInterval(-50 * 60), ebl: 0, given: "2 g")],
+                                                 everyMinutes: nil, reminders: timed)]
+        if !timed {
+            // The page's "+ Heparin" makes the course with the purpose "Other" (no goal); the ACT reminder stays off.
+            var h = HeparinCourse(purpose: "other", goal: nil, actEvery: 30)
+            h.logDose(units: 26000, at: now.addingTimeInterval(-46 * 60), now: now)
+            h.logDose(units: 5000, at: now.addingTimeInterval(-14 * 60), now: now)
+            r.timers.heparin = h
+        }
         return r
     }
 
