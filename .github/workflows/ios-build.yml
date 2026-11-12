@@ -1109,7 +1109,7 @@ jobs:
           shot 1081-m-bar-pmh-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "pmh htn, dm2, HIT, frequent pvcs" -ps.forceAppearance light
           shot 1082-m-bar-pmh-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "pmh htn, dm2, HIT, frequent pvcs" -ps.forceAppearance dark
           shot 1083-m-bar-pmh-lower-procedure-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "68M for lap chole, pmh htn dm2 osa" -ps.forceAppearance light
-          shot 1084-m-bar-guards-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "hit by a car, HIT negative, no PVCs, PVC pipe, PVD" -ps.forceAppearance light
+          shot 1084-m-bar-guards-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "PVD, hit by a car, HIT negative, PVC pipe, no PVCs" -ps.forceAppearance light
           shot 1085-m-bar-heparin-resistance-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "heparin-resistant, on heparin gtt, h/o heparin-induced thrombocytopenia" -ps.forceAppearance dark
           shot 1086-m-cv-pvc-light-375 22 -ps.tab patient -ps.patient demo-112-m-pvc -ps.patient.open system:cv -ps.patient.scroll hx-arrhythmia -ps.patient.width 375 -ps.forceAppearance light
           shot 1087-m-cv-pvc-dark-375 22 -ps.tab patient -ps.patient demo-112-m-pvc -ps.patient.open system:cv -ps.patient.scroll hx-arrhythmia -ps.patient.width 375 -ps.forceAppearance dark
