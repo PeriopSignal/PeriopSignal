@@ -8,7 +8,7 @@ enum PatientDemo112 {
         let sources: [(String) -> PatientRecord?] = [
             PatientDemo112Labs.record, PatientDemo112Summary.record, PatientDemo112Layout.record,
             PatientDemo112Meds.record, PatientDemo112Devices.record, PatientDemo112Valves.record,
-            PatientDemo112Onc.record, PatientDemo112Dates.record, PatientDemo112Abx.record,
+            PatientDemo112Onc.record, PatientDemo112Dates.record, PatientDemo112Abx.record, PatientDemo112More.record,
         ]
         for source in sources {
             if let r = source(seed) { return r }

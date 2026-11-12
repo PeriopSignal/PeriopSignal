@@ -882,6 +882,8 @@ jobs:
           shot 827-quickadd111-intraop-added-light 20 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 828-quickadd111-summary-added-dark 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 829-quickadd111-preop-added-cardio-light 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, DSE negative 2024" -ps.quickadd.add 1
+          # ---- 1.12 helper N shots (1090-1109): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper A shots (830-849): add your shot lines directly under this line ----
           shot 830-labs112-infectious-pregnancy-light-375 45 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.patient.width 375 -ps.forceAppearance light
           shot 831-labs112-infectious-pregnancy-dark 22 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.forceAppearance dark
@@ -1090,6 +1092,8 @@ jobs:
           shot 937-valve-shorthand-false-positives-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "PS 10/5, MS Contin, MR brain, TR band, AS per protocol, AR glasses" -ps.forceAppearance dark
           shot 938-valve-shorthand-asks-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "HTN, PI, MS" -ps.forceAppearance light
           shot 939-valve-insufficiency-375-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "aortic insufficiency, severe mitral insufficiency, mild TI" -ps.forceAppearance dark
+          #
+          # ---- 1.12 helper M shots (1075-1089): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper F shots (940-959): add your shot lines directly under this line ----
           # Heme & Oncology (Ben, Nov 11): the Preoperative tile, the page with Malignancy open (cancers, Other, status, Metastatic,
