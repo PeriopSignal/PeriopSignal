@@ -976,6 +976,23 @@ jobs:
           shot 909-d112-preop-summary-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab preop -ps.patient.scroll preopsummary -ps.forceAppearance light
           #
           # ---- 1.12 helper I shots (1000-1014): add your shot lines directly under this line ----
+          # 1.12 helper I (1000-1013): the case's name on the Patient Received sheet (on an empty phone, beside a named case with a
+          # patient, beside an unnamed case, a long name at the largest text), the Send card's note (named case; AirDrop link on),
+          # and the My Patient group in More with the AirDrop link switch off and on.
+          shot 1000-i-receive-name-empty-light 14 -ps.tab patient -ps.patient empty -ps.patient.open receive -ps.patient.receiveName "OR 12" -ps.forceAppearance light
+          shot 1001-i-receive-name-empty-dark 14 -ps.tab patient -ps.patient empty -ps.patient.open receive -ps.patient.receiveName "OR 12" -ps.forceAppearance dark
+          shot 1002-i-receive-name-differs-light 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive -ps.patient.receiveName "CVOR 9" -ps.forceAppearance light
+          shot 1003-i-receive-name-differs-dark 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive -ps.patient.receiveName "CVOR 9" -ps.forceAppearance dark
+          shot 1004-i-receive-name-unnamed-case-light 14 -ps.tab patient -ps.patient demo -ps.patient.open receive -ps.patient.receiveName "OR 12" -ps.forceAppearance light
+          shot 1005-i-receive-name-long-large-text-light 16 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive -ps.patient.receiveName "Cardiac OR 12 North Tower Room B" -ps.textScale 1.25 -ps.forceAppearance light
+          shot 1006-i-send-note-named-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance light
+          shot 1007-i-send-note-named-dark 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 1008-i-send-note-link-on-unnamed-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 1 -ps.forceAppearance light
+          shot 1009-i-send-note-link-on-named-dark 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 1 -ps.forceAppearance dark
+          shot 1010-i-more-my-patient-off-light 14 -ps.tab more -ps.more.scroll mypatient -ps.forceAppearance light
+          shot 1011-i-more-my-patient-on-light 14 -ps.tab more -ps.more.scroll mypatient -ps.send.airDropLink 1 -ps.forceAppearance light
+          shot 1012-i-more-my-patient-off-dark 14 -ps.tab more -ps.more.scroll mypatient -ps.forceAppearance dark
+          shot 1013-i-more-my-patient-on-dark 14 -ps.tab more -ps.more.scroll mypatient -ps.send.airDropLink 1 -ps.forceAppearance dark
           #
           # ---- 1.12 helper E1 shots (910-924): add your shot lines directly under this line ----
           shot 910-e1-through-details-light 16 -ps.tab patient -ps.patient demo-112-lines -ps.patient.open devices:preop -ps.devices.details 1 -ps.devices.large 1 -ps.forceAppearance light

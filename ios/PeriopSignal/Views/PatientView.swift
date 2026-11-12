@@ -385,7 +385,9 @@ struct PatientView: View {
             ShotReady.ready()
         case .receive:
             try? await Task.sleep(nanoseconds: 800_000_000)
-            inbox.pending = PatientPacket(record: PatientDemo.record)
+            // -ps.patient.receiveName "OR 12" sends the case's name with it (1.12).
+            let sentName = LaunchSeed.string("ps.patient.receiveName")
+            inbox.pending = PatientPacket(record: PatientDemo.record, room: sentName.isEmpty ? nil : sentName)
             try? await Task.sleep(nanoseconds: 1_500_000_000)
             ShotReady.ready()
         case .editor, .route:
@@ -1059,7 +1061,12 @@ struct PatientJumpChip: View {
 /// pictures, or send the patient itself to a colleague's Periop Signal so they carry on with the case.
 struct HandoffPanel: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) private var patient
+    @Environment(Preferences.self) private var prefs
     var record: PatientRecord
+
+    /// The current case's name, which is sent with the patient (1.12); nil when it has none.
+    private var caseName: String? { patient.currentCase.hasRoom ? patient.currentCase.room : nil }
 
     /// Screenshot runs: -ps.handoff.from Airway starts the handoff at the block whose label begins with it, so a block far
     /// down fits the frame.
@@ -1131,16 +1138,13 @@ struct HandoffPanel: View {
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
                 }
             }
-            ShareLink(item: PatientTransfer(record: record),
-                      preview: SharePreview("Patient for handoff", image: Image(systemName: "person.text.rectangle"))) {
-                Label("Send Patient", systemImage: "iphone.and.arrow.forward").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(BigButtonStyle(prominent: false))
-            EvidenceNote("In Messages, they tap the file, then Share, then Periop Signal. Send only to the colleague taking over, through channels your institution approves; Messages keeps a copy in the conversation.", title: "How it works")
+            PatientSendButton(record: record, room: caseName)
+            EvidenceNote(PatientSendText.note(airDropLink: prefs.airDropLink, caseNamed: caseName != nil), title: "How it works")
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .id("sendcard")
     }
 }
 
