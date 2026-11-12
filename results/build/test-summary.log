@@ -1,6 +1,2 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/N112Tests.swift:184:24: error: cannot find 'PatientAirwayCourse' in scope
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/N112Tests.swift:184:67: error: cannot find 'PatientAirwayCourse' in scope
 Testing failed:
-	Testing cancelled because the build failed.
 ** TEST FAILED **
-The following build commands failed:
