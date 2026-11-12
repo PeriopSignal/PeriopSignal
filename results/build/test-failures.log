@@ -1,0 +1,3 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:141: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertNil failed: "procedure("frobnication")" - 73M Hgb 7.2 for frobnication
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:142: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertTrue failed - 73M Hgb 7.2 for frobnication
+Test Case '-[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient]' failed (11.105 seconds).
