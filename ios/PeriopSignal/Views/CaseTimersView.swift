@@ -335,7 +335,7 @@ private struct AddRow: View {
             HStack(spacing: 10) {
                 Image(systemName: open ? "minus.circle.fill" : "plus.circle.fill")
                     .font(PS.sys(size: 18, weight: .semibold)).foregroundStyle(PS.action)
-                Text(title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+                Text(title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg).layoutPriority(1)
                 Spacer(minLength: 6)
                 if let detail { Text(detail).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg3).lineLimit(1) }
                 Image(systemName: open ? "chevron.up" : "chevron.down").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -966,11 +966,7 @@ struct CaseTimersView: View {
     @ViewBuilder private func typedAntibioticRow(_ course: AntibioticCourse, _ d: CaseTimerData) -> some View {
         VStack(alignment: .leading, spacing: 9) {
             let shown = AntibioticDoseText.typedCourseHeader(course)
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(course.drug.capitalized).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-                if !shown.isEmpty { Text(shown).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).lineLimit(2) }
-                if !course.doses.isEmpty { doseChangeLink(course.drug, shown: shown) }
-                Spacer(minLength: 4)
+            doseHeader(name: course.drug.capitalized, dose: shown, drug: course.drug, showChange: !course.doses.isEmpty) {
                 Menu {
                     Button(role: .destructive) {
                         edit { $0.antibiotics.removeAll { $0.drug == course.drug } }
@@ -1021,11 +1017,7 @@ struct CaseTimersView: View {
         let custom = customDose(def.id)
         let shownDose = AntibioticDoseText.header(custom: custom, workedOut: dose.text)
         VStack(alignment: .leading, spacing: 9) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(def.name).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-                Text(shownDose).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).lineLimit(2)
-                if course == nil || course?.doses.isEmpty == false { doseChangeLink(def.id, shown: shownDose) }
-                Spacer(minLength: 4)
+            doseHeader(name: def.name, dose: shownDose, drug: def.id, showChange: course == nil || course?.doses.isEmpty == false) {
                 EvidenceTag(text: "G", url: d.sources(["bratzler"]).first.flatMap { URL(string: $0.url) }, onOpen: openLink)
                 if course != nil {
                     Menu {
@@ -1839,6 +1831,35 @@ extension CaseTimersView {
     fileprivate func customDose(_ drug: String) -> String? {
         if let c = t.course(drug) { return c.dose }
         return AntibioticCourse.cleanDose(abxDoses[drug])
+    }
+
+    /// The drug's name, its dose and "Change" on one line with `trailing` (the evidence tag and the menu) at the end; where that does not
+    /// fit (large text) the dose and "Change" drop under the name, so no word of the name is ever broken.
+    @ViewBuilder fileprivate func doseHeader<Trailing: View>(name: String, dose: String, drug: String, showChange: Bool,
+                                                             @ViewBuilder trailing: () -> Trailing) -> some View {
+        let nameText = Text(name).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+        let doseText = Text(dose).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
+        let tail = trailing()
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                nameText.fixedSize()
+                if !dose.isEmpty { doseText.fixedSize() }
+                if showChange { doseChangeLink(drug, shown: dose) }
+                Spacer(minLength: 4)
+                tail
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    nameText
+                    Spacer(minLength: 4)
+                    tail
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    if !dose.isEmpty { doseText.fixedSize(horizontal: false, vertical: true) }
+                    if showChange { doseChangeLink(drug, shown: dose) }
+                }
+            }
+        }
     }
 
     /// "Change" beside the dose: opens the field in place; a second tap closes it.
