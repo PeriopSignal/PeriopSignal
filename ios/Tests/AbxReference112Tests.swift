@@ -101,4 +101,14 @@ final class AbxReference112Tests: XCTestCase {
         XCTAssertTrue((allergy.text ?? "").contains("IgE-mediated"))
         XCTAssertTrue((allergy.note ?? "").contains("2013"), "the guideline's age is stated")
     }
+
+    /// Ben asked for the card in the Reference tab: it is listed in the Preoperative & General folder (a card only search finds
+    /// is not "in the tab"), and it opens the card the bundle carries.
+    func testTheCardIsListedInTheReferenceTab() throws {
+        let keys = RefFolder.preoperative.items.map(\.route.key)
+        XCTAssertTrue(keys.contains("quickref:ashp-surgical-prophylaxis"), "\(keys)")
+        XCTAssertEqual(Set(keys).count, keys.count, "no tool is listed twice")
+        let item = try XCTUnwrap(RefFolder.preoperative.items.first { $0.route.key == "quickref:ashp-surgical-prophylaxis" })
+        XCTAssertEqual(item.title, "Surgical Antibiotic Prophylaxis")
+    }
 }

@@ -227,6 +227,11 @@ enum IntraopAntibiotic {
         let cal = Calendar.current
         guard let today = cal.date(bySettingHour: hour, minute: minute, second: 0, of: now) else { return nil }
         let ahead = today.timeIntervalSince(now)
+        // Across midnight the grace is tomorrow's: "at 0000" typed at 23:58 is two minutes from now, not this morning's.
+        if let tomorrow = cal.date(byAdding: .day, value: 1, to: today) {
+            let next = tomorrow.timeIntervalSince(now)
+            if next >= 0, next <= clockGrace { return tomorrow }
+        }
         if ahead <= clockGrace { return today }
         if ahead > 12 * 3600 { return cal.date(byAdding: .day, value: -1, to: today) }
         return nil

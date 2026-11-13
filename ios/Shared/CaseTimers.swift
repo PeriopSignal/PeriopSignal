@@ -234,8 +234,24 @@ struct HeparinCourse: Codable, Equatable {
 
     /// The ACT reminder's switch is on: turned on (actStart) or, in a case saved before 1.12, a bolus was logged, until it
     /// is turned off. A baseline ACT alone does not turn it on: the reminders and the switch row read this one rule. (A course
-    /// whose first dose is logged now is pinned off by `logDose`, so the saved-case rule never reaches it.)
-    var actRunning: Bool { !actOff && (actStart != nil || !doses.isEmpty) }
+    /// whose first dose is logged now is pinned off by `logDose`, so the saved-case rule never reaches it.) The saved-case rule
+    /// ends with protamine, as it did in build 39 (its recurring ACT check stopped once protamine was logged): a case saved
+    /// there after protamine does not start reminding again on its own; a switch turned on runs until it is turned off.
+    var actRunning: Bool { !actOff && (actStart != nil || (!doses.isEmpty && protamine.isEmpty)) }
+
+    /// A log begun by recording a dose (the Medications page's "+ Heparin", a typed dose) has the purpose "Other" because none
+    /// was chosen: the purpose can still be chosen, and the log is kept. Any other purpose is fixed once something is logged.
+    var purposeOpen: Bool { isBlank || purpose == "other" }
+
+    /// This log under the purpose chosen for it: the entries, the bypass times and the reminder stay; the goal becomes the
+    /// purpose's preset unless the user set one, and the interval the purpose's first unless the reminder is running.
+    func choosing(_ p: HeparinPurpose) -> HeparinCourse {
+        var c = self
+        c.purpose = p.id
+        if !c.userGoal { c.goal = p.goal }
+        if !c.actRunning, let every = p.actEvery.first { c.actEvery = every }
+        return c
+    }
 
     /// When the switch was turned on: actStart, or for a case saved by build 39 (a bolus started its timer, nothing was
     /// stamped) the first dose. nil while the switch is off.

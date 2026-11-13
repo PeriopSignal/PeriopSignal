@@ -1034,6 +1034,9 @@ jobs:
           shot 1163-q-send-note-on-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance light
           shot 1164-q-send-note-off-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 0 -ps.forceAppearance light
           shot 1165-q-send-note-on-dark 18 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance dark
+          # Build 40's last read-through: a heparin log begun by recording a dose still lets the purpose be chosen (the log is kept).
+          shot 1166-review-hep-purpose-open-light 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.card -ps.patient.width 375 -ps.forceAppearance light
+          shot 1167-review-hep-purpose-open-dark 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.card -ps.patient.width 375 -ps.forceAppearance dark
           #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light

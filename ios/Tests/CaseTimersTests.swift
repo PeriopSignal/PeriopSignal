@@ -189,9 +189,11 @@ final class CaseTimersTests: XCTestCase {
         h.protamine = [TimedEntry(time: t0.addingTimeInterval(7200), value: 250)]
         var t = CaseTimers(); t.heparin = h
         let rem = CaseTimerEngine.reminders(t, record: adult(), data: d)
-        // 1.12 follow-up: the ACT reminder is one switch and stays on after protamine until it is turned off (Ben: "for example
-        // after protamine"); this test asserted that it stopped by itself once reversal started.
-        XCTAssertNotNil(rem.first { $0.kind == .act }, "the switch is still on")
+        // A timer the bolus implied (a case saved by build 39) stops its recurring check once protamine is logged, as it did
+        // there. The 1.12 switch, turned on, stays on after protamine until it is turned off (Ben: "for example after protamine").
+        XCTAssertNil(rem.first { $0.kind == .act }, "saved by build 39: it stopped with protamine")
+        t.heparin?.setReminder(true, now: t0.addingTimeInterval(7300))
+        XCTAssertNotNil(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }, "the switch is on")
         t.heparin?.actOff = true
         XCTAssertNil(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }, "turned off")
         let rem2 = CaseTimerEngine.reminders(t, record: adult(), data: d)

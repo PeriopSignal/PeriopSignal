@@ -370,6 +370,14 @@ struct PlannedProcedure: Codable, Hashable, Identifiable {
                 attach(Array(gap.dropLast()))
                 attach([last, String(t[m.range])], history: true)
                 afterContext = true
+            } else if Self.bedlessAngiograms.contains(m.procedure.id), let bed = gap.last, Self.namesAVascularBed(bed),
+                      t[cursor..<m.range.lowerBound].trimmingCharacters(in: .whitespaces).hasSuffix(bed) {
+                // 1.12: the list's Diagnostic angiogram is the angiogram that names no vascular bed. A bed the list does not know,
+                // written right before the word ("carotid angiogram", "renal angiography"), stays one procedure as typed, as it
+                // was before the entry existed; it is not split into the bed as one procedure and a diagnostic angiogram as another.
+                attach(Array(gap.dropLast()))
+                items.append(PlannedProcedure(name: bed + " " + String(t[m.range])))
+                afterContext = false
             } else {
                 attach(gap)
                 items.append(PlannedProcedure(m.procedure, side: m.side))
@@ -392,6 +400,15 @@ struct PlannedProcedure: Codable, Hashable, Identifiable {
     }
 
     /// A procedure after one of these is one the patient is on or has had.
+    /// The angiograms that name no vascular bed (ProcedureCatalog), and the words before one that are not a bed.
+    private static let bedlessAngiograms: Set<String> = ["angiogram-diagnostic", "angiogram-intervention"]
+    private static let notABed: Set<String> = ["and", "then", "plus", "with", "for", "the", "possible", "poss", "diagnostic", "elective", "urgent",
+                                               "emergent", "emergency", "left", "right", "bilateral", "bilat", "repeat", "also"]
+    private static func namesAVascularBed(_ word: String) -> Bool {
+        let w = word.lowercased()
+        return w.filter(\.isLetter).count >= 3 && w.allSatisfy { $0.isLetter || $0 == "-" } && !notABed.contains(w)
+    }
+
     private static let contextWords: Set<String> = ["on", "s/p", "sp", "post", "h/o", "hx", "after", "prior", "previous",
                                                     "in", "known", "existing", "has", "had", "history"]
     /// Joining words and the urgency (recorded on its own) are dropped.

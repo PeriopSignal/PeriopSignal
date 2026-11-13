@@ -383,7 +383,9 @@ enum QuickAdd {
         // that says when or how it happened is an event; "hypertension" there is the history it was in 1.10. On either
         // place a piece that says it is history or an allergy stays with the note reader (isEvent).
         if handoff { readEvents(&s, c, &out, strict: tab == .preop, typed: withLineBreaks(base, from: line)) }
-        if !surgicalHistory { readProcedure(&s, c, &out) }
+        // The mid-line "for" (1.12) is read where the plan is told, not on the Summary & Handoff bar: "back to OR for mediastinal
+        // exploration" there is the handoff, and must not offer to replace the case's procedure.
+        if !surgicalHistory { readProcedure(&s, c, &out, midLineFor: !handoff) }
 
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
         let fresh = choices.filter { !out.stale.contains($0.key) }
@@ -1953,7 +1955,7 @@ enum QuickAdd {
     /// Words that join procedures or detail one: "×3", "+", "possible open", "L4-5".
     private static let detailWord = NoteRx(#"^(?:x\d{1,2}|×\d{1,2}|×|x|\d{1,2}|\+|&|and|/|with|w/|plus|possible|poss|open|conversion|converted|to|redo|re-do|robotic|robot|robot-assisted|assisted|lap|laparoscopic|minimally|invasive|mini|left|right|bilateral|l|r|lt|rt|bilat|b/l|elective|urgent|emergent|emergency|stat|staged|single|double|triple|quadruple|vessel|level|levels|[a-z]\d{1,2}(?:-[a-z]?\d{1,2})?)$"#)
 
-    private static func readProcedure(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+    private static func readProcedure(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut, midLineFor: Bool = true) {
         let text = s.text
         let ns = text as NSString
         // "for …" after the patient, "scheduled for …", "Procedure: …", or a line that opens with "for": the note
@@ -2005,13 +2007,13 @@ enum QuickAdd {
         let g = NSRange(location: lead, length: ns.length - lead)
         guard g.length > 0, let p = segment(g, in: text, typed: false),
               stripped(urgencyWord, (s.original as NSString).substring(with: NSRange(location: lead, length: p.range.location - lead))).isEmpty
-        else { return readFor(&s, c, &out) }
+        else { return midLineFor ? readFor(&s, c, &out) : () }
         let named = ns.substring(with: p.range)
         let next = p.range.location + p.range.length < ns.length ? ns.substring(with: NSRange(location: p.range.location + p.range.length, length: 1)) : ""
         let rest = ns.substring(with: pieceRange(p.range, in: text))
         guard PatientNote.deviceCue.first(named) == nil, PatientNote.tubeCue.first(named) == nil, next != ":",
               pastWords.first(rest) == nil, aortaHistoryLead.first(named) == nil,
-              allergyAfterName.first(ns.substring(from: p.range.location + p.range.length)) == nil else { return readFor(&s, c, &out) }
+              allergyAfterName.first(ns.substring(from: p.range.location + p.range.length)) == nil else { return midLineFor ? readFor(&s, c, &out) : () }
         take(p, &s, c, &out)
     }
 
@@ -2032,7 +2034,9 @@ enum QuickAdd {
     /// After a mid-line "for" the operation is told as past also by "last year", "previously" and the like ("GI consulted for EGD last
     /// year"): `pastWords` and the ways of saying how long ago.
     private static let pastAfterFor = NoteRx(#"\blast (?:year|month|week|decade|summer|winter|spring|fall)\b|\bpreviously\b|\bin the past\b|\b(?:years?|months?|weeks?|decades?) back\b|\b(?:19|20)\d\d\b|\bago\b|\b(?:s/p|status post|prior|previous|history|hx|h/o|remote)\b"#)
-    private static let durationFirst = NoteRx(#"^\d+(?:\.\d+)?\s*(?:min|mins|minutes?|h|hrs?|hours?|days?|d|weeks?|wks?|months?|mos?|years?|yrs?)\b"#)
+    /// A lone "h" or "d" is a unit only when no word follows it: "for 8 h" and "for 3 d." say how long, "for 3D TEE" and "for 2D
+    /// echo" name the study.
+    private static let durationFirst = NoteRx(#"^\d+(?:\.\d+)?\s*(?:(?:min|mins|minutes?|hrs?|hours?|days?|weeks?|wks?|months?|mos?|years?|yrs?)\b|[hd]\b(?!\s*[a-z]))"#)
 
     private static func readFor(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
         let text = s.text
@@ -2077,14 +2081,23 @@ enum QuickAdd {
         let typed = split(text)
         guard typed.count >= 2, (typed.last?.count ?? 0) >= 3, typed.joined().count >= 6,
               PlannedProcedure.parse(text).allSatisfy({ $0.catalogID == nil }), !ProcedureCatalog.isDiagnosisOnly(text) else { return nil }
-        for p in ProcedureCatalog.search(text, limit: 3) where p.ask == nil {
+        // Only when the words mean ONE listed procedure: "mitral valve" begins a repair, a replacement and a clip, and the bar
+        // does not choose among them (the words stay as typed). A name the words run the whole length of ("aortic valve repl" for
+        // "Aortic valve replacement") is meant before a longer one that merely begins with them.
+        var whole: [String] = [], begun: [String] = []
+        for p in ProcedureCatalog.search(text, limit: 12) where p.ask == nil {
+            var best: Int?
             for form in [p.name] + p.synonyms where !p.caseSensitive.contains(form) {
                 let w = split(form)
                 guard w.count >= typed.count else { continue }
                 let begins = typed.indices.allSatisfy { i in i == typed.count - 1 ? w[i].hasPrefix(typed[i]) : w[i] == typed[i] }
-                if begins { return p.name }
+                if begins { best = min(best ?? Int.max, w.count) }
             }
+            guard let best else { continue }
+            if best == typed.count { if !whole.contains(p.name) { whole.append(p.name) } } else if !begun.contains(p.name) { begun.append(p.name) }
         }
+        if whole.count == 1 { return whole[0] }
+        if whole.isEmpty, begun.count == 1 { return begun[0] }
         return nil
     }
 

@@ -764,7 +764,8 @@ struct CaseTimersView: View {
         case .glucose: show(.labs, at: "lab.glucose")
         case .act, .protamineACT:
             // A due ACT needs a value: the timeline's "+ ACT" entry opens, at now.
-            show(.heparin, at: "heparin.act")
+            // (The entry opens in the log card; with no log yet, the section itself.)
+            show(.heparin, at: t.heparin == nil ? nil : "heparin.log")
             if t.heparin != nil { rowEdit = nil; draft = HeparinDraft(kind: .act) }
         default:
             let ebl = r.fluids["ebl"]
@@ -1186,7 +1187,9 @@ struct CaseTimersView: View {
 
     @ViewBuilder private func purposeChips(_ d: CaseTimerData) -> some View {
         let h = t.heparin
-        let locked = h.map { !$0.isBlank } ?? false
+        let locked = h.map { !$0.purposeOpen } ?? false
+        // A log begun by recording a dose has no purpose chosen yet ("Other"): choosing one keeps the log.
+        let unchosen = h.map { !$0.isBlank && $0.purposeOpen } ?? false
         let list = purposeList(d)
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -1206,6 +1209,13 @@ struct CaseTimersView: View {
                     // Doses are logged against this purpose: clear the log (⋯) to change it.
                     return
                 }
+                if unchosen {
+                    // Never the toggle here: a second tap on "Other" would clear the recorded doses.
+                    guard id != h?.purpose, let p = d.purpose(id) else { return }
+                    edit { $0.heparin = $0.heparin?.choosing(p) }
+                    goalEditing = false; goalEntry = nil; actPick = nil
+                    return
+                }
                 if ChipToggle.tap(h?.purpose, id) == nil {
                     edit { $0.heparin = nil }
                     resetHeparinEntry()
@@ -1216,6 +1226,9 @@ struct CaseTimersView: View {
             .opacity(locked ? 0.75 : 1)
             if locked {
                 Text("Purpose fixed once a dose or ACT is logged; ⋯ clears the log.").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+            } else if unchosen {
+                Text("Choose the purpose for its ACT goal and protamine range; the log is kept.").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

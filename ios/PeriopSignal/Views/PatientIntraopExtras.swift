@@ -238,7 +238,10 @@ struct BloodStepperRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text(label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).lineLimit(2).minimumScaleFactor(0.85)
+            // A one-word name ("Cryoprecipitate" beside its +5 on a 375 pt phone) shrinks to stay on one line; it never breaks
+            // inside the word. A name of several words takes two lines.
+            Text(label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                .lineLimit(label.contains(" ") ? 2 : 1).minimumScaleFactor(label.contains(" ") ? 0.85 : 0.7)
             Spacer(minLength: 4)
             if let q = quick {
                 Button { set(v + q) } label: {

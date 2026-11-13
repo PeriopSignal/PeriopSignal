@@ -282,9 +282,22 @@ final class O112Tests: XCTestCase {
             "09:40 Protamine 150 mg",
         ])
         XCTAssertNil(h.actStart); XCTAssertFalse(h.actOff)
-        // Its timer ran from the bolus, as it did: the switch reads on, counting from the last ACT.
-        XCTAssertTrue(h.actRunning)
-        XCTAssertEqual(due(h), at(9, 20), "08:50 + 30 min")
+        // Build 39 stopped its recurring ACT check once protamine was logged: the saved case reads off, as it was, and does not
+        // start reminding again on its own.
+        XCTAssertFalse(h.actRunning)
+        XCTAssertNil(due(h))
+        XCTAssertFalse(try reminders(h).contains { $0.kind == .act })
+        // The same case before protamine: its timer ran from the bolus, so the switch reads on, counting from the last ACT.
+        var before = build39Course()
+        before["protamine"] = [[String: Any]]()
+        let running = try XCTUnwrap(JSONDecoder().decode(CaseTimers.self, from: try JSONSerialization.data(withJSONObject: ["heparin": before])).heparin)
+        XCTAssertTrue(running.actRunning)
+        XCTAssertEqual(due(running), at(9, 20), "08:50 + 30 min")
+        // Switched on after protamine, it runs until it is switched off.
+        var on = h
+        on.setReminder(true, now: at(9, 45))
+        XCTAssertTrue(on.actRunning)
+        XCTAssertEqual(due(on), at(10, 15))
         // Saved again, it reads back the same: nothing is rewritten.
         let again = try JSONDecoder().decode(CaseTimers.self, from: try JSONEncoder().encode(t))
         XCTAssertEqual(again, t)
