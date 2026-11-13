@@ -1041,9 +1041,9 @@ jobs:
           shot 1168-lower-agesex-68m-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "68m for lap chole, HTN"
           shot 1169-lower-agesex-26f-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "26f for lap appy, asthma"
           # Ben, Nov 13: the cardiac result row starts as its one red line; a folded Cardiopulmonary box keeps that line in view.
-          shot 1170-warning-fold-row-closed-light-375 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.width 375 -ps.forceAppearance light
-          shot 1171-warning-fold-box-folded-light 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.collapse 1 -ps.forceAppearance light
-          shot 1172-warning-fold-box-folded-dark-375 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.collapse 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1170-warning-fold-row-closed-light-375 18 -ps.tab patient -ps.patient demo-112-fold -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.width 375 -ps.forceAppearance light
+          shot 1171-warning-fold-box-folded-light 18 -ps.tab patient -ps.patient demo-112-fold -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.collapse 1 -ps.forceAppearance light
+          shot 1172-warning-fold-box-folded-dark-375 18 -ps.tab patient -ps.patient demo-112-fold -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.collapse 1 -ps.patient.width 375 -ps.forceAppearance dark
           # ---- 1.12 helper R shots (1175-1189): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
