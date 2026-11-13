@@ -1037,6 +1037,9 @@ jobs:
           # Build 40's last read-through: a heparin log begun by recording a dose still lets the purpose be chosen (the log is kept).
           shot 1166-review-hep-purpose-open-light 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.card -ps.patient.width 375 -ps.forceAppearance light
           shot 1167-review-hep-purpose-open-dark 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.card -ps.patient.width 375 -ps.forceAppearance dark
+          # Ben, Nov 13: "68m" and "26f" in lowercase are the age and sex in the Preoperative bar.
+          shot 1168-lower-agesex-68m-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "68m for lap chole, HTN"
+          shot 1169-lower-agesex-26f-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "26f for lap appy, asthma"
           #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light
