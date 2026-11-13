@@ -390,7 +390,9 @@ enum QuickAdd {
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
         let fresh = choices.filter { !out.stale.contains($0.key) }
         if tab == .intraop { for m in placedTiming.all(s.text) { s.mask(m.range) } }
-        let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: fresh, askRoomAir: false, typed: s.baseline)
+        // The lowercase "68m" is the patient on the Preoperative bar only: on the bars where the case is told, a number and an m is a time.
+        let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: fresh, askRoomAir: false, typed: s.baseline,
+                                    lowerPatient: tab == .preop && !handoff && !surgicalHistory)
         let mine = Set(out.findings.map(\.id))
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.
@@ -1105,7 +1107,8 @@ enum QuickAdd {
     /// Other pressures written as a pair (PA, RV, ventilator) are not the blood pressure.
     private static let notBPBefore = NoteRx(#"\b(?:pa|pap|pas|rv|lv|cvp|pcwp|wedge|mpap|swan|peep|ps|pip|vt|tv|bipap|cpap|niv|fio2|aug|augmentation)(?:\s+(?:pressures?|press|systolic|sys))?\s*(?:of|is|was|:|=)?\s*$"#)
     private static let vSep = #"^[\s,;|]*"#
-    private static let noUnit = #"(?![\d.%/])(?!\s*(?:g|ga|gauge|fr|f|mg|mcg|kg|cm|mm|ml|l|lpm|units?|u|mmhg)\b)"#
+    // 1.12: an "m" after the number is the patient's sex ("BP 120/70, 55m for TKA"), as an "f" already was: not a bare heart rate.
+    private static let noUnit = #"(?![\d.%/])(?!\s*(?:g|ga|gauge|fr|f|m|mg|mcg|kg|cm|mm|ml|l|lpm|units?|u|mmhg)\b)"#
     private static let vHR = NoteRx(vSep + #"(?:hr|heart rate|pulse|p)\s*:?\s*(\d{2,3})"# + noUnit + #"(?:\s*(?:bpm|/min)\b)?"#)
     private static let vSpO2 = NoteRx(vSep + #"(?:spo2|spo₂|sats?|o2 sat|sao2|pulse ox)\s*:?\s*(\d{2,3})(?![\d.])\s*%?"#)
     private static let vPercent = NoteRx(vSep + #"(\d{2,3})\s*%"#)
