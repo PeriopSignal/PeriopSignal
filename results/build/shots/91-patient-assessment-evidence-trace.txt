@@ -1,0 +1,9 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-13 20:00:35.164 Df PeriopSignal[9787:42677] [org.periopsignal.app:shots] root appear tab=preop
+2026-11-13 20:00:35.324 Df PeriopSignal[9787:42677] [org.periopsignal.app:shots] PatientView appear
+2026-11-13 20:00:38.024 Df PeriopSignal[9787:42677] [org.periopsignal.app:shots] open begin editor(PeriopSignal.PatientEditor.assessment)
+2026-11-13 20:00:40.290 Df PeriopSignal[9787:42677] [org.periopsignal.app:shots] push (pushed before: false)
+2026-11-13 20:00:40.371 Df PeriopSignal[9787:42677] [org.periopsignal.app:shots] path 0 -> 1
+2026-11-13 20:00:41.290 Df PeriopSignal[9787:42677] [org.periopsignal.app:shots] page appear assessment
+2026-11-13 20:00:44.546 Df PeriopSignal[9787:42677] [org.periopsignal.app:shots] root disappear
+2026-11-13 20:00:45.588 Df PeriopSignal[9787:42677] [org.periopsignal.app:shots] ready
