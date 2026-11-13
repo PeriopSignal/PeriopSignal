@@ -1,6 +1,0 @@
-Timestamp               Ty Process[PID:TID]
-2026-11-13 01:14:29.374 Df PeriopSignal[47314:1f2f2] [org.periopsignal.app:shots] push (pushed before: false)
-2026-11-13 01:14:29.484 Df PeriopSignal[47314:1f2f2] [org.periopsignal.app:shots] path 0 -> 1
-2026-11-13 01:14:30.610 Df PeriopSignal[47314:1f2f2] [org.periopsignal.app:shots] page appear demographics
-2026-11-13 01:14:34.684 Df PeriopSignal[47314:1f2f2] [org.periopsignal.app:shots] root disappear
-2026-11-13 01:14:41.639 Df PeriopSignal[47314:1f2f2] [org.periopsignal.app:shots] ready
