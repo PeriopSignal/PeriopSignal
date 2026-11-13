@@ -7,7 +7,22 @@ import Foundation
 enum PatientDemo112More {
     static func record(_ seed: String) -> PatientRecord? {
         if let r = historySeeds(seed) { return r }
+        if let r = foldSeeds(seed) { return r }
         return deviceSeeds(seed)
+    }
+
+    /// Ben, Nov 13 (the cardiac result row starts as its one red line; a folded Cardiopulmonary box keeps it in view).
+    ///
+    ///   demo-112-fold   the cholecystectomy patient of demo-cardio111-chole with coronary disease, heart failure and COPD
+    ///                   and no functional capacity recorded, so the stepwise result is a warning ("Assess functional
+    ///                   capacity"); the ECG and the stress test are entered, so the box folds
+    static func foldSeeds(_ seed: String) -> PatientRecord? {
+        guard seed == "demo-112-fold" else { return nil }
+        var r = PatientDemo.cardio111Chole
+        r.problems = ["htn", "dm", "cad", "hf", "copd"]
+        r.mets = nil
+        PatientHistoryDetails.sync(&r)
+        return r
     }
 
     /// Helper M: heparin-induced thrombocytopenia, heparin resistance, PVCs.
