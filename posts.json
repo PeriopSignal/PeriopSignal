@@ -51,6 +51,28 @@
     "seconds": 216,
     "bytes": 1726893,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Effect of discontinuing antihypertensives on perioperative hypotension in older patients before non-cardiac surgery: multicentre, randomised, double blind, controlled trial",
+    "authors": [
+     "Yang Y",
+     "Peng K",
+     "Zhong J",
+     "Zhang J",
+     "Liu X",
+     "Yang J",
+     "Liu L",
+     "Gu J",
+     "Sun P",
+     "Chen C",
+     "Yu Y",
+     "Yuan J"
+    ],
+    "journal": "BMJ",
+    "doi": "10.1136/bmj-2026-101087",
+    "year": 2026,
+    "volume": "395",
+    "pages": "e101087"
    }
   },
   {
@@ -97,6 +119,26 @@
     "seconds": 189,
     "bytes": 1512621,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Treatment of pulmonary hypertension in infants, children and young adults. 2026 consensus statement from the European Pediatric Pulmonary Vascular Disease Network (EPPVDN), endorsed by AHA, AEPC, EACTS, ESPR, PASCAR, PCS, and PICS",
+    "authors": [
+     "Hansmann G",
+     "Idorn L",
+     "Melicoff E",
+     "Justino H",
+     "Anjos R",
+     "Bates A",
+     "Bobylev D",
+     "Budts W",
+     "Diekmann F",
+     "Hasan BS",
+     "Hasan H",
+     "Heath A"
+    ],
+    "journal": "The Journal of Heart and Lung Transplantation",
+    "doi": "10.1016/j.healun.2026.01.013",
+    "year": 2026
    }
   },
   {
@@ -145,6 +187,26 @@
     "seconds": 182,
     "bytes": 1458285,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Treatment of children and young adults with a Fontan circulation and cardiovascular dysfunction. 2026 Consensus Statement from the European Pediatric Pulmonary Vascular Disease Network (EPPVDN), endorsed by AHA, AEPC, EACTS, ISACHD, ISHLT and PICS",
+    "authors": [
+     "Opotowsky AR",
+     "Allen KY",
+     "Chessa M",
+     "Crossland D",
+     "Grewal J",
+     "Hörer J",
+     "Karamlou T",
+     "Liuba P",
+     "Lorts A",
+     "Marsden A",
+     "Miyamoto SD",
+     "Smith CL"
+    ],
+    "journal": "The Journal of Heart and Lung Transplantation",
+    "doi": "10.1016/j.healun.2025.12.020",
+    "year": 2026
    }
   },
   {
