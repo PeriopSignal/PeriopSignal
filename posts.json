@@ -45,6 +45,12 @@
     ],
     "answer": 1,
     "explanation": "Hypotension occurred in 45.5% of patients who took the drug versus 31.2% who received placebo (adjusted OR 0.52 for holding), and vasopressors were used in 41.1% versus 28.5%. Thirty-day complications and mortality did not differ; the findings apply to older patients having noncardiac surgery under general anaesthesia."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/bmj-2026-acei-arb-morning-hold-hypotension-older-noncardiac.mp3",
+    "seconds": 216,
+    "bytes": 1726893,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -85,6 +91,12 @@
     ],
     "answer": 0,
     "explanation": "The writing group incorporated classifications and definitions from the 7th World Symposium on PH (2024), updating the network's 2016 and 2019 statements. It produced 6 graded recommendation tables and 3 algorithms; the evidence base for children is limited, so check each recommendation's level of evidence."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jhlt-2026-eppvdn-pediatric-pulmonary-hypertension-treatment-consensus.mp3",
+    "seconds": 189,
+    "bytes": 1512621,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -127,6 +139,12 @@
     ],
     "answer": 3,
     "explanation": "The authors state that Fontan-specific evidence remains limited, so many recommendations necessarily represent expert opinion, and they list knowledge gaps and research priorities. The statement offers seven graded recommendation tables and a pulmonary vasodilator flowchart."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jhlt-2026-eppvdn-fontan-cardiovascular-dysfunction-consensus.mp3",
+    "seconds": 182,
+    "bytes": 1458285,
+    "voice": "kokoro:af_heart"
    }
   },
   {
