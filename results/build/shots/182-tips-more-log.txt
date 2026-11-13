@@ -1,0 +1,2 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-13 01:16:51.632 A  PeriopSignal[50878:2158a] (RunningBoardServices) didChangeInheritances
