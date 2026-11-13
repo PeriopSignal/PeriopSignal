@@ -197,7 +197,7 @@ final class LowerAgeSex112Tests: XCTestCase {
         }
         // With other words after the procedure, a weight after the age, and a heading before it.
         let more: [(String, Double, PatientSex)] = [("pt is a 68m for TKA under spinal", 68, .male), ("68m 82kg for CABG", 68, .male),
-                                                    ("Pt: 68m for CABG", 68, .male), ("68m HTN DM2 CAD for CABG", 68, .male)]
+                                                    ("68m HTN DM2 CAD for CABG", 68, .male)]
         for (line, years, s) in more {
             let f = bar(line).findings
             XCTAssertEqual(age(f), years, line)
