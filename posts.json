@@ -1,7 +1,134 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-12T09:13:59+00:00",
+ "generatedAt": "2026-11-13T09:09:05+00:00",
  "posts": [
+  {
+   "id": "bmj-2026-acei-arb-morning-hold-hypotension-older-noncardiac",
+   "date": "2026-11-11",
+   "dateApprox": false,
+   "addedAt": "2026-11-13",
+   "journal": "BMJ",
+   "jshort": "BMJ",
+   "kind": "RCT",
+   "topics": [
+    "general"
+   ],
+   "headline": "Skipping the morning ACE inhibitor or ARB cut perioperative hypotension from 45.5% to 31.2% in older noncardiac patients",
+   "summary": "A double-blind, placebo-controlled trial in five Chinese teaching hospitals randomized adults aged 60 to 80 on an ACE inhibitor or ARB to take their usual dose or a placebo capsule on the morning of noncardiac surgery under general anaesthesia.",
+   "takeHome": [
+    "Perioperative hypotension occurred in 31.2% without the drug versus 45.5% with it (adjusted OR 0.52, 95% CI 0.43 to 0.63)",
+    "Vasopressor use was lower without the drug (28.5% vs 41.1%) and hypotension lasted 1.3 minutes less",
+    "Intraoperative fluids, postoperative hypotension, 30-day complications and mortality did not differ significantly between groups"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Whether to take an ACE inhibitor or ARB on the morning of surgery is one of the most common preoperative medication questions, and guidance has swung back and forth because earlier trials were small or used surrogate endpoints. This is a large, blinded trial with a clinical hypotension endpoint.\n\n**What they did.** Five tertiary hospitals in China enrolled 2,036 patients aged 60 to 80 who had taken an ACE inhibitor or ARB for at least two weeks and were scheduled for noncardiac surgery under general anaesthesia (November 2020 to December 2023). Patients received either their usual drug or an identical placebo capsule on the morning of surgery. The primary outcome was perioperative hypotension, defined as mean arterial pressure below 65 mm Hg or a fall of at least 30% from baseline that required treatment.\n\n**What they found.** Of 2,012 patients analysed, hypotension occurred in 314 of 1,008 (31.2%) in the group that skipped the drug and 457 of 1,004 (45.5%) in the group that took it: adjusted OR 0.52 (95% CI 0.43 to 0.63), an absolute difference of -14.4 points. Vasopressors were needed in 28.5% versus 41.1%, and hypotension was 1.3 minutes shorter. Fluid volume, postoperative hypotension, 30-day complications (including neurocognitive disorders and major cardiocerebral events) and mortality were not significantly different.\n\n**Caveats.** The population was Chinese, aged 60 to 80 and having noncardiac surgery under general anaesthesia, so extrapolation to cardiac surgery, regional anaesthesia or heart-failure patients is not supported. The trial was registered in the Chinese Clinical Trial Registry (ChiCTR2000039376), outside ClinicalTrials.gov.\n\n**For the anesthesiologist.** For hypertensive older patients having general anaesthesia, holding the dose on the morning of surgery is now backed by a large blinded RCT, with fewer hypotensive episodes and vasopressor needs and no signal of harm at 30 days. Pair it with a plan for blood pressure management before induction.",
+   "url": "https://doi.org/10.1136/bmj-2026-101087",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Yang",
+   "title": "Effect of discontinuing antihypertensives on perioperative hypotension in older patients before non-cardiac surgery: multicentre, randomised, double blind, controlled trial",
+   "glance": {
+    "design": "Multicentre double-blind placebo-controlled RCT, 5 tertiary hospitals in China",
+    "n": "2,036 patients aged 60-80 on ACE inhibitor/ARB; 2,012 analysed",
+    "outcome": "Perioperative hypotension (MAP <65 mm Hg or >=30% fall from baseline needing treatment)",
+    "result": "31.2% vs 45.5%, adjusted OR 0.52 (95% CI 0.43-0.63), favouring holding the drug"
+   },
+   "quiz": {
+    "question": "In a double-blind trial of patients aged 60 to 80 on an ACE inhibitor or ARB having noncardiac surgery under general anaesthesia, what did taking the drug on the morning of surgery do?",
+    "options": [
+     "It lowered 30-day mortality compared with placebo",
+     "It raised perioperative hypotension (45.5% vs 31.2%) and vasopressor use",
+     "It had no effect on perioperative hypotension or vasopressor needs",
+     "It reduced major cardiocerebral events at 30 days"
+    ],
+    "answer": 1,
+    "explanation": "Hypotension occurred in 45.5% of patients who took the drug versus 31.2% who received placebo (adjusted OR 0.52 for holding), and vasopressors were used in 41.1% versus 28.5%. Thirty-day complications and mortality did not differ; the findings apply to older patients having noncardiac surgery under general anaesthesia."
+   }
+  },
+  {
+   "id": "jhlt-2026-eppvdn-pediatric-pulmonary-hypertension-treatment-consensus",
+   "date": "2026-11-03",
+   "dateApprox": false,
+   "addedAt": "2026-11-13",
+   "journal": "J Heart Lung Transplant",
+   "jshort": "JHLT",
+   "kind": "Consensus",
+   "topics": [
+    "pedsCardiac",
+    "pediatric"
+   ],
+   "headline": "EPPVDN 2026 consensus updates treatment of pulmonary hypertension in infants, children and young adults",
+   "summary": "The European Pediatric Pulmonary Vascular Disease Network, with endorsement from AHA, AEPC, EACTS and other societies, issued graded recommendations for treating pediatric pulmonary hypertension, updating its 2016 and 2019 statements.",
+   "takeHome": [
+    "Thirteen section task forces produced 6 graded recommendation tables (class of recommendation, level of evidence) and 3 treatment algorithms",
+    "Scope spans risk assessment, drug therapy, transcatheter interventions and surgery, and PH subgroups and special populations",
+    "Classifications and definitions from the 7th World Symposium on PH (2024) were incorporated, with adaptation for middle-to-low-income regions"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Pulmonary hypertension in children is heterogeneous: it can come from congenital heart disease, developmental lung disease such as bronchopulmonary dysplasia, persistent PH of the newborn, or left heart disease. Adult guidance does not transfer cleanly, so pediatric cardiologists, intensivists and anesthesiologists rely on dedicated consensus documents. This is the update to the network's 2016 and 2019 statements.\n\n**What they did.** The EPPVDN executive writing group searched PubMed/MEDLINE from 2000 to 2025 for prospective studies, trials, meta-analyses, guidelines and other articles with pediatric data. Thirteen section task forces drafted consented recommendations. Classes of recommendation and levels of evidence follow AHA/ESC definitions and were assigned using pediatric PH studies, adult studies including at least 15 children, or studies in adults with congenital heart disease. The statement adopts the 7th World Symposium on PH (2024) classifications and definitions.\n\n**What they produced.** Six graded recommendation tables and three algorithms, with 16 main and 17 supplemental display items. Topics include risk assessment, pharmacological therapy, transcatheter interventions and surgery, recommendations for PH subgroups and special populations and clinical settings, and an adaptation for middle-to-low-income regions. It is endorsed by AHA, AEPC, EACTS, ESPR, PASCAR, PCS and PICS.\n\n**Caveats.** The abstract does not state limitations. As with most pediatric PH guidance, much of the underlying evidence comes from small pediatric studies or adult data, so grades should be read with the level of evidence beside them.\n\n**For the anesthesiologist.** If you care for children with PH for catheterization, cardiac surgery or noncardiac procedures, this is the current reference for treatment frameworks and risk assessment to read alongside your institution's perioperative PH pathway. Review the full text for the specific recommendations before changing practice.",
+   "url": "https://doi.org/10.1016/j.healun.2026.01.013",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Hansmann",
+   "title": "Treatment of pulmonary hypertension in infants, children and young adults. 2026 consensus statement from the European Pediatric Pulmonary Vascular Disease Network (EPPVDN), endorsed by AHA, AEPC, EACTS, ESPR, PASCAR, PCS, and PICS",
+   "quiz": {
+    "question": "Which classification framework did the 2026 EPPVDN consensus statement on treating pediatric pulmonary hypertension incorporate for its definitions?",
+    "options": [
+     "The 7th World Symposium on Pulmonary Hypertension (2024)",
+     "The 2016 EPPVDN statement without changes",
+     "The adult ESC/ERS risk stratification only",
+     "The 5th World Symposium on Pulmonary Hypertension"
+    ],
+    "answer": 0,
+    "explanation": "The writing group incorporated classifications and definitions from the 7th World Symposium on PH (2024), updating the network's 2016 and 2019 statements. It produced 6 graded recommendation tables and 3 algorithms; the evidence base for children is limited, so check each recommendation's level of evidence."
+   }
+  },
+  {
+   "id": "jhlt-2026-eppvdn-fontan-cardiovascular-dysfunction-consensus",
+   "date": "2026-11-03",
+   "dateApprox": false,
+   "addedAt": "2026-11-13",
+   "journal": "J Heart Lung Transplant",
+   "jshort": "JHLT",
+   "kind": "Consensus",
+   "topics": [
+    "pedsCardiac",
+    "cardiac"
+   ],
+   "headline": "EPPVDN consensus statement on Fontan cardiovascular dysfunction offers phenotype-guided management with mostly expert-opinion evidence",
+   "summary": "An international EPPVDN writing group, endorsed by AHA, AEPC, EACTS, ISACHD, ISHLT and PICS, issued graded recommendations for assessing and treating cardiovascular dysfunction in children and young adults with a Fontan circulation.",
+   "takeHome": [
+    "Seven graded recommendation tables cover assessment, pulmonary vascular disease, pathway obstruction, venous and arterial abnormalities, lymphatics, myocardial dysfunction and antithrombotic therapy",
+    "A flowchart guides the use of pulmonary vasodilator therapy",
+    "Fontan-specific evidence is limited, so many recommendations necessarily represent expert opinion"
+   ],
+   "authorLimitations": [
+    "Fontan-specific evidence remains limited, so many recommendations necessarily represent expert opinion"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Fontan patients now survive into adulthood, but the circulation imposes a lifelong hemodynamic burden and predisposes to heart failure, lymphatic problems, thromboembolism and multisystem morbidity. Evidence-based guidance for managing Fontan-specific cardiac and vascular dysfunction has been scarce.\n\n**What they did.** The European Pediatric Pulmonary Vascular Disease Network convened an international, multidisciplinary executive writing group to review the literature and develop consensus recommendations for children and young adults with a Fontan circulation. Recommendations were graded using Class of Recommendation and Level of Evidence criteria adapted to the Fontan evidence base. The statement is endorsed by AHA, AEPC, EACTS, ISACHD, ISHLT and PICS.\n\n**What they produced.** Seven graded recommendation tables and a flowchart for pulmonary vasodilator therapy. The content covers cardiovascular assessment, pulmonary vascular disease and vasodilator use, Fontan pathway obstruction, systemic venous and arterial abnormalities and collateral vessels, lymphatic dysfunction and intervention, myocardial dysfunction and heart failure therapy, and thromboembolic risk and antithrombotic therapy. The emphasis is on phenotype-guided, hemodynamically informed decisions across medical, transcatheter and surgical options.\n\n**Caveats.** The authors state that Fontan-specific evidence remains limited, so many recommendations represent expert opinion. They also set out knowledge gaps and priorities for collaborative research.\n\n**For the anesthesiologist.** Fontan patients present for cardiac catheterization, imaging, noncardiac surgery and, increasingly, transplant evaluation. This statement lays out how teams are being asked to think about their hemodynamics, pulmonary vascular disease and thromboembolic risk, which helps frame preoperative discussions with the congenital cardiology team. Read the full recommendation tables for specifics.",
+   "url": "https://doi.org/10.1016/j.healun.2025.12.020",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Opotowsky",
+   "title": "Treatment of children and young adults with a Fontan circulation and cardiovascular dysfunction. 2026 Consensus Statement from the European Pediatric Pulmonary Vascular Disease Network (EPPVDN), endorsed by AHA, AEPC, EACTS, ISACHD, ISHLT and PICS",
+   "quiz": {
+    "question": "How do the authors of the 2026 EPPVDN Fontan consensus statement describe the evidence behind their recommendations?",
+    "options": [
+     "Mostly high-level evidence from large randomized trials",
+     "Evidence borrowed entirely from adult heart failure guidelines",
+     "Evidence adequate for every recommendation to be graded Class I",
+     "Fontan-specific evidence is limited, so many recommendations are expert opinion"
+    ],
+    "answer": 3,
+    "explanation": "The authors state that Fontan-specific evidence remains limited, so many recommendations necessarily represent expert opinion, and they list knowledge gaps and research priorities. The statement offers seven graded recommendation tables and a pulmonary vasodilator flowchart."
+   }
+  },
   {
    "id": "nejm-2026-pepper-aspirin-rivaroxaban-warfarin-arthroplasty",
    "date": "2026-11-12",
