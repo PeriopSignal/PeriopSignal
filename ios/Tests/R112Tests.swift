@@ -362,9 +362,9 @@ final class R112Tests: XCTestCase {
         XCTAssertEqual(try cefazolinReminder(r.timers, r)?.snoozed, true)
     }
 
-    // MARK: Nothing about the reminders depends on the dose text
+    // MARK: The reminders: the same ones at the same times, the redose line saying the dose set
 
-    func testSettingTheDoseChangesNoReminder() throws {
+    func testSettingTheDoseChangesNoReminderButTheRedoseLineSaysIt() throws {
         let d = try data()
         var r = adult()
         r.fluids["ebl"] = 1600
@@ -378,9 +378,16 @@ final class R112Tests: XCTestCase {
         XCTAssertTrue(r.timers.setAntibioticDose("3 g", drug: "cefazolin"))
         XCTAssertTrue(r.timers.setAntibioticDose("1.5 g", drug: "ceftriaxone"))
         XCTAssertTrue(r.timers.setAntibioticDose("1.25 g", drug: "vancomycin"))
-        XCTAssertEqual(CaseTimerEngine.reminders(r.timers, record: r, data: d), before, "the reminders, their texts and due times are the same")
+        // Which reminders there are and when they fall due do not depend on the dose text; the redose reminder's own line says the
+        // dose set for the case (the running list, the notification and the lock screen read it), and nothing else changes.
+        func shape(_ rs: [CaseReminder]) -> [String] { rs.map { $0.id + "|" + $0.title + "|" + ($0.due.map { String($0.timeIntervalSinceReferenceDate) } ?? "now") } }
+        let after = CaseTimerEngine.reminders(r.timers, record: r, data: d)
+        XCTAssertEqual(shape(after), shape(before), "the same reminders at the same times")
+        let redose = try XCTUnwrap(after.first { $0.id == "antibiotic.cefazolin" })
+        XCTAssertTrue(redose.detail.hasPrefix("3 g · every"), redose.detail)
+        XCTAssertEqual(after.filter { $0.id != "antibiotic.cefazolin" }, before.filter { $0.id != "antibiotic.cefazolin" }, "every other reminder is word for word the same")
         r.timers.setAntibioticDose(nil, drug: "cefazolin")
-        XCTAssertEqual(CaseTimerEngine.reminders(r.timers, record: r, data: d), before)
+        XCTAssertEqual(CaseTimerEngine.reminders(r.timers, record: r, data: d), before, "the worked-out dose again once the custom one is cleared")
         XCTAssertEqual(r.timers.hasTimers, true)
     }
 }

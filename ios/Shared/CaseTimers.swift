@@ -683,8 +683,10 @@ enum CaseTimerEngine {
             let skipOnBypass = def.id == "gentamicin" && (onBypass || purpose?.isBypass == true)
             if skipOnBypass { continue }
             if let m = CaseTimerRecurrence.redoseMinutes(a, def: def) {
+                // The dose set for this case, when there is one (1.12): the running list, the notification and the lock screen say
+                // the dose that will be given, not the worked-out one beside a "3 g" on the card.
                 out.append(CaseReminder(kind: .antibiotic, title: "\(def.name) redose",
-                                        detail: "\(antibioticDose(def, record: r).text) · every \(interval(m)) from the last dose",
+                                        detail: "\(a.dose ?? antibioticDose(def, record: r).text) · every \(interval(m)) from the last dose",
                                         due: last.time.addingTimeInterval(m * 60), ref: def.id))
             } else if def.redoseHours == nil, let h = d.antibioticRules.longCaseHours, h > 0 {
                 out.append(CaseReminder(kind: .longCase, title: "\(def.name): long case",
