@@ -87,7 +87,7 @@ struct QuickAddBar: View {
         }
         .onChange(of: text) { old, new in handle(old, new) }
         .sheet(item: $sheet) { seed in
-            PatientNoteSheet(initialText: seed.text, tab: tab) { n, before in
+            PatientNoteSheet(initialText: seed.text, tab: tab, lowerPatient: place.patientLine) { n, before in
                 withAnimation(.snappy) {
                     added = Added(count: n, before: before, after: patient.record, caseID: patient.currentCase.id)
                     clear()
@@ -333,7 +333,7 @@ struct QuickAddBar: View {
             return
         }
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory, handoff: place.handoff)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine)
         withAnimation(.snappy) {
             reading = q
             readText = t
@@ -373,7 +373,7 @@ struct QuickAddBar: View {
         let before = patient.record
         let seen = Set(QuickAdd.chips(shown, record: before).map(\.id))
         let q = QuickAdd.read(t, record: before, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory, handoff: place.handoff)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine)
         let chosen = QuickAdd.chips(q, record: before, dropped: dropped).filter { seen.contains($0.id) && $0.canAdd && !dropped.contains($0.id) }
         guard !chosen.isEmpty else { return Haptics.light() }
         // One discrete step in the store's Undo history, whatever was typed just before.
@@ -439,7 +439,7 @@ struct QuickAddBar: View {
         let t = LaunchSeed.string(compact ? "ps.quickadd.editor" : "ps.quickadd").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty, text.isEmpty, added == nil else { return }
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory, handoff: place.handoff)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine)
         var still = Transaction()
         still.disablesAnimations = true
         withTransaction(still) {

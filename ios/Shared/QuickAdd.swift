@@ -52,6 +52,10 @@ enum QuickAddPlace: Hashable {
     /// There "extubated" and "remains intubated" are the airway at handoff and "hypotension after induction" an
     /// event; on the Preoperative tab and its pages they are not read ("extubated POD1 last year" is history).
     var handoff: Bool { tab == .intraop || self == .summaryTab }
+
+    /// Where the patient is typed in one line (1.12): the Preoperative tab's own bar. Only there is a lowercase "68m" the age
+    /// and sex; on the editor pages' bars and where the case is told, a number and an m or an f is a time or a size.
+    var patientLine: Bool { self == .preopTab }
 }
 
 /// What a line gives: findings to file, and what is shown but never filed.
@@ -324,7 +328,7 @@ enum QuickAdd {
     /// are not read.
     static func read(_ line: String, record: PatientRecord, tab: QuickAddTab, now: Date = Date(),
                      abbreviations user: [String: String] = [:], choices: [String: String] = [:],
-                     surgicalHistory: Bool = false, handoff: Bool = false) -> QuickAddReading {
+                     surgicalHistory: Bool = false, handoff: Bool = false, patientLine: Bool = true) -> QuickAddReading {
         let one = line.components(separatedBy: .newlines).joined(separator: " ")
         var s = QuickScan(one)
         var reading = QuickAddReading()
@@ -390,9 +394,9 @@ enum QuickAdd {
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
         let fresh = choices.filter { !out.stale.contains($0.key) }
         if tab == .intraop { for m in placedTiming.all(s.text) { s.mask(m.range) } }
-        // The lowercase "68m" is the patient on the Preoperative bar only: on the bars where the case is told, a number and an m is a time.
+        // The lowercase "68m" is the patient on the Preoperative tab's own bar only (`patientLine`): elsewhere a number and an m is a time.
         let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: fresh, askRoomAir: false, typed: s.baseline,
-                                    lowerPatient: tab == .preop && !handoff && !surgicalHistory)
+                                    lowerPatient: patientLine && tab == .preop && !handoff && !surgicalHistory)
         let mine = Set(out.findings.map(\.id))
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.

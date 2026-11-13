@@ -3,11 +3,11 @@ import XCTest
 
 /// Ben, Nov 13: "68m should = 68 year old male and 26f = 26 year old female in free text spot in preop." Until now only the
 /// capitals were read (68M, 26F), because a lowercase m or f after a number is also meters, minutes, months, French and
-/// Fahrenheit. The lowercase forms are read where they can only be the patient: opening the typed line, with "yo" between,
-/// after words that introduce the patient, or opening a comma-separated item right before "for" and a procedure. Two
-/// independent checks ran several hundred lines each through earlier versions; every line they raised (a duration after a
-/// diagnosis, a French size after a device, an age written out beside a lowercase duration, a duration after a full stop) is
-/// in the lists below.
+/// Fahrenheit. The lowercase forms are read where they can only be the patient: opening the typed text, with "yo" between,
+/// after words that introduce the patient, or opening a comma-separated item right before "for" and a listed procedure; on
+/// the Preoperative tab's own bar and in a note pasted there. Three independent checks ran some 2,500 lines through earlier
+/// versions; every line they raised (a duration after a diagnosis, a French size after a device, an age written out beside a
+/// lowercase duration, a duration after a full stop or on a later line) is in the lists below.
 final class LowerAgeSex112Tests: XCTestCase {
     private var now: Date { Calendar.current.date(from: DateComponents(year: 2026, month: 11, day: 13, hour: 8))! }
 
@@ -28,12 +28,12 @@ final class LowerAgeSex112Tests: XCTestCase {
         return r
     }
     /// The lowercase reading of a whole typed text, worked out as `PatientNote.read` does: an age or a sex written out anywhere
-    /// leaves only the "yo" form, and only the first clause of a line opens it.
+    /// leaves only the "yo" form, and only the first clause of the text opens it.
     private func lower(_ text: String) -> (age: Double, sex: PatientSex)? {
-        let clauses = PatientNote.clausesWithOpening(text)
-        let explicit = clauses.contains { PatientNote.statesAgeOrSex($0.clause) }
-        for item in clauses {
-            if let low = PatientNote.lowerAgeSex(item.clause, opensLine: item.opensLine, explicitElsewhere: explicit) { return (low.age, low.sex) }
+        let clauses = PatientNote.clauses(text)
+        let explicit = clauses.contains { PatientNote.statesAgeOrSex($0) }
+        for (i, clause) in clauses.enumerated() {
+            if let low = PatientNote.lowerAgeSex(clause, opensText: i == 0, explicitElsewhere: explicit) { return (low.age, low.sex) }
         }
         return nil
     }
@@ -83,7 +83,9 @@ final class LowerAgeSex112Tests: XCTestCase {
             ("this is a 73m for AVR", 73, .male),
             ("A healthy 34f for lap chole", 34, .female),
             ("68m for CABG\nHTN, DM2", 68, .male),
-            ("HTN, DM2\n68m for CABG", 68, .male),
+            ("pt is 68m s/p CABG for redo sternotomy", 68, .male),
+            ("he is a 54m with HOCM", 54, .male),
+            ("44f s/p gastric bypass for lap chole", 44, .female),
             ("Pt is a 68m for CABG, ex tol poor, 50m with cane", 68, .male),
             ("Pt is a 72f with severe AS, 36m with syncope", 72, .female),
             ("this is a 62f for AVR, poor ex tol, 50m with cane", 62, .female),
@@ -262,19 +264,65 @@ final class LowerAgeSex112Tests: XCTestCase {
             "able to walk a 50m with a cane",
             "angina, 30m for 2 days",
             "CP, 30m for 3 days",
+            "pt is 24m s/p DES",
+            "Pt is 36m s/p CABG, here for redo",
+            "patient is 24m s/p MI",
+            "Pt: 30m s/p stent",
+            "pt is a 36m s/p CABG",
+            "This is a 24m s/p stent",
+            "Functional capacity:\n- 50m with cane",
+            "Meds:\nPlavix\n12m for DES",
+            "DAPT:\n12m, then ASA alone",
+            "Stent\n24m s/p DES",
+            "Social\n45m drive",
+            "Timeline:\n20m: ASA given\n40m: to cath lab",
+            "Wife is a 66f with CAD",
+            "Mother is a 70f with dementia",
+            "Father is a 90m with DM",
+            "there is a 12f for drainage",
+            "there is a 28f, with 100 out",
+            "stent is a 24m s/p",
+            "Angina, 30m for relief",
+            "Chest tightness, 30m for each episode",
+            "Jogs, 40m for exercise",
+            "Warfarin, 36m for PE",
+            "Tamoxifen, 60m for breast ca",
+            "Empyema, 28f for drainage",
+            "R pleural effusion, 28f for drainage",
+            "16f for retention",
+            "14f for drainage",
+            "68 years of age\n24m s/p stent",
+            "Pt is 68\n36m s/p CABG",
+            "28f right chest tube",
+            "20f R IJ introducer",
+            "24f L chest tube placed",
+            "20f R radial art line",
+            "32f L pleural drain",
+            "36m s/p DES to LAD, EF 55%",
+            "PMH:\n- HTN\n- 36m s/p DES to LAD\n- DM2",
+            "Cardiac hx:\n24m s/p CABG\nEF 55%",
+            "HTN, DM2\n68m for CABG",
+            "Induction smooth, A-line in\n40m s/p incision, BP stable",
+            "20f 3-way",
+            "22f coude",
+            "19f JP",
             "A 62f for AVR, poor ex tol, 50m with cane",
         ]
         for line in lines { XCTAssertNil(lower(line), line) }
     }
 
-    func testOnlyTheFirstClauseOfALineOpensIt() {
-        XCTAssertNotNil(PatientNote.lowerAgeSex("30m s/p stent", opensLine: true), "an adult opening the typed line is read as it stands")
-        XCTAssertNil(PatientNote.lowerAgeSex("30m s/p stent", opensLine: false), "after a full stop or a semicolon it is a duration")
+    func testOnlyTheFirstClauseOfTheTextOpensIt() {
+        XCTAssertNotNil(PatientNote.lowerAgeSex("45m with HTN", opensText: true), "an adult opening the typed text is read as it stands")
+        XCTAssertNil(PatientNote.lowerAgeSex("45m with HTN", opensText: false), "after a full stop, a semicolon or a line break it is a duration")
+        XCTAssertNil(PatientNote.lowerAgeSex("36m s/p DES to LAD"), "under 40 right before s/p: three years on, not a 36-year-old")
+        XCTAssertEqual(PatientNote.lowerAgeSex("68m s/p CABG for redo sternotomy")?.age, 68)
         XCTAssertNil(PatientNote.lowerAgeSex("68m for CABG", explicitElsewhere: true), "an age written out elsewhere is the patient's")
         XCTAssertEqual(PatientNote.lowerAgeSex("68 yo m for CABG", explicitElsewhere: true)?.age, 68, "the yo form is itself an age written out")
-        let parts = PatientNote.clausesWithOpening("68m for CABG. HTN; DM2\nNo allergies. 30m walk")
-        XCTAssertEqual(parts.map(\.clause), ["68m for CABG", "HTN", "DM2", "No allergies", "30m walk"])
-        XCTAssertEqual(parts.map(\.opensLine), [true, false, false, true, false])
+        XCTAssertTrue(PatientNote.statesAgeOrSex("68 years of age")); XCTAssertTrue(PatientNote.statesAgeOrSex("Pt is 68"))
+        XCTAssertFalse(PatientNote.statesAgeOrSex("pt is 68m for CABG"), "the lowercase form is not an age written out")
+        // A comma item is the patient only before a procedure from the list.
+        XCTAssertTrue(PatientNote.listedProcedureFollows(" for CABG")); XCTAssertTrue(PatientNote.listedProcedureFollows(" for an elective lap chole"))
+        XCTAssertFalse(PatientNote.listedProcedureFollows(" for relief")); XCTAssertFalse(PatientNote.listedProcedureFollows(" with CABG"))
     }
 
     func testTheTokenIsFoundOnItsOwn() {
@@ -319,13 +367,27 @@ final class LowerAgeSex112Tests: XCTestCase {
         }
     }
 
-    /// Where the case is told, a number and an m is a time: the lowercase forms are the patient on the Preoperative bar only.
+    /// Where the case is told, a number and an m is a time: the lowercase forms are the patient on the Preoperative tab's own bar
+    /// only, and in a note pasted there.
     func testTheLowercaseFormsAreNotReadOnTheBarsWhereTheCaseIsTold() {
         for line in ["40m in, norepi 0.05", "45m s/p incision", "68m for CABG"] {
             XCTAssertNil(age(bar(line, .intraop).findings), line)
             XCTAssertNil(sex(bar(line, .intraop).findings), line)
             XCTAssertNil(age(bar(line, .preop, handoff: true).findings), line + " (Summary & Handoff)")
+            let page = QuickAdd.read(line, record: PatientRecord(), tab: .preop, now: now, patientLine: false)
+            XCTAssertNil(age(page.findings), line + " (an editor page's bar)")
         }
+        XCTAssertTrue(QuickAddPlace.preopTab.patientLine)
+        for place in [QuickAddPlace.intraopTab, .summaryTab, .editor(intraop: false), .editor(intraop: true), .pastSurgery] {
+            XCTAssertFalse(place.patientLine)
+        }
+        // A long paste opened from one of those bars reads the note with the lowercase forms off.
+        let pasted = PatientNote.read("Induction smooth, A-line in\n40m s/p incision, BP stable, norepi 0.05", now: now, lowerPatient: false)
+        XCTAssertNil(age(pasted.findings)); XCTAssertNil(sex(pasted.findings))
+        let off = PatientNote.read("68m for CABG", now: now, lowerPatient: false)
+        XCTAssertNil(age(off.findings))
+        // The capitals are read there as they were.
+        XCTAssertEqual(age(bar("68M for CABG", .preop, handoff: true).findings), age(bar("68M for CABG").findings))
     }
 
     func testAddedItFillsAgeSexAndTheProcedure() {
@@ -365,7 +427,8 @@ final class LowerAgeSex112Tests: XCTestCase {
         XCTAssertEqual(age(after.findings), 68); XCTAssertEqual(sex(after.findings), .female)
         // A temperature, a duration or a tube size is not a patient and a procedure, after a comma or a full stop.
         for text in ["Fever, 99f for 2 days.", "On Plavix, 12m for DAPT.", "Chest pain, 5m for each episode.", "Walks 50m for exercise daily.",
-                     "Foley placed. 16f.", "Pericardial effusion. 14f for drainage.", "Extubated. 30m s/p, stable."] {
+                     "Foley placed. 16f.", "Pericardial effusion. 14f for drainage.", "Extubated. 30m s/p, stable.",
+                     "PMH:\n- HTN\n- 36m s/p DES to LAD\n- DM2", "Cardiac hx:\n24m s/p CABG\nEF 55%", "Meds:\nPlavix\n12m for DES"] {
             let r = PatientNote.read(text, now: now)
             XCTAssertNil(age(r.findings), text); XCTAssertNil(sex(r.findings), text)
             XCTAssertNil(r.findings.first { $0.id == "procedure" }, text)
