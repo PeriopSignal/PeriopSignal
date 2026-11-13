@@ -335,7 +335,7 @@ private struct AddRow: View {
             HStack(spacing: 10) {
                 Image(systemName: open ? "minus.circle.fill" : "plus.circle.fill")
                     .font(PS.sys(size: 18, weight: .semibold)).foregroundStyle(PS.action)
-                Text(title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+                Text(title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg).layoutPriority(1)
                 Spacer(minLength: 6)
                 if let detail { Text(detail).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg3).lineLimit(1) }
                 Image(systemName: open ? "chevron.up" : "chevron.down").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -368,6 +368,23 @@ private struct HeparinRowEdit {
     var picked: Date?
     var armed = false
     var deleteArmed = false
+}
+
+/// The antibiotic dose field open in place: the drug and the text being typed.
+private struct AbxDoseEdit: Equatable {
+    var drug: String
+    var text: String
+}
+
+/// A logged antibiotic dose's time open in place: the dose, the time its row shows, the time picked (nil: unchanged), and whether
+/// it was opened from the log of doses (the editor then sits in that row) or from the "Last dose" line.
+private struct AbxTimeEdit {
+    var drug: String
+    var id: UUID
+    var shown: Date
+    var picked: Date?
+    var inLog: Bool
+    var armed = false
 }
 
 private extension View {
@@ -434,6 +451,12 @@ struct CaseTimersView: View {
     @State private var abxPending: [String] = []
     @State private var abxPicks: [String: RecurrencePick] = [:]
     @State private var abxStart = StartTimePick()
+    /// 1.12 follow-up (Ben, Nov 13): the dose typed for a pick that no dose is logged for yet, by drug (it goes into the course when the
+    /// dose is logged); the dose field and the time editor open in place (one each).
+    @State private var abxDoses: [String: String] = [:]
+    @State private var abxDoseEdit: AbxDoseEdit?
+    @State private var abxTimeEdit: AbxTimeEdit?
+    @FocusState private var abxDoseFocused: Bool
     // Labs
     @State private var labPicks: [String: RecurrencePick] = [:]
     @State private var labStart = StartTimePick()
@@ -587,8 +610,9 @@ struct CaseTimersView: View {
     }
 
     private func discardPendingAndLeave() {
-        for drug in pendingDrugs { abxPicks[drug] = nil }
+        for drug in pendingDrugs { abxPicks[drug] = nil; abxDoses[drug] = nil }
         abxPending = []
+        abxDoseEdit = nil
         dismiss()
     }
 
@@ -630,6 +654,20 @@ struct CaseTimersView: View {
             let e = h.timeline[i]
             rowEdit = HeparinRowEdit(id: e.id, kind: e.kind, value: e.value, shown: e.time)
         }
+        // -ps.timers.abx.pending.dose "3 g": a dose typed for the first pending pick; -ps.timers.abx.dose <drug>: that drug's dose field
+        // open; -ps.timers.abx.time <drug>:<dose, from 0, oldest first>[:log]: that dose's time editor open (in the log with ":log").
+        let pendingDose = LaunchSeed.string("ps.timers.abx.pending.dose")
+        if !pendingDose.isEmpty, let drug = abxPending.first { abxDoses[drug] = AntibioticCourse.cleanDose(pendingDose) }
+        let doseDrug = LaunchSeed.string("ps.timers.abx.dose")
+        if !doseDrug.isEmpty, let def = d.antibiotic(doseDrug) {
+            let shown = AntibioticDoseText.header(custom: customDose(doseDrug), workedOut: CaseTimerEngine.antibioticDose(def, record: r).text)
+            abxDoseEdit = AbxDoseEdit(drug: doseDrug, text: AntibioticDoseText.prefill(custom: customDose(doseDrug), shown: shown))
+        }
+        let timeSeed = LaunchSeed.string("ps.timers.abx.time").split(separator: ":").map(String.init)
+        if timeSeed.count >= 2, let c = t.course(timeSeed[0]), let i = Int(timeSeed[1]) {
+            let sorted = c.doses.sorted { $0.time < $1.time }
+            if sorted.indices.contains(i) { abxTimeEdit = AbxTimeEdit(drug: c.drug, id: sorted[i].id, shown: sorted[i].time, inLog: timeSeed.count > 2) }
+        }
         let scroll = LaunchSeed.string("ps.timers.scroll")
         if !scroll.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { scrollTarget = scroll } }
     }
@@ -649,7 +687,7 @@ struct CaseTimersView: View {
             if openSections.contains(s) { openSections.remove(s) } else {
                 openSections.insert(s)
                 switch s {
-                case .antibiotic: abxStart = StartTimePick()
+                case .antibiotic: abxStart = StartTimePick(); abxDoseEdit = nil; abxTimeEdit = nil
                 case .labs: labStart = StartTimePick()
                 case .heparin: draft = nil; rowEdit = nil
                 }
@@ -927,9 +965,8 @@ struct CaseTimersView: View {
     /// here, its doses listed and added to, the reminder switch off and disabled.
     @ViewBuilder private func typedAntibioticRow(_ course: AntibioticCourse, _ d: CaseTimerData) -> some View {
         VStack(alignment: .leading, spacing: 9) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(course.drug.capitalized).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-                Spacer(minLength: 4)
+            let shown = AntibioticDoseText.typedCourseHeader(course)
+            doseHeader(name: course.drug.capitalized, dose: shown, drug: course.drug, showChange: !course.doses.isEmpty) {
                 Menu {
                     Button(role: .destructive) {
                         edit { $0.antibiotics.removeAll { $0.drug == course.drug } }
@@ -937,6 +974,7 @@ struct CaseTimersView: View {
                 } label: { Image(systemName: "ellipsis.circle").font(PS.sys(size: 17)).foregroundStyle(PS.fg3) }
                 .accessibilityLabel(course.drug.capitalized + " options")
             }
+            if let ed = abxDoseEdit, ed.drug == course.drug { doseEditor(ed, def: nil) }
             reminderSwitchRow(course, d)
             doseLines(course, name: course.drug.capitalized, every: nil, computed: "")
         }
@@ -946,8 +984,7 @@ struct CaseTimersView: View {
     @ViewBuilder private func doseLines(_ course: AntibioticCourse, name: String, every: Double?, computed: String) -> some View {
         if let last = course.last {
             HStack(spacing: 10) {
-                Text(Self.lastDoseText(last: last, every: every, computed: computed, recordOnly: course.recordOnly))
-                    .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
+                lastDoseButton(course, last: last, every: every, computed: computed)
                 Spacer(minLength: 4)
                 Button("Redose given") {
                     let ebl = r.fluids["ebl"] ?? 0
@@ -957,8 +994,12 @@ struct CaseTimersView: View {
                 }
                 .buttonStyle(CapsuleButtonStyle(prominent: false))
             }
+            if let ed = abxTimeEdit, ed.drug == course.drug, !ed.inLog { timeEditor(ed, name: name, timed: course.reminders) }
             if course.doses.count > 1 {
-                DoseHistory(entries: course.doses, text: { Self.doseText($0, name: name) }) { id in
+                DoseHistory(entries: course.doses, text: { Self.doseText($0, name: name) },
+                            onTime: { openTimeEdit(course.drug, $0, inLog: true) },
+                            editingID: abxTimeEdit.flatMap { $0.drug == course.drug && $0.inLog ? $0.id : nil },
+                            editor: { _ in abxTimeEdit.map { AnyView(timeEditor($0, name: name, timed: course.reminders)) } ?? AnyView(EmptyView()) }) { id in
                     edit { t in
                         if let i = t.antibiotics.firstIndex(where: { $0.drug == course.drug }) { t.antibiotics[i].doses.removeAll { $0.id == id } }
                     }
@@ -971,11 +1012,12 @@ struct CaseTimersView: View {
         let course = t.course(def.id)
         let dose = CaseTimerEngine.antibioticDose(def, record: r)
         let chips = CaseTimerRecurrence.antibioticChips(def)
+        // 1.12 (Ben, Nov 13): the dose typed for this case (the course's, or one set with a pending pick) replaces the worked-out dose
+        // here, which stays as a quiet hint; a course with a dose logged, and a pending pick, can change it.
+        let custom = customDose(def.id)
+        let shownDose = AntibioticDoseText.header(custom: custom, workedOut: dose.text)
         VStack(alignment: .leading, spacing: 9) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(def.name).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-                Text(dose.text).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).lineLimit(2)
-                Spacer(minLength: 4)
+            doseHeader(name: def.name, dose: shownDose, drug: def.id, showChange: course == nil || course?.doses.isEmpty == false) {
                 EvidenceTag(text: "G", url: d.sources(["bratzler"]).first.flatMap { URL(string: $0.url) }, onOpen: openLink)
                 if course != nil {
                     Menu {
@@ -987,13 +1029,16 @@ struct CaseTimersView: View {
                     .accessibilityLabel(def.name + " options")
                 } else {
                     Button {
-                        abxPending.removeAll { $0 == def.id }; abxPicks[def.id] = nil
+                        abxPending.removeAll { $0 == def.id }; abxPicks[def.id] = nil; abxDoses[def.id] = nil
+                        if abxDoseEdit?.drug == def.id { abxDoseEdit = nil }
                     } label: { Image(systemName: "xmark.circle.fill").font(PS.sys(size: 17)).foregroundStyle(PS.fg3) }
                     .buttonStyle(.borderless)
                     .accessibilityLabel("Remove " + def.name)
                 }
             }
-            if let needs = dose.needs { Text(needs).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent) }
+            if custom != nil { Text(AntibioticDoseText.workedOutNote(def, record: r)).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+            if let ed = abxDoseEdit, ed.drug == def.id { doseEditor(ed, def: def) }
+            if custom == nil, let needs = dose.needs { Text(needs).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent) }
             // 1.12: a course that exists has the redose reminder's switch; a course recorded only has no interval to pick.
             if let course { reminderSwitchRow(course, d) }
             if course?.recordOnly != true {
@@ -1029,13 +1074,17 @@ struct CaseTimersView: View {
 
     /// "Last dose 08:10 · next 12:10", and "· given: 1 g" when the last dose was typed in the quick-add bar and says more than the
     /// dose computed above it.
-    static func lastDoseText(last: TimedEntry, every: Double?, computed: String, recordOnly: Bool = false) -> String {
+    /// 1.12 (Nov 13): `custom` is the course's own dose. It is the dose the header shows, so a typed dose that says the same is not
+    /// written again; one that differs (typed in the bar as "1 g" before the course was set to "1.5 g") is, because it is how that dose
+    /// was logged.
+    static func lastDoseText(last: TimedEntry, every: Double?, computed: String, recordOnly: Bool = false, custom: String? = nil) -> String {
         var s = "Last dose " + ClockText.time(last.time)
         if let every { s += " · next " + ClockText.time(last.time.addingTimeInterval(every * 60)) }
         if recordOnly {
             // Recorded only: the dose as it was typed, always (no dose of Case Timers' own was given or computed for it).
-            if let g = last.given?.trimmingCharacters(in: .whitespacesAndNewlines), !g.isEmpty { s += " · given: " + g }
-        } else if let given = IntraopAntibiotic.givenNote(last: last, computed: computed) {
+            if let g = last.given?.trimmingCharacters(in: .whitespacesAndNewlines), !g.isEmpty,
+               !(custom.map { AntibioticDoseText.same($0, g) } ?? false) { s += " · given: " + g }
+        } else if let given = IntraopAntibiotic.givenNote(last: last, computed: custom ?? computed) {
             s += " · " + given
         }
         return s
@@ -1053,11 +1102,12 @@ struct CaseTimersView: View {
         let start = abxStart.resolved(now: Date())
         let ebl = r.fluids["ebl"] ?? 0
         let picks = abxPicks
+        let typedDoses = abxDoses
         edit { t in
             for drug in pending where t.course(drug) == nil {
                 let pick = picks[drug] ?? RecurrencePick()
-                t.antibiotics.append(AntibioticCourse(drug: drug, doses: [TimedEntry(time: start, ebl: ebl)],
-                                                      everyMinutes: CaseTimerRecurrence.storedInterval(pick)))
+                t.antibiotics.append(AntibioticCourse.started(drug: drug, time: start, ebl: ebl,
+                                                              every: CaseTimerRecurrence.storedInterval(pick), typedDose: typedDoses[drug]))
             }
             for (drug, m) in changes {
                 if let i = t.antibiotics.firstIndex(where: { $0.drug == drug }) { t.antibiotics[i].everyMinutes = m }
@@ -1065,6 +1115,8 @@ struct CaseTimersView: View {
         }
         abxPending = []
         abxPicks = [:]
+        abxDoses = [:]
+        abxDoseEdit = nil
         abxStart = StartTimePick()
     }
 
@@ -1718,20 +1770,22 @@ struct CaseTimersView: View {
 struct DoseHistory: View {
     var entries: [TimedEntry]
     var text: (TimedEntry) -> String
+    /// 1.12 (Nov 13): where given, a row's time (the "08:10" its text starts with) is tappable and opens `editor` in that row's place
+    /// while `editingID` is its id.
+    var onTime: ((TimedEntry) -> Void)? = nil
+    var editingID: UUID? = nil
+    var editor: ((TimedEntry) -> AnyView)? = nil
     var onDelete: (UUID) -> Void
     @State private var open = false
 
     var body: some View {
-        DisclosureGroup(isExpanded: $open) {
+        DisclosureGroup(isExpanded: Binding(get: { open || editingID != nil }, set: { open = $0 })) {
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(entries.sorted { $0.time > $1.time }) { e in
-                    HStack {
-                        Text(text(e)).font(PS.mono(size: 12, weight: .medium)).foregroundStyle(PS.fg2)
-                        Spacer()
-                        Button(role: .destructive) { onDelete(e.id) } label: { Image(systemName: "minus.circle") }
-                            .buttonStyle(.borderless).tint(PS.fg3)
-                            .accessibilityLabel("Remove " + text(e))
-                    }
+                    if editingID == e.id, let editor { editor(e) } else { row(e) }
+                }
+                if onTime != nil {
+                    Text("Tap a time to change it.").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
                 }
             }
             .padding(.top, 6)
@@ -1739,5 +1793,218 @@ struct DoseHistory: View {
             Text("Log (\(entries.count))").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
         }
         .tint(PS.fg3)
+    }
+
+    private func row(_ e: TimedEntry) -> some View {
+        HStack {
+            if let onTime {
+                Button { onTime(e) } label: {
+                    (Text(String(text(e).prefix(5))).foregroundStyle(PS.action) + Text(String(text(e).dropFirst(5))).foregroundStyle(PS.fg2))
+                        .font(PS.mono(size: 12, weight: .medium))
+                        .multilineTextAlignment(.leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(text(e))
+                .accessibilityHint("Change the time of this dose")
+            } else {
+                Text(text(e)).font(PS.mono(size: 12, weight: .medium)).foregroundStyle(PS.fg2)
+            }
+            Spacer()
+            Button(role: .destructive) { onDelete(e.id) } label: { Image(systemName: "minus.circle") }
+                .buttonStyle(.borderless).tint(PS.fg3)
+                .accessibilityLabel("Remove " + text(e))
+        }
+    }
+}
+
+// MARK: - The antibiotic's dose and a logged dose's time (1.12 follow-up, Ben, Nov 13)
+//
+// "Have ability to change antibiotic dose in case timer." The dose is one text per antibiotic for the case (`AntibioticCourse.dose`):
+// "Change" beside the dose opens a field in place, "Use" keeps it, a quiet link goes back to the worked-out dose, which stays under
+// the field as a hint and beside the dose as "worked out: 2 g". A dose logged already has its time changed from the "Last dose" line
+// or its row in the log, in the box the Heparin & ACT rows open (a 24-hour time, "Save" and "Cancel", one Undo step). No dose check
+// runs on the typed text (AntibioticDose.swift).
+
+extension CaseTimersView {
+    /// The dose typed for this case: the course's, else the one set with a pending pick.
+    fileprivate func customDose(_ drug: String) -> String? {
+        if let c = t.course(drug) { return c.dose }
+        return AntibioticCourse.cleanDose(abxDoses[drug])
+    }
+
+    /// The drug's name, its dose and "Change" on one line with `trailing` (the evidence tag and the menu) at the end; where that does not
+    /// fit (large text) the dose and "Change" drop under the name, so no word of the name is ever broken.
+    @ViewBuilder fileprivate func doseHeader<Trailing: View>(name: String, dose: String, drug: String, showChange: Bool,
+                                                             @ViewBuilder trailing: () -> Trailing) -> some View {
+        let nameText = Text(name).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+        let doseText = Text(dose).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
+        let tail = trailing()
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                nameText.fixedSize()
+                if !dose.isEmpty { doseText.fixedSize() }
+                if showChange { doseChangeLink(drug, shown: dose) }
+                Spacer(minLength: 4)
+                tail
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    nameText
+                    Spacer(minLength: 4)
+                    tail
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    if !dose.isEmpty { doseText.fixedSize(horizontal: false, vertical: true) }
+                    if showChange { doseChangeLink(drug, shown: dose) }
+                }
+            }
+        }
+    }
+
+    /// "Change" beside the dose: opens the field in place; a second tap closes it.
+    @ViewBuilder fileprivate func doseChangeLink(_ drug: String, shown: String) -> some View {
+        let open = abxDoseEdit?.drug == drug
+        Button {
+            Haptics.light()
+            withAnimation(.snappy) {
+                abxDoseEdit = open ? nil : AbxDoseEdit(drug: drug, text: AntibioticDoseText.prefill(custom: customDose(drug), shown: shown))
+            }
+            if !open { DispatchQueue.main.async { abxDoseFocused = true } }
+        } label: {
+            Text("Change").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.action).fixedSize()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Change the dose")
+        .accessibilityValue(open ? "Open" : "")
+    }
+
+    /// The field, "Use", the way back to the worked-out dose, and the worked-out dose as the hint. `def` is nil for a drug Case Timers'
+    /// list does not have (nothing was worked out for it).
+    @ViewBuilder fileprivate func doseEditor(_ ed: AbxDoseEdit, def: AntibioticDef?) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                TextField("Dose, e.g. 3 g", text: Binding(get: { abxDoseEdit?.text ?? "" }, set: { abxDoseEdit?.text = AntibioticDoseText.limited($0) }))
+                    .font(PS.sys(size: 16, weight: .semibold))
+                    .keyboardType(.default)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .submitLabel(.done)
+                    .focused($abxDoseFocused)
+                    .onSubmit { useDose(ed.drug) }
+                    .padding(.horizontal, 10).padding(.vertical, 8)
+                    .background(PS.surface2, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .accessibilityLabel("Dose for this case")
+                Button("Use") { useDose(ed.drug) }
+                    .buttonStyle(CapsuleButtonStyle.patientAction(prominent: true))
+            }
+            if let def {
+                Text(AntibioticDoseText.hint(def, record: r))
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+            }
+            FlowLayout(spacing: 14) {
+                if customDose(ed.drug) != nil, let def {
+                    Button { useWorkedOut(ed.drug) } label: {
+                        Text(AntibioticDoseText.useWorkedOutTitle(def, record: r))
+                            .font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.action)
+                            .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+                    }
+                    .buttonStyle(.plain)
+                }
+                Button {
+                    abxDoseFocused = false
+                    withAnimation(.snappy) { abxDoseEdit = nil }
+                } label: {
+                    Text("Cancel").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .entryBox()
+    }
+
+    /// One Undo step for a course; a pick not logged yet holds it in view state until the dose is logged.
+    fileprivate func storeDose(_ cleaned: String?, drug: String) {
+        if t.course(drug) != nil {
+            guard t.course(drug)?.dose != cleaned else { return }
+            edit(asks: false) { _ = $0.setAntibioticDose(cleaned, drug: drug) }
+        } else {
+            abxDoses[drug] = cleaned
+        }
+    }
+
+    fileprivate func useDose(_ drug: String) {
+        guard let ed = abxDoseEdit, ed.drug == drug else { return }
+        Haptics.light()
+        storeDose(AntibioticCourse.cleanDose(ed.text), drug: drug)
+        abxDoseFocused = false
+        withAnimation(.snappy) { abxDoseEdit = nil }
+    }
+
+    fileprivate func useWorkedOut(_ drug: String) {
+        Haptics.light()
+        storeDose(nil, drug: drug)
+        abxDoseFocused = false
+        withAnimation(.snappy) { abxDoseEdit = nil }
+    }
+
+    // MARK: A logged dose's time
+
+    /// "Last dose 08:10 · next 12:10": the time is the control (PS.action); a tap opens the time editor under the line.
+    @ViewBuilder fileprivate func lastDoseButton(_ course: AntibioticCourse, last: TimedEntry, every: Double?, computed: String) -> some View {
+        let full = Self.lastDoseText(last: last, every: every, computed: computed, recordOnly: course.recordOnly, custom: course.dose)
+        let head = "Last dose " + ClockText.time(last.time)
+        Button { openTimeEdit(course.drug, last, inLog: false) } label: {
+            (Text("Last dose ").foregroundStyle(PS.fg2) + Text(ClockText.time(last.time)).foregroundStyle(PS.action)
+                + Text(String(full.dropFirst(head.count))).foregroundStyle(PS.fg2))
+                .font(PS.sys(size: 13.5))
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(full)
+        .accessibilityHint("Change the time of this dose")
+    }
+
+    fileprivate func openTimeEdit(_ drug: String, _ e: TimedEntry, inLog: Bool) {
+        Haptics.light()
+        withAnimation(.snappy) {
+            if let ed = abxTimeEdit, ed.id == e.id, ed.inLog == inLog { abxTimeEdit = nil } else {
+                abxTimeEdit = AbxTimeEdit(drug: drug, id: e.id, shown: e.time, inLog: inLog)
+            }
+        }
+    }
+
+    /// The time of one logged dose: the Heparin & ACT row editor's time control and rules (`HeparinTimeline.resolvedEdit`: unchanged
+    /// until a time is picked, never in the future), "Save" and "Cancel".
+    @ViewBuilder fileprivate func timeEditor(_ ed: AbxTimeEdit, name: String, timed: Bool) -> some View {
+        let time = HeparinTimeline.resolvedEdit(picked: ed.picked, original: ed.shown, now: Date())
+        let issues: [DoseIssue] = HeparinTimeline.timeIssue(time).map { [$0] } ?? []
+        VStack(alignment: .leading, spacing: 10) {
+            Text(name + " dose, given at").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+            EntryTimeRow(base: ed.shown, picked: Binding(get: { abxTimeEdit?.picked }, set: { abxTimeEdit?.picked = $0; abxTimeEdit?.armed = false }))
+            if timed {
+                Text("The next redose is counted from the latest dose, so it moves with this time.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+            }
+            DoseIssueList(issues: issues)
+            HStack(spacing: 10) {
+                Spacer(minLength: 4)
+                Button("Cancel") { withAnimation(.snappy) { abxTimeEdit = nil } }.buttonStyle(CapsuleButtonStyle(prominent: false))
+                CheckedLogButton(title: "Save", issues: issues, armed: Binding(get: { abxTimeEdit?.armed ?? false }, set: { abxTimeEdit?.armed = $0 })) {
+                    saveDoseTime(ed, time: time)
+                }
+            }
+        }
+        .entryBox()
+    }
+
+    /// One Undo step: the dose's new time; the redose and the reminders built on the latest dose move with it.
+    fileprivate func saveDoseTime(_ ed: AbxTimeEdit, time: Date?) {
+        guard let time else { return }
+        let timed = t.course(ed.drug)?.reminders ?? false
+        edit(asks: timed) { _ = $0.updateAntibioticDose(ed.id, drug: ed.drug, time: time) }
+        abxTimeEdit = nil
     }
 }

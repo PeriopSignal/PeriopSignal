@@ -195,10 +195,10 @@ enum CaseAntibiotics {
             guard let last = course.last else { continue }
             let def = data?.antibiotic(course.drug)
             let name = def?.name ?? course.drug.capitalized
-            // The dose typed in the bar with the last dose (1.12 follow-up), as typed; else the dose Case Timers computes.
-            // A course recorded only (1.12) states the dose only when one was typed: the dose Case Timers would compute was not given.
-            var dose = course.reminders ? (def.map { CaseTimerEngine.antibioticDose($0, record: r).text } ?? "") : ""
-            if let typed = last.given?.trimmingCharacters(in: .whitespacesAndNewlines), !typed.isEmpty { dose = typed }
+            // The dose the course was given for the case (1.12, Nov 13: typed in Case Timers), else the dose typed in the bar with the
+            // last dose (1.12 follow-up), as typed; else the dose Case Timers computes. A course recorded only (1.12) states the dose
+            // only when one was typed: the dose Case Timers would compute was not given. One function decides it for every surface.
+            let dose = AntibioticDoseText.line(course, workedOut: def.map { CaseTimerEngine.antibioticDose($0, record: r).text })
             var next: Date?
             if !course.reminders {
                 // Recorded only: no next dose, never overdue.

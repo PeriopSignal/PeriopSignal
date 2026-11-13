@@ -25,6 +25,10 @@ import Foundation
 // any kind. `CaseTimerEngine.reminders` is the one producer every reader goes through (the running list, the strip, the
 // notifications, the lock-screen activity), so skipping it there is skipping it everywhere.
 //
+// 1.12 follow-up (Ben, Nov 13, "Have ability to change antibiotic dose in case timer"): the course's dose can be typed
+// (`AntibioticCourse.dose`, AntibioticDose.swift) and the time of a dose already logged can be changed
+// (`AntibioticCourse.updateDose`); neither touches `CaseTimerEngine.reminders` except that a moved time moves the due time.
+//
 // Sources for the anticoagulation numbers, and what was read (Nov 7, 2026):
 //
 // • STS/SCA/AmSECT 2018, anticoagulation during CPB (Shore-Lesserson L, et al. Ann Thorac Surg 2018;105:650–662;
@@ -147,6 +151,11 @@ struct AntibioticCourse: Codable, Equatable, Identifiable {
     /// reminder is made, so no notification, no lock-screen countdown and no row in the running list or the strip. A course
     /// saved before this existed has the reminders it had (decode default true).
     var reminders: Bool = true
+    /// 1.12 (Ben, Nov 13, "Have ability to change antibiotic dose in case timer"): the dose for this case as the user typed it
+    /// ("3 g"), one for the course, used for the first dose and every redose. Kept as typed, never computed, converted or
+    /// corrected, one line of at most 24 characters (`AntibioticCourse.cleanDose`); nil = the dose Case Timers works out. Written
+    /// only when set, so a record saved before this reads back the same.
+    var dose: String? = nil
 
     var id: String { drug }
     var last: TimedEntry? { doses.max { $0.time < $1.time } }
@@ -159,7 +168,7 @@ struct AntibioticCourse: Codable, Equatable, Identifiable {
         if on { everyMinutes = nil }
     }
 
-    enum CodingKeys: String, CodingKey { case drug, doses, everyMinutes, reminders }
+    enum CodingKeys: String, CodingKey { case drug, doses, everyMinutes, reminders, dose }
 }
 
 extension AntibioticCourse {
@@ -169,15 +178,18 @@ extension AntibioticCourse {
         doses = (try? c.decodeIfPresent([TimedEntry].self, forKey: .doses)) ?? []
         everyMinutes = try? c.decodeIfPresent(Double.self, forKey: .everyMinutes)
         reminders = (try? c.decodeIfPresent(Bool.self, forKey: .reminders)) ?? true
+        dose = Self.cleanDose(try? c.decodeIfPresent(String.self, forKey: .dose))
     }
 
-    /// As it was written before, plus `reminders` only when it is false: a timed course reads back byte for byte the same.
+    /// As it was written before, plus `reminders` only when it is false and `dose` only when it is set: a course without them reads
+    /// back byte for byte the same.
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(drug, forKey: .drug)
         try c.encode(doses, forKey: .doses)
         try c.encodeIfPresent(everyMinutes, forKey: .everyMinutes)
         if !reminders { try c.encode(false, forKey: .reminders) }
+        try c.encodeIfPresent(dose, forKey: .dose)
     }
 }
 
