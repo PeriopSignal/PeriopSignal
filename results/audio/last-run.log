@@ -1,5 +1,6 @@
-[0;93m2026-11-12 09:15:07.775511636 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-2 post(s) to synthesize with kokoro:af_heart
-  nejm-2026-pepper-aspirin-rivaroxaban-warfarin-arthroplasty: 231 s, 1801 KB, 85 s to make
-  lancet-resp-2026-precision-ppc-delphi-consensus: 193 s, 1505 KB, 68 s to make
-synthesized 2, failed 0, 5453 characters, 3 min
+[0;93m2026-11-13 09:14:35.346286490 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+3 post(s) to synthesize with kokoro:af_heart
+  bmj-2026-acei-arb-morning-hold-hypotension-older-noncardiac: 216 s, 1686 KB, 100 s to make
+  jhlt-2026-eppvdn-pediatric-pulmonary-hypertension-treatment-consensus: 189 s, 1477 KB, 86 s to make
+  jhlt-2026-eppvdn-fontan-cardiovascular-dysfunction-consensus: 182 s, 1424 KB, 83 s to make
+synthesized 3, failed 0, 7840 characters, 4 min
