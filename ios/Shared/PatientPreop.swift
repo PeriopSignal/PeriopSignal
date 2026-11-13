@@ -96,7 +96,7 @@ enum PatientPreop {
     /// page's own entry, or one the catalog or its words make cardiac), so a lobectomy or a VATS wedge is not called
     /// cardiac surgery.
     static func previousCardiacSurgery(_ r: PatientRecord) -> [PatientSurgery] {
-        r.capitalized.allIntrathoracic.filter { $0.id == r.hx.cardiacSurgeryID || PastSurgeryNote.isCardiac($0) }
+        PatientSurgery.chronological(r.capitalized.allIntrathoracic.filter { $0.id == r.hx.cardiacSurgeryID || PastSurgeryNote.isCardiac($0) })
     }
 
     /// The small link under the code status chips to its page (the plan for the procedure and the POLST), for every
@@ -323,13 +323,22 @@ enum PatientPreop {
 
     // MARK: Notes the boxes share with the editors
 
+    /// 1.12 (Ben): what "by definition" means in the ASA box's reasons.
+    static let asaByDefinitionNote = "Classes marked \u{201C}by definition\u{201D} are assigned by this app from the ASA's class definitions where the ASA gives no example; the clinician assigns the class."
+
     /// The ASA box's explanations, for its title's ⓘ: how the suggestion works, then (a child with nothing to suggest from)
     /// where to tick problems, then the chosen class's definition. Moved here from the Assessment editor, unchanged, so the
     /// editor and the tab say the same.
     static func asaNote(_ r: PatientRecord) -> String {
-        var parts = ["The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it."]
+        // 1.12: for an adult the classes by definition count too, so the opening no longer says "examples" alone.
+        var parts = [r.isChild
+            ? "The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it."
+            : "The suggestion is the highest class among what is recorded: the ASA's published examples (adult and obstetric), and classes by definition for problems the examples do not name; the class is a clinical judgment, so it counts only once you choose it."]
         if PatientRules.asaSuggestion(r) == nil && r.isChild {
             parts.append("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
+        }
+        if !r.isChild {
+            parts.append(asaByDefinitionNote)
         }
         if let c = r.asaClass {
             parts.append(PatientFunctional.asaDefinition(c) + (PatientFunctional.asaExampleLead(c).map { " " + $0 } ?? ""))

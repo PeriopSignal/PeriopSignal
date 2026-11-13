@@ -150,22 +150,32 @@ enum CaseAntibiotics {
         var name: String
         var dose: String
         var last: Date
-        /// When the next redose falls due; nil: no routine redose.
+        /// When the next redose falls due; nil: no routine redose (or the course is recorded only).
         var next: Date?
         var overdue: Bool
         var lastText: String
         var nextText: String?
+        /// 1.12 (Ben, Nov 12): the course is recorded only: its doses and times are told, never a next dose or "no routine redose".
+        var recordOnly = false
+        /// Every dose's time, oldest first, as the summaries write a time ("08:12", "11/11/26 23:50").
+        var givenTexts: [String] = []
 
         var drug: String { [name, dose].filter { !$0.isEmpty }.joined(separator: " ") }
 
-        /// "Cefazolin 2 g · last 08:12 · next due 12:12" (the tab and the page).
+        /// Where a recorded-only course was given: "08:12"; several doses, every time ("08:12, 12:30"). The line for a timed course tells
+        /// the LAST dose only, because its next dose is the news; a recorded course has no next dose, so each time is told.
+        var givenText: String { givenTexts.isEmpty ? lastText : givenTexts.joined(separator: ", ") }
+
+        /// "Cefazolin 2 g · last 08:12 · next due 12:12" (the tab and the page); recorded only: "Cefazolin 2 g · given 08:12".
         var tabText: String {
-            drug + " · last " + lastText + " · " + (nextText.map { "next due " + $0 } ?? "no routine redose")
+            if recordOnly { return drug + " · given " + givenText }
+            return drug + " · last " + lastText + " · " + (nextText.map { "next due " + $0 } ?? "no routine redose")
         }
 
-        /// "Cefazolin 2 g, last 08:12, next due 12:12" (the handoff).
+        /// "Cefazolin 2 g, last 08:12, next due 12:12" (the handoff); recorded only: "Cefazolin 2 g, given 08:12".
         var handoffText: String {
-            drug + ", last " + lastText + ", " + (nextText.map { "next due " + $0 } ?? "no routine redose")
+            if recordOnly { return drug + ", given " + givenText }
+            return drug + ", last " + lastText + ", " + (nextText.map { "next due " + $0 } ?? "no routine redose")
         }
     }
 
@@ -186,17 +196,22 @@ enum CaseAntibiotics {
             let def = data?.antibiotic(course.drug)
             let name = def?.name ?? course.drug.capitalized
             // The dose typed in the bar with the last dose (1.12 follow-up), as typed; else the dose Case Timers computes.
-            var dose = def.map { CaseTimerEngine.antibioticDose($0, record: r).text } ?? ""
+            // A course recorded only (1.12) states the dose only when one was typed: the dose Case Timers would compute was not given.
+            var dose = course.reminders ? (def.map { CaseTimerEngine.antibioticDose($0, record: r).text } ?? "") : ""
             if let typed = last.given?.trimmingCharacters(in: .whitespacesAndNewlines), !typed.isEmpty { dose = typed }
             var next: Date?
-            if let def {
+            if !course.reminders {
+                // Recorded only: no next dose, never overdue.
+            } else if let def {
                 next = CaseTimerRecurrence.redoseMinutes(course, def: def).map { last.time.addingTimeInterval($0 * 60) }
             } else if let m = course.everyMinutes, m > 0 {
                 next = last.time.addingTimeInterval(m * 60)
             }
             let overdue = next.map { now.timeIntervalSince($0) > overdueAfter } ?? false
             out.append(Line(id: course.drug, name: name, dose: dose, last: last.time, next: next, overdue: overdue,
-                            lastText: PatientSummary.time(last.time, now: now), nextText: next.map { PatientSummary.time($0, now: now) }))
+                            lastText: PatientSummary.time(last.time, now: now), nextText: next.map { PatientSummary.time($0, now: now) },
+                            recordOnly: !course.reminders,
+                            givenTexts: course.doses.sorted { $0.time < $1.time }.map { PatientSummary.time($0.time, now: now) }))
         }
         return out
     }

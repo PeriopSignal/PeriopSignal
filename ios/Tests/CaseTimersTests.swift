@@ -110,12 +110,14 @@ final class CaseTimersTests: XCTestCase {
 
     // MARK: Heparin
 
-    func testFirstACTThreeMinutesAfterBolusThenEvery30() throws {
+    // 1.12 follow-up (Ben, Nov 12, answer 4): a heparin dose starts no countdown of its own, so the "3 minutes after the bolus" first
+    // check this test asserted is gone. A case saved before 1.12 (a bolus, no stamp) counts from its first dose, then from each ACT.
+    func testFirstACTThirtyMinutesAfterTheSwitchThenFromEachACT() throws {
         let d = try data()
         var h = HeparinCourse(purpose: "bypass", goal: 450, actEvery: 30)
         h.doses = [TimedEntry(time: t0, value: 24000)]
         var t = CaseTimers(); t.heparin = h
-        XCTAssertEqual(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }?.due, t0.addingTimeInterval(180))
+        XCTAssertEqual(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }?.due, t0.addingTimeInterval(1800))
         t.heparin?.acts = [TimedEntry(time: t0.addingTimeInterval(240), value: 520)]
         XCTAssertEqual(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }?.due, t0.addingTimeInterval(240 + 1800))
         let s = CaseTimerEngine.status(t.heparin!, record: adult())
@@ -187,9 +189,16 @@ final class CaseTimersTests: XCTestCase {
         h.protamine = [TimedEntry(time: t0.addingTimeInterval(7200), value: 250)]
         var t = CaseTimers(); t.heparin = h
         let rem = CaseTimerEngine.reminders(t, record: adult(), data: d)
-        XCTAssertNil(rem.first { $0.kind == .act }, "the ACT cycle stops once reversal starts")
+        // A timer the bolus implied (a case saved by build 39) stops its recurring check once protamine is logged, as it did
+        // there. The 1.12 switch, turned on, stays on after protamine until it is turned off (Ben: "for example after protamine").
+        XCTAssertNil(rem.first { $0.kind == .act }, "saved by build 39: it stopped with protamine")
+        t.heparin?.setReminder(true, now: t0.addingTimeInterval(7300))
+        XCTAssertNotNil(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }, "the switch is on")
+        t.heparin?.actOff = true
+        XCTAssertNil(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }, "turned off")
+        let rem2 = CaseTimerEngine.reminders(t, record: adult(), data: d)
         // 250 mg at 50 mg per 10 min = 50 min, then 3 min.
-        XCTAssertEqual(rem.first { $0.kind == .protamineACT }?.due, t0.addingTimeInterval(7200 + 53 * 60))
+        XCTAssertEqual(rem2.first { $0.kind == .protamineACT }?.due, t0.addingTimeInterval(7200 + 53 * 60))
     }
 
     // MARK: Checks

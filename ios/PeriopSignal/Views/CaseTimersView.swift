@@ -11,6 +11,12 @@ import UserNotifications
 // Undo, the case chips and the archive treat it like any other entry; CaseTimerNotifier turns the reminders of every
 // open case into notifications and the lock-screen countdown. Content: reference.json "caseTimers". Times show on the
 // 24-hour clock (ClockText), as the rest of the intraoperative record does.
+//
+// 1.12 follow-up (Ben, Nov 12): Heparin & ACT is one timeline, "Heparin & ACT log": a row per baseline ACT, heparin dose,
+// ACT and protamine dose in time order, each with a time the user can set (defaulting to now, never in the future) and
+// change; "+ ACT", "+ Heparin dose" and "+ Baseline ACT" open an entry row in place. The ACT reminder is one switch with its
+// interval chips, counting from the last ACT logged (CaseTimerEngine.actDue); the old Start timer / Update timer controls,
+// the separate dose and ACT blocks and the "Log (n)" list are gone.
 
 @MainActor
 @Observable
@@ -22,8 +28,14 @@ final class CaseTimersUI {
     var target: String?
 
     /// Opens the timers at the antibiotic card.
-    func openAntibiotic() {
-        target = CaseTimersView.antibioticCardID
+    func openAntibiotic() { show(at: CaseTimersView.antibioticCardID) }
+
+    /// Opens the timers at the Heparin & ACT section (the Medications & Interventions page's "Open Heparin & ACT").
+    func openHeparin() { show(at: CaseTimersView.heparinCardID) }
+
+    /// Opens the timers at a card, by its scroll id.
+    func show(at card: String) {
+        target = card
         open = true
     }
 }
@@ -121,7 +133,7 @@ struct CaseTimersStrip: View {
     @Environment(ReferenceStore.self) private var refs
 
     var body: some View {
-        if DraftGate.shows("caseTimers"), let d = refs.caseTimers, !patient.record.timers.isEmpty {
+        if DraftGate.shows("caseTimers"), let d = refs.caseTimers, patient.record.timers.hasTimers {
             TimelineView(.periodic(from: .now, by: 20)) { ctx in
                 let items = CaseTimerEngine.reminders(patient.record.timers, record: patient.record, data: d)
                 Button { CaseTimersUI.shared.open = true } label: {
@@ -211,6 +223,22 @@ private struct TimerChipRow: View {
                 .accessibilityHint(c.on ? "Tap again to clear" : "")
             }
         }
+    }
+}
+
+/// The app's reference-link look (the arrow in a circle, the action colour, a semibold line), as My Patient's tool links draw it:
+/// "Which antibiotic?" under the antibiotics, here and on the Medications & Interventions page.
+struct ReferenceLinkLabel: View {
+    var title: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.right.circle").font(PS.sys(size: 14, weight: .semibold))
+            Text(title).font(PS.sys(size: 13.5, weight: .semibold)).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundStyle(PS.action)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
 }
 
@@ -322,6 +350,53 @@ private struct AddRow: View {
     }
 }
 
+/// An entry being added under the timeline: its kind, its value, the time picked (nil: now, kept current).
+private struct HeparinDraft {
+    var kind: HeparinEvent.Kind
+    var value: Double?
+    var picked: Date?
+    var armed = false
+}
+
+/// A timeline row opened in place: the value being typed, the time picked (nil: unchanged) and the second-tap states.
+private struct HeparinRowEdit {
+    var id: UUID
+    var kind: HeparinEvent.Kind
+    var value: Double?
+    /// The row's logged time: what the time control shows until another is picked.
+    var shown: Date
+    var picked: Date?
+    var armed = false
+    var deleteArmed = false
+}
+
+private extension View {
+    /// The box an entry or a row being changed opens in: a quiet action tint, so the value field (the chip fill) shows inside it.
+    func entryBox() -> some View {
+        padding(12)
+            .background(PS.action.opacity(0.07), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.action.opacity(0.25), lineWidth: 1))
+    }
+}
+
+/// "Time" on the 24-hour clock for a timeline entry: now (kept current) for a new one, the row's own time for an edit, until
+/// the user picks one.
+private struct EntryTimeRow: View {
+    var base: Date?
+    @Binding var picked: Date?
+
+    var body: some View {
+        TimelineView(.everyMinute) { ctx in
+            DatePicker("Time", selection: Binding(get: { picked ?? base ?? ctx.date }, set: { picked = $0 }),
+                       displayedComponents: [.hourAndMinute])
+                .font(PS.sys(size: 14.5, weight: .medium))
+                .foregroundStyle(PS.fg)
+                .tint(PS.action)
+                .environment(\.locale, PatientDates.locale24)
+        }
+    }
+}
+
 // MARK: - The timers
 
 struct CaseTimersView: View {
@@ -343,6 +418,17 @@ struct CaseTimersView: View {
 
     /// The antibiotic card's scroll id.
     static let antibioticCardID = "antibiotic.card"
+    /// The Heparin & ACT section's scroll id.
+    static let heparinCardID = "heparin.card"
+
+    /// A quick reference opened from a link in the timers when they are a sheet.
+    @ViewBuilder private func refDestination(_ route: RefRoute) -> some View {
+        if case .quickref(let id) = route, let ref = refs.quickref(id) {
+            QuickRefView(ref: ref, onOpen: { openLink($0) })
+        } else {
+            ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
+        }
+    }
 
     // Antibiotic
     @State private var abxPending: [String] = []
@@ -353,9 +439,9 @@ struct CaseTimersView: View {
     @State private var labStart = StartTimePick()
     @State private var glucoseValue: Double?
     // Heparin
-    @State private var heparinUnits: Double?
-    @State private var heparinArmed = false
-    @State private var actValue: Double?
+    /// The entry being added under the timeline, and the row opened in place (1.12 follow-up); at most one of the two.
+    @State private var draft: HeparinDraft?
+    @State private var rowEdit: HeparinRowEdit?
     @State private var protamineMg: Double?
     @State private var protamineArmed = false
     @State private var weightEntry: Double?
@@ -364,7 +450,6 @@ struct CaseTimersView: View {
     @State private var goalEntry: Double?
     @State private var goalArmed = false
     @State private var actPick: RecurrencePick?
-    @State private var actStart = StartTimePick()
     @State private var goalInfoOpen = LaunchSeed.bool("ps.evidence.open")
     @State private var protamineInfoOpen = LaunchSeed.bool("ps.evidence.open")
 
@@ -373,7 +458,13 @@ struct CaseTimersView: View {
 
     var body: some View {
         Group {
-            if inSheet { NavigationStack { page } } else { page }
+            if inSheet {
+                // The sheet is its own stack, so it carries the destination of the one reference it links to ("Which antibiotic?");
+                // pushed from Reference or My Patient, the host's stack has them all.
+                NavigationStack { page.navigationDestination(for: RefRoute.self) { refDestination($0) } }
+            } else {
+                page
+            }
         }
         .fullScreenCover(item: $webLink) { link in SafariView(url: link.url).ignoresSafeArea() }
         // An antibiotic picked and not logged is not lost by a swipe: the sheet stays until Done asks (1.12 follow-up).
@@ -470,6 +561,7 @@ struct CaseTimersView: View {
         if let target = CaseTimersUI.shared.target {
             CaseTimersUI.shared.target = nil
             if target == Self.antibioticCardID { open.insert(.antibiotic) }
+            if target == Self.heparinCardID { open.insert(.heparin) }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { scrollTarget = target }
         }
         openSections = open
@@ -526,14 +618,28 @@ struct CaseTimersView: View {
         } else if other == "act" {
             actPick = RecurrencePick(minutes: 45, other: true)
         }
+        // -ps.timers.hep.add act|dose|baseline [-ps.timers.hep.value 512]: the entry row open under the timeline;
+        // -ps.timers.hep.edit <row, from 0>: that row opened in place.
+        let add = LaunchSeed.string("ps.timers.hep.add")
+        if let h = t.heparin, let p = d.purpose(h.purpose), let kind = ["act": HeparinEvent.Kind.act, "dose": .heparin, "baseline": .baseline][add] {
+            var dr = HeparinDraft(kind: kind)
+            dr.value = Double(LaunchSeed.string("ps.timers.hep.value")) ?? (kind == .heparin && h.doses.isEmpty ? CaseTimerEngine.suggestedBolus(p, weightKg: r.weightKg) : nil)
+            draft = dr
+        }
+        if let h = t.heparin, let i = Int(LaunchSeed.string("ps.timers.hep.edit")), h.timeline.indices.contains(i) {
+            let e = h.timeline[i]
+            rowEdit = HeparinRowEdit(id: e.id, kind: e.kind, value: e.value, shown: e.time)
+        }
         let scroll = LaunchSeed.string("ps.timers.scroll")
         if !scroll.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { scrollTarget = scroll } }
     }
     #endif
 
-    private func edit(_ change: (inout CaseTimers) -> Void) {
+    /// `asks`: whether this edit can turn a reminder on, so the notification permission is asked for (1.12: a switch turned off, a dose
+    /// added to a course recorded only, or a course removed asks for nothing).
+    private func edit(asks: Bool = true, _ change: (inout CaseTimers) -> Void) {
         withAnimation(.snappy) { patient.update(discrete: true) { change(&$0.timers) } }
-        CaseTimerNotifier.shared.requestPermissionIfNeeded()
+        if asks { CaseTimerNotifier.shared.requestPermissionIfNeeded() }
     }
 
     private func openLink(_ url: URL) { webLink = WebLink(url: url) }
@@ -545,7 +651,7 @@ struct CaseTimersView: View {
                 switch s {
                 case .antibiotic: abxStart = StartTimePick()
                 case .labs: labStart = StartTimePick()
-                case .heparin: actStart = StartTimePick()
+                case .heparin: draft = nil; rowEdit = nil
                 }
                 scrollTarget = s.rawValue
             }
@@ -656,7 +762,11 @@ struct CaseTimersView: View {
         Haptics.light()
         switch rem.kind {
         case .glucose: show(.labs, at: "lab.glucose")
-        case .act, .protamineACT: show(.heparin, at: "heparin.act")
+        case .act, .protamineACT:
+            // A due ACT needs a value: the timeline's "+ ACT" entry opens, at now.
+            // (The entry opens in the log card; with no log yet, the section itself.)
+            show(.heparin, at: t.heparin == nil ? nil : "heparin.log")
+            if t.heparin != nil { rowEdit = nil; draft = HeparinDraft(kind: .act) }
         default:
             let ebl = r.fluids["ebl"]
             edit { _ = $0.markDone(rem, now: Date(), ebl: ebl) }
@@ -675,7 +785,7 @@ struct CaseTimersView: View {
                         .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
                 }
             } else {
-                AddRow(title: "Antibiotic", detail: t.antibiotics.isEmpty ? nil : "\(t.antibiotics.count) running",
+                AddRow(title: "Antibiotic", detail: Self.antibioticDetail(t.antibiotics),
                        open: openSections.contains(.antibiotic)) { toggle(.antibiotic) }
                     .id("antibiotic")
                 if openSections.contains(.antibiotic) { antibioticSection(d) }
@@ -726,7 +836,7 @@ struct CaseTimersView: View {
             ToolCard {
                 ForEach(Array(drugs.enumerated()), id: \.element) { i, drug in
                     if i > 0 { Hairline() }
-                    if let def = d.antibiotic(drug) { antibioticRow(def, d) }
+                    if let def = d.antibiotic(drug) { antibioticRow(def, d) } else if let c = t.course(drug) { typedAntibioticRow(c, d) }
                 }
                 Menu {
                     ForEach(d.antibiotics.filter { !drugs.contains($0.id) }) { a in
@@ -764,9 +874,97 @@ struct CaseTimersView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                // 1.12: the card of recommended agents by surgery, one tap away.
+                Hairline()
+                NavigationLink(value: RefRoute.quickref(IntraopAntibiotic.referenceID)) {
+                    ReferenceLinkLabel(title: IntraopAntibiotic.referenceLink)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Opens the surgical prophylaxis reference")
             }
         }
         .id(Self.antibioticCardID)
+    }
+
+    /// "1 running · 1 recorded" beside + Antibiotic: a course recorded only runs no timer.
+    static func antibioticDetail(_ courses: [AntibioticCourse]) -> String? {
+        let running = courses.filter(\.reminders).count, recorded = courses.count - running
+        var parts: [String] = []
+        if running > 0 { parts.append("\(running) running") }
+        if recorded > 0 { parts.append("\(recorded) recorded") }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// "Redose reminder": off for a course recorded only. On, it is an ordinary timed course at the drug's default interval counted
+    /// from its last dose (overdue at once if that time has passed); off again, the doses stay. Disabled, with the reason, for a drug
+    /// with no redose interval on file, in either position: a timed course of such a drug (started in Case Timers) keeps the long-case
+    /// and blood-loss reminders it started with, because once switched off the switch could not bring them back. Its reminders can
+    /// still be stopped from the running list.
+    @ViewBuilder private func reminderSwitchRow(_ course: AntibioticCourse, _ d: CaseTimerData) -> some View {
+        let can = IntraopAntibiotic.switchEnabled(course.drug, in: d, child: CaseTimerEngine.isChild(r))
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .center, spacing: 10) {
+                Text(IntraopAntibiotic.reminderTitle).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 6)
+                Toggle(IntraopAntibiotic.reminderTitle, isOn: Binding(get: { course.reminders }, set: { on in
+                    Haptics.light()
+                    abxPicks[course.drug] = nil
+                    edit(asks: IntraopAntibiotic.asksPermission(switchingTo: on, hasInterval: can)) {
+                        $0.setAntibioticReminders(on, drug: course.drug, hasInterval: can)
+                    }
+                })).labelsHidden().tint(PS.action).disabled(!can)
+            }
+            if !can {
+                Text(IntraopAntibiotic.noIntervalNote).font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+            } else if !course.reminders, let h = d.antibiotic(course.drug)?.redoseHours {
+                Text("Off: recorded only. On, it counts every \(CaseTimerEngine.interval(h * 60)) from the last dose.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// A course for a drug Case Timers' list does not have (a name typed under Other on the Medications page): it can only be recorded
+    /// here, its doses listed and added to, the reminder switch off and disabled.
+    @ViewBuilder private func typedAntibioticRow(_ course: AntibioticCourse, _ d: CaseTimerData) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(course.drug.capitalized).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 4)
+                Menu {
+                    Button(role: .destructive) {
+                        edit { $0.antibiotics.removeAll { $0.drug == course.drug } }
+                    } label: { Label("Remove \(course.drug.capitalized) from this case", systemImage: "trash") }
+                } label: { Image(systemName: "ellipsis.circle").font(PS.sys(size: 17)).foregroundStyle(PS.fg3) }
+                .accessibilityLabel(course.drug.capitalized + " options")
+            }
+            reminderSwitchRow(course, d)
+            doseLines(course, name: course.drug.capitalized, every: nil, computed: "")
+        }
+    }
+
+    /// The last dose with "Redose given" (a dose now, on the same course), and the log of its doses when there is more than one.
+    @ViewBuilder private func doseLines(_ course: AntibioticCourse, name: String, every: Double?, computed: String) -> some View {
+        if let last = course.last {
+            HStack(spacing: 10) {
+                Text(Self.lastDoseText(last: last, every: every, computed: computed, recordOnly: course.recordOnly))
+                    .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
+                Spacer(minLength: 4)
+                Button("Redose given") {
+                    let ebl = r.fluids["ebl"] ?? 0
+                    edit(asks: course.reminders) { t in
+                        if let i = t.antibiotics.firstIndex(where: { $0.drug == course.drug }) { t.antibiotics[i].doses.append(TimedEntry(time: Date(), ebl: ebl)) }
+                    }
+                }
+                .buttonStyle(CapsuleButtonStyle(prominent: false))
+            }
+            if course.doses.count > 1 {
+                DoseHistory(entries: course.doses, text: { Self.doseText($0, name: name) }) { id in
+                    edit { t in
+                        if let i = t.antibiotics.firstIndex(where: { $0.drug == course.drug }) { t.antibiotics[i].doses.removeAll { $0.id == id } }
+                    }
+                }
+            }
+        }
     }
 
     @ViewBuilder private func antibioticRow(_ def: AntibioticDef, _ d: CaseTimerData) -> some View {
@@ -796,10 +994,14 @@ struct CaseTimersView: View {
                 }
             }
             if let needs = dose.needs { Text(needs).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent) }
-            RecurrenceRow(label: def.redoseHours == nil ? "Redose every (no routine redose)" : "Redose every",
-                          chips: chips, pick: abxPick(def.id, d),
-                          preferred: CaseTimerRecurrence.antibioticPreferred(def, rules: d.antibioticRules),
-                          maxMinutes: CaseTimerRecurrence.antibioticMax)
+            // 1.12: a course that exists has the redose reminder's switch; a course recorded only has no interval to pick.
+            if let course { reminderSwitchRow(course, d) }
+            if course?.recordOnly != true {
+                RecurrenceRow(label: def.redoseHours == nil ? "Redose every (no routine redose)" : "Redose every",
+                              chips: chips, pick: abxPick(def.id, d),
+                              preferred: CaseTimerRecurrence.antibioticPreferred(def, rules: d.antibioticRules),
+                              maxMinutes: CaseTimerRecurrence.antibioticMax)
+            }
             if let n = def.note { Text(n).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true) }
             if let c = def.cardiac, t.heparin.flatMap({ d.purpose($0.purpose) })?.isCardiac == true || r.procedure.lowercased().contains("bypass") {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -811,28 +1013,10 @@ struct CaseTimersView: View {
                 Label(d.antibioticRules.renal, systemImage: "exclamationmark.triangle")
                     .font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.accent).fixedSize(horizontal: false, vertical: true)
             }
-            if let course, let last = course.last {
-                let every = CaseTimerRecurrence.redoseMinutes(course, def: def)
+            if let course {
                 // A dose typed in the quick-add bar is shown as typed beside the last dose when it says more than the computed one.
-                HStack(spacing: 10) {
-                    Text(Self.lastDoseText(last: last, every: every, computed: dose.text))
-                        .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
-                    Spacer(minLength: 4)
-                    Button("Redose given") {
-                        let ebl = r.fluids["ebl"] ?? 0
-                        edit { t in
-                            if let i = t.antibiotics.firstIndex(where: { $0.drug == def.id }) { t.antibiotics[i].doses.append(TimedEntry(time: Date(), ebl: ebl)) }
-                        }
-                    }
-                    .buttonStyle(CapsuleButtonStyle(prominent: false))
-                }
-                if course.doses.count > 1 {
-                    DoseHistory(entries: course.doses, text: { Self.doseText($0, name: def.name) }) { id in
-                        edit { t in
-                            if let i = t.antibiotics.firstIndex(where: { $0.drug == def.id }) { t.antibiotics[i].doses.removeAll { $0.id == id } }
-                        }
-                    }
-                }
+                doseLines(course, name: def.name, every: course.reminders ? CaseTimerRecurrence.redoseMinutes(course, def: def) : nil,
+                          computed: dose.text)
             }
         }
     }
@@ -845,10 +1029,15 @@ struct CaseTimersView: View {
 
     /// "Last dose 08:10 · next 12:10", and "· given: 1 g" when the last dose was typed in the quick-add bar and says more than the
     /// dose computed above it.
-    static func lastDoseText(last: TimedEntry, every: Double?, computed: String) -> String {
+    static func lastDoseText(last: TimedEntry, every: Double?, computed: String, recordOnly: Bool = false) -> String {
         var s = "Last dose " + ClockText.time(last.time)
         if let every { s += " · next " + ClockText.time(last.time.addingTimeInterval(every * 60)) }
-        if let given = IntraopAntibiotic.givenNote(last: last, computed: computed) { s += " · " + given }
+        if recordOnly {
+            // Recorded only: the dose as it was typed, always (no dose of Case Timers' own was given or computed for it).
+            if let g = last.given?.trimmingCharacters(in: .whitespacesAndNewlines), !g.isEmpty { s += " · given: " + g }
+        } else if let given = IntraopAntibiotic.givenNote(last: last, computed: computed) {
+            s += " · " + given
+        }
         return s
     }
 
@@ -977,13 +1166,19 @@ struct CaseTimersView: View {
     // MARK: Heparin & ACT
 
     @ViewBuilder private func heparinSection(_ d: CaseTimerData) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             SectionHeader(title: "Heparin & ACT", info: d.heparinRules.clottingTest + " " + d.heparinRules.deviceNote)
             ToolCard {
                 purposeChips(d)
                 if let h = t.heparin, let p = d.purpose(h.purpose) {
                     weightLine(d)
-                    heparinBody(h, p, d)
+                    heparinHead(h, p, d)
+                }
+            }
+            if let h = t.heparin, let p = d.purpose(h.purpose) {
+                ToolCard { logCard(h, p, d) }.id("heparin.log")
+                if !h.doses.isEmpty {
+                    ToolCard { protamineBlock(h, p, d) }.id("heparin.protamine")
                 }
             }
         }
@@ -992,7 +1187,9 @@ struct CaseTimersView: View {
 
     @ViewBuilder private func purposeChips(_ d: CaseTimerData) -> some View {
         let h = t.heparin
-        let locked = h.map { !$0.isBlank } ?? false
+        let locked = h.map { !$0.purposeOpen } ?? false
+        // A log begun by recording a dose has no purpose chosen yet ("Other"): choosing one keeps the log.
+        let unchosen = h.map { !$0.isBlank && $0.purposeOpen } ?? false
         let list = purposeList(d)
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -1012,6 +1209,13 @@ struct CaseTimersView: View {
                     // Doses are logged against this purpose: clear the log (⋯) to change it.
                     return
                 }
+                if unchosen {
+                    // Never the toggle here: a second tap on "Other" would clear the recorded doses.
+                    guard id != h?.purpose, let p = d.purpose(id) else { return }
+                    edit { $0.heparin = $0.heparin?.choosing(p) }
+                    goalEditing = false; goalEntry = nil; actPick = nil
+                    return
+                }
                 if ChipToggle.tap(h?.purpose, id) == nil {
                     edit { $0.heparin = nil }
                     resetHeparinEntry()
@@ -1022,6 +1226,9 @@ struct CaseTimersView: View {
             .opacity(locked ? 0.75 : 1)
             if locked {
                 Text("Purpose fixed once a dose or ACT is logged; ⋯ clears the log.").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+            } else if unchosen {
+                Text("Choose the purpose for its ACT goal and protamine range; the log is kept.").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -1036,14 +1243,13 @@ struct CaseTimersView: View {
     private func pickPurpose(_ id: String, _ d: CaseTimerData) {
         guard let p = d.purpose(id) else { return }
         edit { $0.heparin = HeparinCourse(purpose: id, goal: CaseTimerEngine.presetGoal(p), actEvery: p.actEvery.first ?? 30) }
-        heparinUnits = CaseTimerEngine.suggestedBolus(p, weightKg: r.weightKg)
-        heparinArmed = false
+        draft = nil; rowEdit = nil
         goalEditing = false
         actPick = nil
     }
 
     private func resetHeparinEntry() {
-        heparinUnits = nil; actValue = nil; protamineMg = nil; goalEditing = false; goalEntry = nil; actPick = nil
+        draft = nil; rowEdit = nil; protamineMg = nil; goalEditing = false; goalEntry = nil; actPick = nil
     }
 
     /// The weight, from My Patient or typed here (and kept in My Patient): no dose shows without it.
@@ -1063,9 +1269,6 @@ struct CaseTimersView: View {
                 CheckedLogButton(title: "Use", issues: weightEntry == nil ? [DoseIssue(level: .block, text: "")] : issues, armed: $weightArmed) {
                     if let w = weightEntry {
                         withAnimation(.snappy) { patient.update(discrete: true) { $0.weightKg = w } }
-                        if let h = t.heparin, h.doses.isEmpty, let p = refs.caseTimers?.purpose(h.purpose) {
-                            heparinUnits = CaseTimerEngine.suggestedBolus(p, weightKg: w)
-                        }
                     }
                 }
             }
@@ -1073,39 +1276,12 @@ struct CaseTimersView: View {
         }
     }
 
-    @ViewBuilder private func heparinBody(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
+    /// The lines above the log, unchanged: the ACT goal (editable) and the dose range.
+    @ViewBuilder private func heparinHead(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
         let src = d.sources(p.sources ?? []).first.flatMap { URL(string: $0.url) }
         Hairline()
         goalRow(h, p, d, src: src)
         doseRow(p, src: src)
-        if !h.reversed {
-            Hairline()
-            heparinDoseEntry(h, p, d)
-        }
-        Hairline()
-        actEntry(h).id("heparin.act")
-        if p.isBypass && !h.reversed && !h.doses.isEmpty { bypassRow(h) }
-        if !h.doses.isEmpty {
-            Hairline()
-            protamineBlock(h, p, d).id("heparin.protamine")
-        }
-        if h.doses.count + h.acts.count + h.protamine.count > 0 {
-            DoseHistory(entries: (h.doses + h.acts + h.protamine).sorted { $0.time > $1.time }, text: { e in
-                if h.doses.contains(where: { $0.id == e.id }) { return "\(ClockText.time(e.time))  Heparin \(CaseTimerEngine.grouped(e.value ?? 0)) U" }
-                if h.protamine.contains(where: { $0.id == e.id }) { return "\(ClockText.time(e.time))  Protamine \(CaseTimerEngine.fmt(e.value ?? 0)) mg" }
-                return "\(ClockText.time(e.time))  ACT \(Int(e.value ?? 0)) s" + (e.baseline == true ? " (baseline)" : "")
-            }) { id in
-                edit {
-                    $0.heparin?.doses.removeAll { $0.id == id }
-                    $0.heparin?.acts.removeAll { $0.id == id }
-                    $0.heparin?.protamine.removeAll { $0.id == id }
-                }
-            }
-        }
-        if !h.reversed {
-            Hairline()
-            actTimer(h, p, d).id("heparin.timer")
-        }
     }
 
     /// "ACT goal ≥ 480 s", editable; the device and where the number comes from under it.
@@ -1166,53 +1342,285 @@ struct CaseTimersView: View {
         if let n = p.note { Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
     }
 
-    @ViewBuilder private func heparinDoseEntry(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
-        let first = h.doses.isEmpty
-        let issues = heparinUnits.map { CaseTimerEngine.heparinIssues(units: $0, course: h, purpose: p, record: r, data: d) }
-            ?? CaseTimerEngine.weightIssues(r, data: d).filter { $0.level == .block }
-        HStack(spacing: 12) {
-            Text(first ? "Heparin bolus" : "Another dose").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-            Spacer(minLength: 4)
-            UnitField(prompt: "Units", unit: "U", value: Binding(get: { heparinUnits }, set: { heparinUnits = $0; heparinArmed = false }), width: 100)
-            CheckedLogButton(title: "Given", issues: heparinUnits == nil ? issues + [DoseIssue(level: .block, text: "")] : issues, armed: $heparinArmed) {
-                if let u = heparinUnits { edit { $0.heparin?.doses.append(TimedEntry(time: Date(), value: u)); $0.heparin?.actOff = false } }
-                heparinUnits = nil
-            }
-        }
-        DoseIssueList(issues: issues.filter { !$0.text.isEmpty })
+    // MARK: The log
+
+    @ViewBuilder private func logCard(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
+        Text("Heparin & ACT log").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
+        timelineRows(h, p, d)
+        addButtons(h, p)
+        if let dr = draft { entryRow(dr, h, p, d) }
+        logSummary(h, p)
+        Hairline()
+        reminderRow(h, p, d).id("heparin.timer")
+        if p.isBypass && !h.reversed && !h.doses.isEmpty { bypassRow(h) }
     }
 
-    @ViewBuilder private func actEntry(_ h: HeparinCourse) -> some View {
-        let canBaseline = h.doses.isEmpty
-        let status = CaseTimerEngine.status(h, record: r)
-        HStack(spacing: 12) {
-            Text(canBaseline ? "Baseline ACT" : "ACT").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-            Spacer(minLength: 4)
-            UnitField(prompt: "Seconds", unit: "s", value: $actValue, width: 100)
-            Button("Log") {
-                guard let v = actValue else { return }
-                edit { $0.heparin?.acts.append(TimedEntry(time: Date(), value: v, baseline: canBaseline ? true : nil)) }
-                actValue = nil
+    /// One row per event, oldest first; a tap opens the row in place. The order is read from the log, so an edit re-sorts
+    /// it when it is saved, not while typing.
+    @ViewBuilder private func timelineRows(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
+        let events = h.timeline
+        if events.isEmpty {
+            Text("Nothing logged yet. Add a baseline ACT, a heparin dose or an ACT.")
+                .font(PS.sys(size: 13)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+        } else {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(events.enumerated()), id: \.element.id) { i, e in
+                    if i > 0 { Hairline() }
+                    if let ed = rowEdit, ed.id == e.id { editRow(ed, h, p, d) } else { timelineRow(e) }
+                }
             }
-            .buttonStyle(CapsuleButtonStyle.patientAction())
-            .disabled(actValue == nil || (actValue ?? 0) < 30)
+            Text("Tap a row to change its time or value.").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
         }
-        if let act = status.lastACT, let at = status.lastACTTime {
-            let tone: Color = status.goalMet == false ? PS.red : (status.goalMet == true ? PS.green : PS.fg)
-            Text("Last ACT \(Int(act)) s at \(ClockText.time(at))" + (status.goalMet == false ? " · below goal" : (status.goalMet == true ? " · at goal" : "")))
-                .font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(tone)
-            if status.goalMet == false, let pk = status.initialPerKg, let p = refs.caseTimers?.purpose(h.purpose), let lo = p.doseLow, pk >= lo,
-               let text = refs.caseTimers?.heparinRules.resistance {
-                Text(text).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// "09:41  ACT   545 s  at goal" (a below-goal ACT is red: a clinical alert; no label without a goal or for a baseline).
+    private func timelineRow(_ e: HeparinEvent) -> some View {
+        let now = Date()
+        let below = e.goalMet == false
+        let goal: String? = e.kind == .baseline ? nil : HeparinTimeline.goalText(e.goalMet)
+        return Button { openEdit(e) } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text(HeparinTimeline.timeText(e.time, now: now))
+                    .font(PS.mono(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg2).lineLimit(1).fixedSize()
+                Text(HeparinTimeline.label(e.kind)).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).lineLimit(1)
+                Spacer(minLength: 6)
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(HeparinTimeline.valueText(e)).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(below ? PS.red : PS.fg)
+                    if let goal {
+                        Text(goal).font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(below ? PS.red : PS.green)
+                    }
+                }
             }
-        } else if let base = h.baselineACT, let v = base.value {
-            Text("Baseline \(Int(v)) s at \(ClockText.time(base.time))").font(PS.sys(size: 13)).foregroundStyle(PS.fg2)
+            .padding(.vertical, 9)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(HeparinTimeline.rowText(e, now: now))
+        .accessibilityHint("Change its time or value, or delete it")
+    }
+
+    private func openEdit(_ e: HeparinEvent) {
+        Haptics.light()
+        withAnimation(.snappy) {
+            draft = nil
+            rowEdit = HeparinRowEdit(id: e.id, kind: e.kind, value: e.value, shown: e.time)
+        }
+    }
+
+    // MARK: Adding an entry
+
+    private func addButtons(_ h: HeparinCourse, _ p: HeparinPurpose) -> some View {
+        FlowLayout(spacing: 8) {
+            addButton("+ ACT", .act, h, p)
+            addButton("+ Heparin dose", .heparin, h, p)
+            addButton("+ Baseline ACT", .baseline, h, p)
+        }
+    }
+
+    private func addButton(_ title: String, _ kind: HeparinEvent.Kind, _ h: HeparinCourse, _ p: HeparinPurpose) -> some View {
+        let open = draft?.kind == kind
+        return Button {
+            Haptics.light()
+            withAnimation(.snappy) { openDraft(kind, h, p) }
+        } label: {
+            Text(title)
+                .font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.action)
+                .lineLimit(1).fixedSize()
+                .padding(.horizontal, 6).padding(.vertical, 5)
+                .background(open ? PS.action.opacity(0.14) : Color.clear, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Add " + String(title.dropFirst(2)))
+        .accessibilityValue(open ? "Open" : "")
+    }
+
+    private func openDraft(_ kind: HeparinEvent.Kind, _ h: HeparinCourse, _ p: HeparinPurpose) {
+        if draft?.kind == kind { draft = nil; return }
+        rowEdit = nil
+        var dr = HeparinDraft(kind: kind)
+        // The first bolus opens with the suggested dose, as the field always did.
+        if kind == .heparin, h.doses.isEmpty { dr.value = CaseTimerEngine.suggestedBolus(p, weightKg: r.weightKg) }
+        draft = dr
+    }
+
+    private func entryTitle(_ kind: HeparinEvent.Kind, _ h: HeparinCourse) -> String {
+        switch kind {
+        case .heparin: return "Heparin dose"
+        case .baseline: return "Baseline ACT"
+        case .act: return h.offersBaseline ? "Baseline ACT" : "ACT"
+        case .protamine: return "Protamine"
+        }
+    }
+
+    private func unitPrompt(_ kind: HeparinEvent.Kind) -> (prompt: String, unit: String) {
+        switch kind {
+        case .heparin: return ("Units", "U")
+        case .protamine: return ("mg", "mg")
+        case .baseline, .act: return ("Seconds", "s")
+        }
+    }
+
+    /// The value field with its unit written beside it (UnitField's own unit label is squeezed out of a row this narrow).
+    private func valueField(_ kind: HeparinEvent.Kind, _ value: Binding<Double?>) -> some View {
+        let u = unitPrompt(kind)
+        return HStack(spacing: 6) {
+            UnitField(prompt: u.prompt, unit: "", value: value, width: 100)
+            Text(u.unit).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2).fixedSize()
+        }
+    }
+
+    private func entryRow(_ dr: HeparinDraft, _ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
+        let time = HeparinTimeline.resolved(picked: dr.picked, now: Date())
+        let issues = CaseTimerEngine.entryIssues(kind: dr.kind, value: dr.value, course: h, purpose: p, record: r, data: d)
+            + (HeparinTimeline.timeIssue(time).map { [$0] } ?? [])
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 12) {
+                Text(entryTitle(dr.kind, h)).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 4)
+                valueField(dr.kind, Binding(get: { draft?.value }, set: { draft?.value = $0; draft?.armed = false }))
+            }
+            EntryTimeRow(base: nil, picked: Binding(get: { draft?.picked }, set: { draft?.picked = $0; draft?.armed = false }))
+            DoseIssueList(issues: issues.filter { !$0.text.isEmpty })
+            HStack(spacing: 10) {
+                Spacer(minLength: 4)
+                Button("Cancel") { withAnimation(.snappy) { draft = nil } }.buttonStyle(CapsuleButtonStyle(prominent: false))
+                CheckedLogButton(title: "Log", issues: issues, armed: Binding(get: { draft?.armed ?? false }, set: { draft?.armed = $0 })) {
+                    logDraft()
+                }
+            }
+        }
+        .entryBox()
+    }
+
+    /// One Undo step: the entry and, for the first dose of the case, the reminder's switch.
+    private func logDraft() {
+        guard let dr = draft, let v = dr.value else { return }
+        let now = Date()
+        guard let time = HeparinTimeline.resolved(picked: dr.picked, now: now) else { return }
+        edit { t in
+            switch dr.kind {
+            case .heparin: t.heparin?.logDose(units: v, at: time, now: now)
+            case .act, .baseline: t.heparin?.logACT(seconds: v, at: time, kind: dr.kind)
+            case .protamine: t.heparin?.logProtamine(mg: v, at: time)
+            }
+        }
+        draft = nil
+    }
+
+    // MARK: Changing a row
+
+    private func editRow(_ ed: HeparinRowEdit, _ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
+        let time = HeparinTimeline.resolvedEdit(picked: ed.picked, original: ed.shown, now: Date())
+        let issues = CaseTimerEngine.entryIssues(kind: ed.kind, value: ed.value, course: h.removing(ed.id), purpose: p, record: r, data: d)
+            + (HeparinTimeline.timeIssue(time).map { [$0] } ?? [])
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 12) {
+                Text(HeparinTimeline.label(ed.kind)).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 4)
+                valueField(ed.kind, Binding(get: { rowEdit?.value }, set: { rowEdit?.value = $0; rowEdit?.armed = false }))
+            }
+            EntryTimeRow(base: ed.shown, picked: Binding(get: { rowEdit?.picked }, set: { rowEdit?.picked = $0; rowEdit?.armed = false }))
+            DoseIssueList(issues: issues.filter { !$0.text.isEmpty })
+            HStack(spacing: 10) {
+                Button { deleteTapped(ed) } label: {
+                    Label(ed.deleteArmed ? "Confirm delete" : "Delete", systemImage: "trash")
+                }
+                .buttonStyle(CapsuleButtonStyle(prominent: ed.deleteArmed, color: PS.red))
+                Spacer(minLength: 4)
+                Button("Cancel") { withAnimation(.snappy) { rowEdit = nil } }.buttonStyle(CapsuleButtonStyle(prominent: false))
+                CheckedLogButton(title: "Save", issues: issues, armed: Binding(get: { rowEdit?.armed ?? false }, set: { rowEdit?.armed = $0 })) {
+                    saveEdit(ed, time: time)
+                }
+            }
+        }
+        .entryBox()
+    }
+
+    /// One Undo step: the changed time and value; the list re-sorts now.
+    private func saveEdit(_ ed: HeparinRowEdit, time: Date?) {
+        guard let time, let cur = rowEdit else { return }
+        edit { $0.heparin?.updateEntry(ed.id, time: time, value: cur.value) }
+        rowEdit = nil
+    }
+
+    /// Delete asks a second tap ("Confirm delete"), then is one Undo step.
+    private func deleteTapped(_ ed: HeparinRowEdit) {
+        Haptics.light()
+        guard ed.deleteArmed else { withAnimation(.snappy) { rowEdit?.deleteArmed = true }; return }
+        edit { $0.heparin?.removeEntry(ed.id) }
+        rowEdit = nil
+    }
+
+    /// The facts under the log that the old blocks carried: the heparin-resistance note beside a below-goal ACT, and the initial
+    /// and total heparin (the protamine suggestion rests on the initial dose).
+    @ViewBuilder private func logSummary(_ h: HeparinCourse, _ p: HeparinPurpose) -> some View {
+        let status = CaseTimerEngine.status(h, record: r)
+        if status.goalMet == false, let pk = status.initialPerKg, let lo = p.doseLow, pk >= lo,
+           let text = refs.caseTimers?.heparinRules.resistance {
+            Text(text).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
         }
         if let initial = status.initialUnits, h.doses.count > 1 {
             Text("Initial \(CaseTimerEngine.grouped(initial)) U · total \(CaseTimerEngine.grouped(status.totalUnits)) U in \(h.doses.count) doses")
                 .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
         }
     }
+
+    // MARK: The ACT reminder
+
+    /// "ACT reminder": one switch for the series, its interval chips, and the next due time. Turning it off keeps the log and
+    /// stops the running list, the notification and the lock-screen activity; turning it on counts from now or the last ACT.
+    @ViewBuilder private func reminderRow(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
+        let chips = CaseTimerRecurrence.actChips(p)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("ACT reminder").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                    if h.actRunning { nextDueLine(d) }
+                }
+                Spacer(minLength: 6)
+                Toggle("ACT reminder", isOn: reminderSwitch).labelsHidden().tint(PS.action)
+            }
+            RecurrenceRow(label: "Recurring every", chips: chips, pick: intervalPick(h, chips), preferred: p.actEvery.first ?? 30,
+                          maxMinutes: CaseTimerRecurrence.actMax)
+            Text("Each ACT you log restarts the countdown; a heparin dose does not.")
+                .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var reminderSwitch: Binding<Bool> {
+        Binding(get: { t.heparin?.actRunning ?? false }, set: { on in
+            Haptics.light()
+            edit { $0.heparin?.setReminder(on, now: Date()) }
+            actPick = nil
+        })
+    }
+
+    /// The interval is always one of the chips or Other (a second tap on the chosen one keeps it: the reminder needs an interval).
+    private func intervalPick(_ h: HeparinCourse, _ chips: [Double]) -> Binding<RecurrencePick> {
+        Binding(get: { actPick ?? RecurrencePick(running: h.actEvery, chips: chips) }, set: { new in
+            guard let m = new.minutes else { return }
+            actPick = new
+            if m != h.actEvery { edit { $0.heparin?.actEvery = m } }
+        })
+    }
+
+    /// "Next ACT due 09:20", red once overdue (as the running list); "Snoozed to 09:25" after a snooze. The time is the one the
+    /// running list shows: both read `CaseTimerEngine.reminders`.
+    private func nextDueLine(_ d: CaseTimerData) -> some View {
+        TimelineView(.periodic(from: .now, by: 30)) { ctx in
+            let rem = CaseTimerEngine.reminders(t, record: r, data: d).first { $0.kind == .act }
+            let overdue = CaseReminder.state(due: rem?.due, at: ctx.date) == .overdue
+            Text(Self.nextDueText(rem))
+                .font(PS.sys(size: 13, weight: overdue ? .semibold : .medium))
+                .foregroundStyle(overdue ? PS.red : PS.fg2)
+        }
+    }
+
+    static func nextDueText(_ rem: CaseReminder?) -> String {
+        guard let due = rem?.due else { return "Next ACT due" }
+        return (rem?.snoozed == true ? "Snoozed to " : "Next ACT due ") + ClockText.time(due)
+    }
+
 
     @ViewBuilder private func bypassRow(_ h: HeparinCourse) -> some View {
         HStack(spacing: 10) {
@@ -1267,7 +1675,7 @@ struct CaseTimersView: View {
             Spacer(minLength: 4)
             UnitField(prompt: "mg", unit: "mg", value: Binding(get: { protamineMg }, set: { protamineMg = $0; protamineArmed = false }), width: 84)
             CheckedLogButton(title: "Started", issues: protamineMg == nil ? [DoseIssue(level: .block, text: "")] : issues, armed: $protamineArmed) {
-                if let mg = protamineMg { edit { $0.heparin?.protamine.append(TimedEntry(time: Date(), value: mg)) } }
+                if let mg = protamineMg { edit { $0.heparin?.logProtamine(mg: mg, at: Date()) } }
                 protamineMg = nil
             }
         }
@@ -1282,48 +1690,6 @@ struct CaseTimersView: View {
             return "\(CaseTimerEngine.fmt(pr.ratioLow))–\(CaseTimerEngine.fmt(pr.ratioHigh)) mg per 100 U of the initial \(initial) U\(total) · cap \(CaseTimerEngine.fmt(s.capMg)) mg"
         }
         return "1 mg per 100 U of the initial \(initial) U\(total) is the cap"
-    }
-
-    /// The ACT recheck timer: start time and "recurring every", then Start timer.
-    @ViewBuilder private func actTimer(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
-        let chips = CaseTimerRecurrence.actChips(p)
-        let running = h.actRunning
-        let pick = Binding<RecurrencePick>(get: {
-            actPick ?? (running ? RecurrencePick(running: h.actEvery, chips: chips) : RecurrencePick(minutes: p.actEvery.first ?? 30))
-        }, set: { actPick = $0 })
-        let changed = running && actPick.map { ($0.minutes ?? 0) != h.actEvery } == true
-        HStack(alignment: .firstTextBaseline) {
-            Text("ACT timer").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-            Spacer()
-            if running, let due = CaseTimerEngine.actDue(h, rules: d.heparinRules) {
-                Text("Next ACT \(ClockText.time(due))").font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2)
-            }
-        }
-        RecurrenceRow(label: "Recurring every", chips: chips, pick: pick, preferred: p.actEvery.first ?? 30,
-                      maxMinutes: CaseTimerRecurrence.actMax)
-        if !running { StartTimeRow(start: $actStart) }
-        let idle = running ? !changed : pick.wrappedValue.minutes == nil
-        Button {
-            Haptics.light()
-            let m = pick.wrappedValue.minutes
-            let start = actStart.resolved(now: Date())
-            edit { t in
-                guard t.heparin != nil else { return }
-                if running {
-                    if let m { t.heparin?.actEvery = m } else { t.heparin?.actOff = true }
-                } else if let m {
-                    t.heparin?.actEvery = m
-                    t.heparin?.actStart = start
-                    t.heparin?.actOff = false
-                }
-            }
-            actPick = nil
-            actStart = StartTimePick()
-        } label: {
-            Text(running ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
-        }
-        .buttonStyle(TimerStartButtonStyle(active: !idle))
-        .disabled(idle)
     }
 
     // MARK: Footer

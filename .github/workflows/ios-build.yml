@@ -882,6 +882,21 @@ jobs:
           shot 827-quickadd111-intraop-added-light 20 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 828-quickadd111-summary-added-dark 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 829-quickadd111-preop-added-cardio-light 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, DSE negative 2024" -ps.quickadd.add 1
+          # ---- 1.12 helper N shots (1090-1109): add your shot lines directly under this line ----
+          shot 1090-n-picker-grouped-light 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.devices.picker 1 -ps.forceAppearance light
+          shot 1091-n-picker-grouped-dark-375 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.devices.picker 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1092-n-diagram-cardiac-light 18 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.forceAppearance light
+          shot 1093-n-diagram-cardiac-dark-375 18 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1094-n-list-cardiac-light 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.patient.scroll devicetype -ps.forceAppearance light
+          shot 1095-n-list-cardiac-dark-375 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.patient.scroll devicetype -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1096-n-handoff-lines-light 24 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1097-n-handoff-figure-dark-375 24 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1098-n-dlt-sheet-light 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.devices.dlt 1 -ps.forceAppearance light
+          shot 1099-n-dlt-sheet-dark-375 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.devices.dlt 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1100-n-bar-chips-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "NIRS, BIS, TEE probe in, Zoll pads on" -ps.forceAppearance light
+          shot 1101-n-bar-chips-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "NIRS, BIS, TEE probe in, Zoll pads on" -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1102-n-bar-added-light 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "NIRS, BIS, TEE probe in, Zoll pads on" -ps.quickadd.add 1 -ps.forceAppearance light
+          #
           # ---- 1.12 helper A shots (830-849): add your shot lines directly under this line ----
           shot 830-labs112-infectious-pregnancy-light-375 45 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.patient.width 375 -ps.forceAppearance light
           shot 831-labs112-infectious-pregnancy-dark 22 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.forceAppearance dark
@@ -904,6 +919,29 @@ jobs:
           shot 848-labs112-extras-open-light-375 22 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.handoff.extras 1 -ps.patient.width 375 -ps.forceAppearance light
           shot 849-labs112-extras-open-dark 22 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.handoff.extras 1 -ps.forceAppearance dark
           #
+          # ---- 1.12 helper O shots (1110-1129): add your shot lines directly under this line ----
+          # 1.12 helper O (1110-1129): Case Timers' Heparin & ACT as one timeline, 375 pt (Ben, Nov 12): a bypass case with the reminder on
+          # and off, adding an ACT, editing a row, a TAVR, an empty case, the protamine row and block, rows from the day before.
+          shot 1110-hep112-bypass-on-light 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1111-hep112-bypass-on-dark 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1112-hep112-bypass-off-light 22 -ps.tab patient -ps.patient demo-112-hep-bypass-off -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1113-hep112-bypass-off-dark 22 -ps.tab patient -ps.patient demo-112-hep-bypass-off -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1114-hep112-add-act-light 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.add act -ps.timers.hep.value 512 -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1115-hep112-add-act-dark 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.add act -ps.timers.hep.value 512 -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1116-hep112-edit-row-light 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.edit 3 -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1117-hep112-edit-row-dark 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.edit 3 -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1118-hep112-tavr-light 22 -ps.tab patient -ps.patient demo-112-hep-tavr -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1119-hep112-tavr-dark 22 -ps.tab patient -ps.patient demo-112-hep-tavr -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1120-hep112-empty-light 22 -ps.tab patient -ps.patient demo-112-hep-empty -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1121-hep112-empty-dark 22 -ps.tab patient -ps.patient demo-112-hep-empty -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1122-hep112-protamine-timeline-light 22 -ps.tab patient -ps.patient demo-112-hep-protamine -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1123-hep112-protamine-timeline-dark 22 -ps.tab patient -ps.patient demo-112-hep-protamine -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1124-hep112-protamine-block-light 22 -ps.tab patient -ps.patient demo-112-hep-protamine -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.patient.width 375 -ps.forceAppearance light
+          shot 1125-hep112-protamine-block-dark 22 -ps.tab patient -ps.patient demo-112-hep-protamine -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1126-hep112-dated-rows-light 22 -ps.tab patient -ps.patient demo-112-hep-midnight -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1127-hep112-add-dose-first-light 22 -ps.tab patient -ps.patient demo-112-hep-empty -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.add dose -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1128-hep112-add-dose-first-dark 22 -ps.tab patient -ps.patient demo-112-hep-empty -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.add dose -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          #
           # ---- 1.12 helper B shots (850-869): add your shot lines directly under this line ----
           # Handoff: PMH with no system labels, the short airway line (easy, difficult, 375 pt), the imaging block.
           shot 850-b112-handoff-top-light 18 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
@@ -920,13 +958,39 @@ jobs:
           shot 860-b112-airway-difficult-large-text-375-dark 18 -ps.tab patient -ps.patient demo-112-difficult -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance dark          # Sharing: the pages of the image (white, light, whatever the app's appearance), a long block's own page, the PDF's pages.
           shot 861-b112-share-image-page1-light 22 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage1 -ps.forceAppearance light
           shot 862-b112-share-image-page1-dark 22 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage1 -ps.forceAppearance dark
-          shot 863-b112-share-image-page2-light 22 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage2 -ps.forceAppearance light
-          shot 864-b112-share-image-long-light 24 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage3 -ps.forceAppearance light
+          shot 863-b112-share-image-page2-light 22 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.brief.pages tail -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 864-b112-share-image-long-light 24 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages fit -ps.patient.scroll briefpage1 -ps.forceAppearance light
           shot 865-b112-share-pdf-page1-light 24 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.brief.pages pdf -ps.patient.scroll briefpage1 -ps.forceAppearance light
           shot 866-b112-share-image-difficult-light 22 -ps.tab patient -ps.patient demo-112-difficult -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage1 -ps.forceAppearance light
           shot 869-b112-share-image-long-end-light 24 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpagesend -ps.forceAppearance light
           shot 867-b112-share-buttons-light 18 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.patient.scroll briefshare -ps.forceAppearance light
           shot 868-b112-share-buttons-dark 18 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.patient.scroll briefshare -ps.forceAppearance dark          #
+          # ---- 1.12 helper P shots (1130-1149): add your shot lines directly under this line ----
+          # No-timer record (P): the page with "+ Antibiotic" open (the reminder switch off), the antibiotics recorded only and timed on the page,
+          # the tab row and the handoff, Case Timers' antibiotic card with a recorded course and its switch, the bar's recorded chip with the
+          # optional reminder choice, "+ Heparin" open, and Heparin & ACT in Case Timers with doses logged and the ACT reminder off.
+          # -ps.meds.abx 1 / -ps.meds.hep 1 open the entries on the page (.abx.drug <id>, .hep.units <n> fill them).
+          shot 1130-p112-page-abx-entry-light 18 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.open intraop:meds -ps.meds.abx 1 -ps.meds.abx.drug cefazolin -ps.patient.width 375 -ps.forceAppearance light
+          shot 1131-p112-page-abx-entry-dark 18 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.open intraop:meds -ps.meds.abx 1 -ps.meds.abx.drug cefazolin -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1132-p112-page-recorded-light 18 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1133-p112-page-recorded-dark 18 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1134-p112-page-timed-light 18 -ps.tab patient -ps.patient demo-112-notimer-timed -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1135-p112-page-timed-dark 18 -ps.tab patient -ps.patient demo-112-notimer-timed -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1136-p112-tab-row-recorded-light 20 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1137-p112-tab-row-recorded-dark 20 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1138-p112-tab-row-timed-light 20 -ps.tab patient -ps.patient demo-112-notimer-timed -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1139-p112-handoff-recorded-light 20 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1140-p112-handoff-recorded-dark 20 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 1141-p112-handoff-timed-light 20 -ps.tab patient -ps.patient demo-112-notimer-timed -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1142-p112-timers-abx-recorded-light 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.scroll antibiotic -ps.patient.width 375 -ps.forceAppearance light
+          shot 1143-p112-timers-abx-recorded-dark 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.scroll antibiotic -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1144-p112-bar-cefazolin-light 16 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "cefazolin 2 g at 0001"
+          shot 1145-p112-bar-cefazolin-dark 16 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance dark -ps.quickadd "cefazolin 2 g at 0001"
+          shot 1146-p112-page-hep-entry-light 18 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.open intraop:meds -ps.meds.hep 1 -ps.meds.hep.units 26000 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1147-p112-page-hep-entry-dark 18 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.open intraop:meds -ps.meds.hep 1 -ps.meds.hep.units 26000 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1148-p112-timers-hep-off-light 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1149-p112-timers-hep-off-dark 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          #
           # ---- 1.12 helper C shots (870-889): add your shot lines directly under this line ----
           # 1.12 helper C (870-889): the case and the tabs pinned at the top once the tab has scrolled (note 10): the row of
           # cases and tabs over the section chips on both tabs and on Summary & Handoff, at 375 pt, with one case, and in
@@ -953,6 +1017,27 @@ jobs:
           shot 888-boxes-folded-intraop-fluids-dark 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
           shot 889-boxes-empty-patient-open-light 18 -ps.tab patient -ps.patient empty -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
           #
+          # ---- 1.12 helper Q shots (1150-1169): add your shot lines directly under this line ----
+          shot 1150-q-picture-ben-top-light 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1151-q-picture-ben-tail-light 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages tail -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1152-q-picture-ben-whole-light 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages fit -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1153-q-picture-ben-tail-dark 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages tail -ps.patient.scroll briefpage1 -ps.forceAppearance dark
+          shot 1154-q-picture-summary-whole-light 24 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.brief.pages fit -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1155-q-picture-long-whole-light 26 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages fit -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1156-q-picture-long-tail-light 26 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages tail -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1157-q-pdf-first-page-light 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages pdf -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1158-q-pdf-last-page-light 26 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages pdf -ps.patient.scroll briefpage3 -ps.forceAppearance light
+          shot 1159-q-share-menu-light 18 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.menu 1 -ps.patient.scroll briefshare -ps.forceAppearance light
+          shot 1160-q-more-my-patient-default-on-light 14 -ps.tab more -ps.more.scroll mypatient -ps.forceAppearance light
+          shot 1161-q-more-my-patient-default-on-dark 14 -ps.tab more -ps.more.scroll mypatient -ps.forceAppearance dark
+          shot 1162-q-more-my-patient-off-light 14 -ps.tab more -ps.more.scroll mypatient -ps.send.airDropLink 0 -ps.forceAppearance light
+          shot 1163-q-send-note-on-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance light
+          shot 1164-q-send-note-off-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 0 -ps.forceAppearance light
+          shot 1165-q-send-note-on-dark 18 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance dark
+          # Build 40's last read-through: a heparin log begun by recording a dose still lets the purpose be chosen (the log is kept).
+          shot 1166-review-hep-purpose-open-light 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.card -ps.patient.width 375 -ps.forceAppearance light
+          shot 1167-review-hep-purpose-open-dark 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.card -ps.patient.width 375 -ps.forceAppearance dark
+          #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light
           shot 891-d112-preop-meds-dark 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance dark
@@ -975,6 +1060,26 @@ jobs:
           shot 908-d112-handoff-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
           shot 909-d112-preop-summary-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab preop -ps.patient.scroll preopsummary -ps.forceAppearance light
           #
+          # ---- 1.12 helper J shots (1020-1039): add your shot lines directly under this line ----
+          # 1.12 helper J (1020-1033): past surgical history newest first (the page, the Preprocedure Summary, the handoff, the History
+          # row), the page's bar with a free-text line of three operations, and the page after two lines were filed one after the other.
+          shot 1020-j-psh-page-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.forceAppearance light
+          shot 1021-j-psh-page-dark 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.forceAppearance dark
+          shot 1022-j-psh-page-375-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance light
+          shot 1023-j-presummary-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance light
+          shot 1024-j-presummary-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1025-j-handoff-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1026-j-handoff-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab summary -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1027-j-history-row-light 18 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab preop -ps.patient.scroll chips -ps.forceAppearance light
+          shot 1028-j-history-row-dark-375 18 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab preop -ps.patient.scroll chips -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1029-j-bar-three-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.quickadd.editor "jaw wiring 2012, knee scope 2020, tubes tied" -ps.forceAppearance light
+          shot 1030-j-bar-three-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.quickadd.editor "jaw wiring 2012, knee scope 2020, tubes tied" -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1031-j-filed-two-light 22 -ps.tab patient -ps.patient demo-112-psh-filed -ps.patient.open workup:surgeries -ps.forceAppearance light
+          shot 1032-j-filed-two-dark-375 22 -ps.tab patient -ps.patient demo-112-psh-filed -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance dark
+          # The end of the page of five entries (shots 1020 to 1022 show its first three): the year alone, the oldest, and the undated one last.
+          shot 1033-j-psh-page-end-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.patient.scroll done -ps.forceAppearance light
+          shot 1034-j-psh-page-end-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.patient.scroll done -ps.patient.width 375 -ps.forceAppearance dark
+          #
           # ---- 1.12 helper I shots (1000-1014): add your shot lines directly under this line ----
           # 1.12 helper I (1000-1013): the case's name on the Patient Received sheet (on an empty phone, beside a named case with a
           # patient, beside an unnamed case, a long name at the largest text), the Send card's note (named case; AirDrop link on),
@@ -985,13 +1090,13 @@ jobs:
           shot 1003-i-receive-name-differs-dark 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive -ps.patient.receiveName "CVOR 9" -ps.forceAppearance dark
           shot 1004-i-receive-name-unnamed-case-light 14 -ps.tab patient -ps.patient demo -ps.patient.open receive -ps.patient.receiveName "OR 12" -ps.forceAppearance light
           shot 1005-i-receive-name-long-large-text-light 16 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive -ps.patient.receiveName "Cardiac OR 12 North Tower Room B" -ps.textScale 1.25 -ps.forceAppearance light
-          shot 1006-i-send-note-named-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance light
-          shot 1007-i-send-note-named-dark 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 1006-i-send-note-named-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 0 -ps.forceAppearance light
+          shot 1007-i-send-note-named-dark 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 0 -ps.forceAppearance dark
           shot 1008-i-send-note-link-on-unnamed-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 1 -ps.forceAppearance light
           shot 1009-i-send-note-link-on-named-dark 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 1 -ps.forceAppearance dark
-          shot 1010-i-more-my-patient-off-light 14 -ps.tab more -ps.more.scroll mypatient -ps.forceAppearance light
+          shot 1010-i-more-my-patient-off-light 14 -ps.tab more -ps.more.scroll mypatient -ps.send.airDropLink 0 -ps.forceAppearance light
           shot 1011-i-more-my-patient-on-light 14 -ps.tab more -ps.more.scroll mypatient -ps.send.airDropLink 1 -ps.forceAppearance light
-          shot 1012-i-more-my-patient-off-dark 14 -ps.tab more -ps.more.scroll mypatient -ps.forceAppearance dark
+          shot 1012-i-more-my-patient-off-dark 14 -ps.tab more -ps.more.scroll mypatient -ps.send.airDropLink 0 -ps.forceAppearance dark
           shot 1013-i-more-my-patient-on-dark 14 -ps.tab more -ps.more.scroll mypatient -ps.send.airDropLink 1 -ps.forceAppearance dark
           #
           # ---- 1.12 helper E1 shots (910-924): add your shot lines directly under this line ----
@@ -1010,6 +1115,19 @@ jobs:
           shot 922-e1-valve-calc-dark 16 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.forceAppearance dark
           shot 923-e1-valve-calc-typed-light 16 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;ava=1.1;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.forceAppearance light
           shot 924-e1-valve-calc-nobsa-375-light 16 -ps.ref valves -ps.patient empty -ps.vg.lesion as -ps.vg.texts "vmax=3.3;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.patient.width 375 -ps.forceAppearance light
+          #
+          # ---- 1.12 helper K shots (1040-1054): add your shot lines directly under this line ----
+          # The suggested ASA class by the ASA's definitions (K): Assessment with heart failure and hypertension (III; one "By
+          # definition" reason and one ASA example), decompensated heart failure (IV), the ASA title's ⓘ open, and only items
+          # with no class beside hypertension (II). 375 pt, light and dark.
+          shot 1040-k-asa-hf-htn-light 18 -ps.tab patient -ps.patient demo-112-asa-hf -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance light
+          shot 1041-k-asa-hf-htn-dark 18 -ps.tab patient -ps.patient demo-112-asa-hf -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1042-k-asa-hf-decomp-light 18 -ps.tab patient -ps.patient demo-112-asa-hf-decomp -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance light
+          shot 1043-k-asa-hf-decomp-dark 18 -ps.tab patient -ps.patient demo-112-asa-hf-decomp -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1044-k-asa-info-light 18 -ps.tab patient -ps.patient demo-112-asa-hf -ps.patient.open assessment -ps.evidence.open 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1045-k-asa-info-dark 18 -ps.tab patient -ps.patient demo-112-asa-hf -ps.patient.open assessment -ps.evidence.open 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1046-k-asa-noclass-light 18 -ps.tab patient -ps.patient demo-112-asa-noclass -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance light
+          shot 1047-k-asa-noclass-dark 18 -ps.tab patient -ps.patient demo-112-asa-noclass -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance dark
           #
           # ---- 1.12 helper H shots (980-999): add your shot lines directly under this line ----
           # Typed antibiotics (H): Case Timers with an antibiotic picked and not logged ("Log dose" for a drug with no routine redose,
@@ -1058,6 +1176,27 @@ jobs:
           shot 938-valve-shorthand-asks-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "HTN, PI, MS" -ps.forceAppearance light
           shot 939-valve-insufficiency-375-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "aortic insufficiency, severe mitral insufficiency, mild TI" -ps.forceAppearance dark
           #
+          # ---- 1.12 helper M shots (1075-1089): add your shot lines directly under this line ----
+          # 1.12 follow-up, helper M (Ben, Nov 12): HIT and heparin resistance on the Heme & Oncology page (375 pt, light and dark), the
+          # Preoperative tile and the Preprocedure Summary's PMH line with both, the bar with "pmh htn, dm2, HIT, frequent pvcs" and its
+          # chips, the same typed in lower case with a procedure, the guards (nothing filed but PVD), and the Cardiovascular page
+          # showing Other arrhythmia with "PVCs".
+          shot 1075-m-hit-page-light-375 22 -ps.tab patient -ps.patient demo-112-m-hit-page -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance light
+          shot 1076-m-hit-page-dark-375 22 -ps.tab patient -ps.patient demo-112-m-hit-page -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1077-m-hit-page-empty-light-375 22 -ps.tab patient -ps.patient empty -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance light
+          shot 1078-m-hit-tile-light-375 18 -ps.tab patient -ps.patient demo-112-m-hit -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
+          shot 1079-m-hit-presummary-light-375 22 -ps.tab patient -ps.patient demo-112-m-hit -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance light
+          shot 1080-m-hit-presummary-dark-375 22 -ps.tab patient -ps.patient demo-112-m-hit -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1081-m-bar-pmh-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "pmh htn, dm2, HIT, frequent pvcs" -ps.forceAppearance light
+          shot 1082-m-bar-pmh-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "pmh htn, dm2, HIT, frequent pvcs" -ps.forceAppearance dark
+          shot 1083-m-bar-pmh-lower-procedure-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "68M for lap chole, pmh htn dm2 osa" -ps.forceAppearance light
+          shot 1084-m-bar-guards-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "PVD, hit by a car, HIT negative, PVC pipe, no PVCs" -ps.forceAppearance light
+          shot 1085-m-bar-heparin-resistance-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "heparin-resistant, on heparin gtt, h/o heparin-induced thrombocytopenia" -ps.forceAppearance dark
+          shot 1086-m-cv-pvc-light-375 22 -ps.tab patient -ps.patient demo-112-m-pvc -ps.patient.open system:cv -ps.patient.scroll hx-arrhythmia -ps.patient.width 375 -ps.forceAppearance light
+          shot 1087-m-cv-pvc-dark-375 22 -ps.tab patient -ps.patient demo-112-m-pvc -ps.patient.open system:cv -ps.patient.scroll hx-arrhythmia -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1088-m-bar-pvc-ecg-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "ECG: NSR, PVCs" -ps.forceAppearance light
+          shot 1089-m-bar-svt-and-pvcs-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "SVT, frequent PVCs, no palpitations" -ps.forceAppearance dark
+          #
           # ---- 1.12 helper F shots (940-959): add your shot lines directly under this line ----
           # Heme & Oncology (Ben, Nov 11): the Preoperative tile, the page with Malignancy open (cancers, Other, status, Metastatic,
           # treatment; 375 pt; large text), the PMH line in the Preprocedure Summary and the handoff, lines typed in the quick-add
@@ -1084,6 +1223,15 @@ jobs:
           shot 959-onc112-tile-empty-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
           #
           # ---- 1.12 helper G shots (960-979): add your shot lines directly under this line ----
+          #
+          # ---- 1.12 helper L shots (1055-1069): add your shot lines directly under this line ----
+          # "for ___" typed in the Preoperative bar fills the planned procedure (Ben, Nov 12): the chips, the Planned Procedure & Anesthetic box after Add, and a line whose "for" is a reason (no procedure chip).
+          shot 1055-for112-chips-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "73M with HF for ECMO cannulation"
+          shot 1056-for112-chips-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark -ps.quickadd "73M with HF for ECMO cannulation"
+          shot 1057-for112-box-after-add-light-375 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll procedure -ps.forceAppearance light -ps.quickadd "73M with HF for ECMO cannulation" -ps.quickadd.add 1
+          shot 1058-for112-box-after-add-dark-375 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll procedure -ps.forceAppearance dark -ps.quickadd "73M with HF for ECMO cannulation" -ps.quickadd.add 1
+          shot 1059-for112-not-a-procedure-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "68M on apixaban for AF"
+          shot 1060-for112-not-a-procedure-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark -ps.quickadd "68M on apixaban for AF"
           # A day in dates, Type & Screen expiration, and no H or L beside a lab value (Ben, Nov 11). Dates are relative to the run day.
           shot 960-dates112-psh-page-light 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:surgeries -ps.forceAppearance light
           shot 961-dates112-psh-page-dark-375 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance dark
@@ -1104,7 +1252,15 @@ jobs:
           shot 976-ts112-handoff-heme-expired-dark-375 22 -ps.tab patient -ps.patient demo-112-dates-ts-expired -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance dark
           shot 977-lab112-labs-page-no-letters-light 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:labs -ps.forceAppearance light
           shot 978-lab112-intraop-labs-dark-375 24 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance dark
-          shot 979-lab112-share-image-page2-light 22 -ps.tab patient -ps.patient demo-112-dates-ts-set -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage2 -ps.forceAppearance light
+          shot 979-lab112-share-image-page2-light 22 -ps.tab patient -ps.patient demo-112-dates-ts-set -ps.patient.tab summary -ps.brief.pages tail -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          #
+          # 1.12 (Ben, Nov 12): Diagnostic angiogram and Angiogram with possible intervention in the procedure list.
+          shot 1070-proc-angiogram-light 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "angiogram" -ps.forceAppearance light
+          shot 1071-proc-angiogram-intervention-dark 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "angiogram with possible" -ps.forceAppearance dark
+          # 1.12 (Ben, Nov 12): the Surgical Antibiotic Prophylaxis reference card (first choice and the beta-lactam alternative).
+          shot 1072-ref-abx-prophylaxis-light 14 -ps.ref quickref:ashp-surgical-prophylaxis -ps.forceAppearance light
+          shot 1073-ref-abx-prophylaxis-dark 14 -ps.ref quickref:ashp-surgical-prophylaxis -ps.forceAppearance dark
+          shot 1074-ref-list-light 12 -ps.tab reference -ps.forceAppearance light
           #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done

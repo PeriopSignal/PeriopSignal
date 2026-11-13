@@ -347,7 +347,7 @@ struct PatientEditorView: View {
             PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
-            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with a date (the day is optional)" : r.capitalized.surgeries.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
+            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with a date (the day is optional)" : r.capitalized.surgeriesNewestFirst.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
             Hairline().padding(.leading, 50)
             linkRow("Medications & allergies", medsSummary, icon: "pills", value: .medications)
             Hairline().padding(.leading, 50)
@@ -409,7 +409,7 @@ struct PatientEditorView: View {
     }
 
     func problemFlag(_ p: PatientProblem) -> PatientFlag {
-        PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" })
+        PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + (p.asa == nil && !r.isChild ? " by definition" : " example") })
     }
 
     @ViewBuilder private var medications: some View {
@@ -645,11 +645,12 @@ struct PatientEditorView: View {
     /// 1.12 (Ben's notes 3 and 18): the antibiotics charted in Case Timers (read-only), the notable medications as chips with
     /// their doses, and the free text the page had (PatientMedicationViews.swift).
     @ViewBuilder private var intraopMeds: some View {
-        // "+ Antibiotic" opens Case Timers at its antibiotic card, as a page of the stack the editor is in.
-        IntraopMedicationsPage(openCaseTimers: {
-            CaseTimersUI.shared.target = CaseTimersView.antibioticCardID
+        // "+ Antibiotic" and "+ Heparin" open in place on the page (1.12, Nov 12); "Open Case Timers" and "Open Heparin & ACT" open Case
+        // Timers at that card, and "Which antibiotic?" the surgical prophylaxis reference, each as a page of the stack the editor is in.
+        IntraopMedicationsPage(openCaseTimers: { card in
+            CaseTimersUI.shared.target = card
             onOpenRoute("case-timers")
-        })
+        }, openRoute: { onOpenRoute($0) })
     }
 
     @ViewBuilder private var intraopEvents: some View {

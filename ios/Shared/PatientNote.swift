@@ -107,6 +107,11 @@ enum PatientNoteChange: Hashable {
     // 1.12 follow-up (Ben, Nov 11): an antibiotic given during the case, read by the bar on the Intraoperative tab; filed in
     // Case Timers as its own Start or "Redose given" does (IntraopAntibiotic).
     case antibioticDose(IntraopAntibioticDose)
+    // 1.12 follow-up (Ben, Nov 12): "also start the redose reminder" for the course that dose belongs to (the review's second,
+    // optional choice; off until chosen), and a heparin dose given during the case, recorded in Case Timers' Heparin & ACT log
+    // with the ACT reminder left as it is (IntraopHeparin).
+    case antibioticReminder(IntraopAntibioticDose)
+    case heparinDose(IntraopHeparinDose)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -317,6 +322,22 @@ enum PatientNote {
     /// After a thrombophilia or Factor V Leiden, a test that is not positive (1.9 review): "thrombophilia workup negative",
     /// "FVL negative", "factor V Leiden: not detected", "prothrombin gene mutation neg", "FVL wild type".
     static let thrombophiliaNotPositive = NoteRx(#"^\s*\(?\s*(?:(?:work-?up|work up|screen|screening|panel|testing|tests?|studies|evaluation|eval|mutation|gene|genetic|genotype|genotyping|analysis|pcr|status|results?)\s*){0,4}\)?\s*[:=]?\s*(?:is\s+|was\s+|were\s+|came back\s+|returned\s+)?(?:"# + resultNegative + "|" + resultPending + #"|unremarkable\b|normal\b|wnl\b|none\b|no\b|n/a\b|wild[- ]?type\b|absent\b)"#)
+    /// After "heparin": "-induced thrombocytopenia", " resistance", " resistant": the item, not the medicine.
+    static let heparinNotTaken = NoteRx(#"^[- ](?:induced|resistan(?:ce|t))\b"#)
+    /// Before "heparin": "avoid heparin", "contraindicated heparin": a heparin to keep away from ("HIT, avoid heparin"), not one the
+    /// patient takes.
+    static let heparinAvoided = NoteRx(#"\b(?:avoid\w*|contraindicat\w*)\s+(?:all\s+|any\s+|further\s+|future\s+)?(?:unfractionated\s+)?$"#)
+    /// After "HIT" or "heparin resistance", a test or a rule-out that is not positive (1.12 follow-up): "HIT negative", "HIT panel
+    /// sent", "HIT antibody pending", "HIT PF4 negative", "HIT ruled out". "HIT positive" and "HIT antibody positive" are not here.
+    static let hitNotPositive = NoteRx(#"^\s*[:=]?\s*\(?\s*(?:(?:antibody|antibodies|ab|abs|ag|antigen|panel|assay|elisa|pf4|sra|serology|screen|screening|test|testing|tests|work-?up|eval|evaluation|result|results|status|type\s+(?:i|ii|1|2))\s*){0,4}\)?\s*[:=]?\s*(?:is\s+|was\s+|were\s+|came back\s+|returned\s+|being\s+)?(?:"# + resultNegative + "|" + resultPending + #"|ordered\b|unknown\b|none\b|no\b(?!\s+[a-z0-9])|ruled out\b|rule[- ]out\b|r/o\b|excluded\b|not (?:present|detected|confirmed|suspected)\b)"#)
+    /// Before it: "negative HIT".
+    static let hitNegativeBefore = NoteRx(#"\b(?:negative|neg)\s+$"#)
+    /// Before the capitals "HIT": "negative HIT", and the English word ("was HIT by", "got HIT", "took a HIT", "a big HIT"). A bare
+    /// "a", "an" or "the" is not here: "had a HIT in 2018" and "avoid heparin given the HIT" are the item (1.12 review).
+    static let hitNotBefore = NoteRx(#"\b(?:negative|neg|(?:was|were|got|get|gets|been|being|took|take|taken)(?:\s+(?:a|an|the))?|big|direct|hard)\s+$"#)
+    /// After "HIT": a note in capitals ("HIT BY A CAR", "HIT ON THE HEAD"): the preposition in capitals. In any other case it is the
+    /// item ("h/o HIT on argatroban", "HIT from 2019", "HIT on bivalirudin for CABG"; 1.12 review).
+    static let hitNotAfter = NoteRx(#"^\s+(?:BY|ON|AGAINST|FROM)\b"#, caseSensitive: true)
     /// Before it: "negative thrombophilia workup", "normal FVL".
     static let thrombophiliaNegativeBefore = NoteRx(#"\b(?:negative|neg|normal|unremarkable)\s+(?:(?:hypercoagulab\w*|inherited)\s+)?$"#)
     /// HIV prevention, which is not HIV.
@@ -366,7 +387,8 @@ enum PatientNote {
         Rule("af", #"atrial fibrillation|atrial flutter|\ba[-. ]?fib\b|(?-i:\b(?:AF|AFL|PAF)\b)"#),
         Rule("arrhythmia", #"(?-i:\b(?:SVT|WPW|VT)\b)|ventricular tachycardia|heart block|long qt|\barrhythmias?\b|bradyarrhythmia|sick sinus"#),
         Rule("pacemaker", #"pacemaker|(?-i:\bPPM\b)"#),
-        Rule("icd", #"(?-i:\b(?:ICD|AICD)\b)(?!-?\d)|defibrillator"#),
+        // 1.12: "defibrillator pads" are the external pads on the chest (a device of the diagram), not an implanted ICD.
+        Rule("icd", #"(?-i:\b(?:ICD|AICD)\b)(?!-?\d)|(?<!external )(?<!external pacing )defibrillator(?![ /-]*(?:pacer )?pads?\b)"#),
         Rule("pulm-htn-severe", #"severe pulmonary (?:arterial )?(?:hypertension|htn)|severe (?-i:\b(?:PH|PAH)\b)"#),
         Rule("pulm-htn", #"pulmonary (?:arterial )?(?:hypertension|htn)|(?-i:\bPAH\b)|\bphtn\b"#),
         Rule("pvd", #"(?-i:\b(?:PVD|PAD)\b)|peripheral (?:vascular|arterial) disease|claudication"#),
@@ -515,6 +537,16 @@ enum PatientNote {
         // 1.9. Not heparin-induced thrombocytopenia (HIT: a heparin caution, not a low count of its own).
         Rule("thrombocytopenia", #"(?<!heparin[- ]induced )(?<!heparin induced )\bthrombocytopeni(?:a|c)\b|(?-i:\bITP\b)|\blow platelets?\b|\bplatelets? (?:are |is |were )?low\b"#,
              guarded: true),
+        // 1.12 follow-up (Ben, Nov 12): heparin-induced thrombocytopenia is its own item (never the Thrombocytopenia one above, which
+        // stays blind to it). "HIT" and "HITT" in capitals only ("hit by a car", "took a hit" are English); the spelled-out
+        // form in any case, with its short form or "and thrombosis" beside it read as part of it. A result that is not positive,
+        // a rule-out, a suspicion and a family member's are not the item (hitNotPositive, hitNotBefore, hitNotAfter; negated
+        // and family mentions are skipped as for every rule).
+        Rule("hit", #"\bheparin[- ]induced\s+thrombocytopeni(?:a|c)\b(?:\s+type\s+(?:ii|2)\b)?(?:\s*\(?\s*(?:and|&|with)\s+thrombosis\s*\)?)?(?:\s*\(\s*(?-i:HITT?)\s*\))?"#,
+             negAfter: hitNotPositive, guarded: true, notBefore: hitNegativeBefore),
+        Rule("hit", #"(?-i:\bHITT?\b)(?:\s+type\s+(?:ii|2)\b)?(?:\s*\(\s*heparin[- ]induced\s+thrombocytopeni(?:a|c)(?:\s+(?:and|with)\s+thrombosis)?\s*\))?"#,
+             negAfter: hitNotPositive, guarded: true, notBefore: hitNotBefore, notAfter: hitNotAfter),
+        Rule("heparin-resistance", #"\bheparin[- ]resistan(?:ce|t)\b"#, negAfter: hitNotPositive, guarded: true),
         // Factor V Leiden is a thrombophilia (Ben, Nov 3): "fvl" beside "thrombophilia-heme", the Hematologic item; the
         // others' names go to its details. The Obstetric example ("thrombophilia", ASA III) is filed only for a pregnant
         // patient on anticoagulation (PatientNote.read).
@@ -881,7 +913,7 @@ enum PatientNote {
                 intracranialAneurysm, rupturedAorticRx, notAorticDissection, complexEVARRx, complexEVARTail]
         out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, valveShortAfterRx, echoCueRx, echoPlannedBefore, echoLeadAfter, echoCueAfter, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
                 prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx, gradedMI, otherMeaning]
-        out += [infectionNotPositive, hivPrevention, covidNotRecent]
+        out += [infectionNotPositive, hivPrevention, covidNotRecent, heparinNotTaken, heparinAvoided, pvcRule.rx, pvcNotAfter]
         out += malignancyPatterns
         out += detailPatterns
         out += problemRules.flatMap { r -> [NoteRx] in [r.notBefore, r.notAfter, r.notIf, r.onlyIf, r.negAfter].compactMap { $0 } }
@@ -893,6 +925,7 @@ enum PatientNote {
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
         out += [devicePlannedBefore, devicePlannedAfter, ivRoute, supportCue]
+        out += [bareBlockerRx, blockerAloneRx, blockerContext, blockerThroughRx]
         out += [deviceCue, tubeCue, deviceSettingCue, ecmoPart, countRx, tubeSkip, tubeGone, intubatedRx, intubatedPast, ventCue, vtRx,
                 ventRateRx, peepRx, psRx, fio2Rx, roomAirRx, ncRx, hfncRx, nrbRx, venturiRx, faceMaskRx, nivRx, trachCollarRx, onLitersRx,
                 flowRx, percentRx, homeRx, currentRx, breathingPast, satBefore]
@@ -1472,7 +1505,7 @@ enum PatientNote {
     static let yearAfter = NoteRx(#"^\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\b"#)
     static let plannedBefore = NoteRx(#"(?:\b(?:scheduled|planned|plan|planning|undergo|undergoing|presenting|presents|candidate|evaluation|eval|referred|consult|consulted|booked|listed|needs|will have)\b[^.;]{0,30}|\bfor\s+(?:an?\s+|the\s+|elective\s+|urgent\s+|emergent\s+|redo\s+)*)$"#)
     /// "On warfarin for a mechanical AVR": the valve is in place, not planned.
-    static let anticoagulationWords = NoteRx(#"\b(?:warfarin|coumadin|anticoagulat\w*|inr|heparin|eliquis|apixaban|lovenox|enoxaparin|bridg\w*)\b"#)
+    static let anticoagulationWords = NoteRx(#"\b(?:warfarin|coumadin|anticoagulat\w*|inr|heparin(?![- ](?:induced|resistan))|eliquis|apixaban|lovenox|enoxaparin|bridg\w*)\b"#)
     static let bentallRx = NoteRx(#"\b(?:bio-?)?bentall\b"#)
 
     /// Whether a lesion mentioned at a range is said of an echo (1.12, note 7): an echo word before it in its sentence ("TTE
@@ -1630,7 +1663,9 @@ enum PatientNote {
     }
 
     /// Abbreviations never read through their meaning: "IE" (infective endocarditis) is also "i.e.".
-    static let neverRead: Set<String> = ["IE"]
+    /// 1.12 follow-up: "HIT" and "HITT" are read as written (the "hit" rule, with its guards) and never through their meaning, which
+    /// would file "was HIT by a car" as heparin-induced thrombocytopenia.
+    static let neverRead: Set<String> = ["IE", "HIT", "HITT"]
 
     /// A stroke's year that is this year or later (it may be within 3 months).
     private static func strokeYearNotPast(_ c: String, _ m: NSTextCheckingResult) -> Bool {
@@ -1651,6 +1686,16 @@ enum PatientNote {
     }
 
     private static let problemLabels: [String: String] = Dictionary(PatientCatalog.allProblems.map { ($0.id, $0.label) }, uniquingKeysWith: { a, _ in a })
+
+    /// 1.12 follow-up (Ben, Nov 12): premature ventricular contractions, in any letter case ("PVCs", "pvc", "premature ventricular
+    /// contractions"), are the "Other arrhythmia" item with "PVCs" as its detail, as "SVT" is with "SVT". Its own finding, so a
+    /// line that names another arrhythmia too ("SVT, frequent PVCs") keeps both; applied, the details join without doubling.
+    /// "PVD" is peripheral vascular disease and is not here; "PVC pipe" is plastic (pvcNotAfter). The frequency word is not kept,
+    /// as the SVT path keeps none. A suspicion ("possible PVCs") is not read, nor a negated or a family member's.
+    private static let pvcRule = Rule("arrhythmia", #"\bPVCs?\b|\bpremature\s+ventricular\s+(?:contractions?|complexes|beats|depolari[sz]ations?)\b"#,
+                                      guarded: true, notAfter: pvcNotAfter)
+    static let pvcNotAfter = NoteRx(#"^[\s-]*(?:pipes?|piping|tubing|tubes?|conduits?|plastic|material|free\b)"#)
+    static let pvcFindingID = "problem:arrhythmia-pvcs"
 
     private static func readRules(_ c: String, _ h: inout Hits) {
         for rule in problemRules {
@@ -1702,6 +1747,9 @@ enum PatientNote {
                 continue
             }
             h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label, change: .problem(rule.id), note: rule.quiet ? nil : cautions[rule.id]), at: m.range)
+        }
+        if let m = accepted(pvcRule, in: c, &h), let label = problemLabels["arrhythmia"] {
+            h.add(PatientNoteFinding(id: pvcFindingID, section: Part.history, label: label + " (PVCs)", change: .problemNote("arrhythmia", "PVCs")), at: m.range)
         }
         readDetails19(c, &h)
         readMalignancy(c, &h)
@@ -1827,7 +1875,7 @@ enum PatientNote {
     /// Anticoagulants, by name: heparin and enoxaparin with their intensity, warfarin (its INR is the lab), the others by
     /// name. Not in an allergy sentence, not one to avoid, not heparin-induced thrombocytopenia, a heparin flush or lock,
     /// nor one stopped or taken before.
-    static let anticoagulantRx = NoteRx(#"\b(unfractionated heparin|heparin|(?-i:UFH)|enoxaparin|lovenox|(?-i:LMWH)|low[- ]molecular[- ]weight heparin|warfarin|coumadin|jantoven|apixaban|eliquis|rivaroxaban|xarelto|dabigatran|pradaxa|edoxaban|savaysa|dalteparin|fragmin|fondaparinux|arixtra|bivalirudin|argatroban|(?-i:DOAC|NOAC))\b(?![- ](?:induced|flush(?:es)?|lock(?:ed|s)?|free|allergy|antibod\w*|pf4)\b)"#)
+    static let anticoagulantRx = NoteRx(#"\b(unfractionated heparin|heparin|(?-i:UFH)|enoxaparin|lovenox|(?-i:LMWH)|low[- ]molecular[- ]weight heparin|warfarin|coumadin|jantoven|apixaban|eliquis|rivaroxaban|xarelto|dabigatran|pradaxa|edoxaban|savaysa|dalteparin|fragmin|fondaparinux|arixtra|bivalirudin|argatroban|(?-i:DOAC|NOAC))\b(?![- ](?:induced|resistan(?:ce|t)|flush(?:es)?|lock(?:ed|s)?|free|allergy|antibod\w*|pf4)\b)"#)
     static let anticoagulantOff = NoteRx(#"\b(?:off|stopped|discontinued|d/c'?d|dc'?d|no longer|previously|formerly|was on|were on|used to (?:be on|take)|avoid\w*|contraindicat\w*|allergic to)\b[^.;,]{0,20}$"#)
     static let anticoagulantOffAfter = NoteRx(#"^[^.;,]{0,25}?\b(?:stopped|discontinued|d/c'?d|dc'?d|no longer|contraindicated)\b"#)
     static let therapeuticRx = NoteRx(#"\b(?:gtts?|drips?|infusion|therapeutic|treatment[- ]dose|full[- ]dose|weight[- ]based|nomogram|bridg\w*|ptt goal|anti-?xa goal|(?:1|1\.5)\s*mg\s*/\s*kg|\d[\d,]*\s*(?:units?|u)\s*/\s*(?:kg\s*/\s*)?(?:hr|h|hour))\b"#)
@@ -2563,6 +2611,9 @@ enum PatientNote {
             h.seen(m.range)
             guard !allergySentence, let raw = m.text(1, in: c) else { continue }
             let key = raw.lowercased().replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            // 1.12 follow-up: "heparin-induced thrombocytopenia" and "heparin resistance" are not a heparin the patient takes.
+            if key == "heparin", heparinNotTaken.first((c as NSString).substring(from: m.range.location + m.range.length)) != nil
+                || heparinAvoided.first((c as NSString).substring(to: m.range.location)) != nil { continue }
             // A medicine running as an infusion is listed as the infusion.
             let infused = h.infusions.contains { NSIntersectionRange($0, m.range).length > 0 }
             if !infused && !names.contains(key) { names.append(key) }
@@ -3056,7 +3107,13 @@ enum PatientNote {
 
     /// A line or device the diagram knows (PatientDevices.parse reads the phrase): "PIV x2 18G", "R radial A-line",
     /// "RIJ TLC", "PAC/Swan", "Cordis", "HD catheter", "IABP 1:1", "Impella CP P8", "HM3 LVAD", "VA ECMO".
-    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline|foley|suprapubic catheter|urinary catheter)\b|(?-i:\bIO\b)"#)
+    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline|foley|suprapubic catheter|urinary catheter|cerebral (?:oximetry|oximeter|ox|oxygenation)|nirs|invos|fore-?sight|tee probe|tee in (?:place|situ)|transesophageal (?:echo )?probe|zoll pads?|(?:external )?defib(?:rillat(?:or|ion))?(?:/pac(?:er|ing))?[ -]pads?|r2 pads?|external (?:pacing )?pads?|multi-?function pads?|(?<!knee )(?<!heel )(?<!ecg )(?<!ekg )(?<!lap )(?<!gel )(?<!foam )(?<!arm )(?<!eye )(?<!abd )(?<!elbow )(?<!gauze )(?<!shoulder )(?<!nipple )pads on|sed ?-?line|processed eeg|bis monitor|bronchial blockers?|(?:ez|uni|cohen|arndt)[ -]?blockers?|univent)\b|(?-i:\bIO\b|\bBIS\b)"#)
+    /// A bare "blocker" or "Arndt": the bronchial blocker only when the sentence is about the airway (a "beta blocker" is a drug,
+    /// "Arndt" a name), never beside a drug class.
+    static let bareBlockerRx = NoteRx(#"(?<![\w-])(?<!beta )(?<!channel )(?<!alpha )(?<!receptor )(?<!h2 )(?<!nerve )(?<!neuromuscular )(?<!node )(?<!selective )(?<!ace )(?<!arb )(?<!adrenergic )(?<!histamine )(?<!\d )(?:blockers?|arndt)\b"#)
+    /// A piece that is just "blocker" or "Arndt" with a side: said on its own, deliberately (the bar's "blocker L").
+    static let blockerAloneRx = NoteRx(#"^\s*(?:(?:left|right|l|r)\s+)?(?:blockers?|arndt)(?:\s+(?:left|right|l|r))?\s*\.?\s*$"#)
+    static let blockerContext = NoteRx(#"\b(?:ett|et tube|endotracheal|bronch\w*|lungs?|one-lung|olv|slt|single[- ]lumen|lobectomy|pneumonectomy|vats|thoracoscop\w*|thoracotomy|dlt|isolation)\b"#)
     /// An ETT or a tracheostomy.
     static let tubeCue = NoteRx(#"\b(?:ett|et tube|endotracheal tube|dlt|double[- ]lumen tube|trach(?:eostomy)?|trach'?d)\b"#)
     /// Mechanical support, whose settings and cannulas may follow a comma.
@@ -3112,7 +3169,9 @@ enum PatientNote {
     static let currentRx = NoteRx(#"\b(?:sats?|spo2|saturating|satting|currently|now|requiring|on arrival|placed on|started on|escalated to|weaned to)\b|\d{1,2}\s*/\s*\d{1,2}|fio2"#)
     static let breathingPast = NoteRx(#"\b(?:was|were|previously|prior|weaned off|off|discontinued|stopped|history of|h/o|s/p|home)\b[^.;,]{0,20}$"#)
     static let satBefore = NoteRx(#"\b(?:spo2|spo₂|sats?|sao2|saturating|satting|saturation|pulse ox)\s*(?:of|is|was|:|=)?\s*$"#)
-    private static let devicePieceCut = NoteRx(#"\s*(?:[,;+]|\band\b|\bplus\b)\s*"#)
+    /// Where a sentence is cut into devices. 1.12: also before "with"/"w/"/"using" and one of the monitors or the blocker ("ETT 8.0
+    /// with bronchial blocker", "A-line w/ NIRS"), which are their own devices.
+    private static let devicePieceCut = NoteRx(#"\s*(?:[,;+]|\band\b|\bplus\b)\s*|\s+(?:with|w/|using)\s+(?=(?:an?\s+|the\s+)?(?:nirs|invos|cerebral ox|tee probe|zoll|defib|bis\b|sed ?-?line|processed eeg|bronchial blocker|arndt|ez-?blocker|cohen blocker|uni-?blocker|blocker))"#)
 
     /// Tubes, lines and devices in a sentence as written: the parser reads "PAC" and "ETT" as written, and their
     /// ambiguous readings say whether they are devices here ("PACs" on an ECG are beats). Each phrase is one finding.
@@ -3132,6 +3191,9 @@ enum PatientNote {
             let text = ns.substring(with: piece)
             if let t = tubeCue.all(text).first(where: { free($0, in: piece) }) { return (cue: t, tube: true) }
             if let d = deviceCue.all(text).first(where: { free($0, in: piece) }) { return (cue: d, tube: false) }
+            // 1.12: a bare "blocker" or "Arndt" is the bronchial blocker only in a sentence about the airway.
+            if blockerContext.first(written) != nil || blockerAloneRx.first(text) != nil,
+               let b = bareBlockerRx.all(text).first(where: { free($0, in: piece) }) { return (cue: b, tube: false) }
             return nil
         }
         // "planned" after a list of devices covers the list ("A-line, PAC planned"), back to a piece that is not a device
@@ -3212,7 +3274,10 @@ enum PatientNote {
                 let cut = m.range(at: 1).location != NSNotFound ? m.range : m.range(at: 2)
                 words = (text as NSString).replacingCharacters(in: cut, with: " ")
             }
-            guard let p = PatientDevices.parse(deviceWords(words)), p.confidence >= 0.35, p.kind != .other,
+            // 1.12: a monitor or the blocker is read from the words as written ("TEE in place", "Zoll pads on"), not from the
+            // device vocabulary, which would drop the words that make it one.
+            guard let p = PatientDevices.parseMonitor(words, keepLeftovers: false) ?? PatientDevices.parse(deviceWords(words)),
+                  p.confidence >= 0.35, p.kind != .other,
                   PatientDevice.lineKinds.contains(p.kind) || PatientDevice.supportKinds.contains(p.kind) else { continue }
             // A peripheral IV only with a gauge, a site, a count or the word PIV ("1 L IV" is a volume).
             if p.kind == .piv, !p.size.isEmpty, !["14", "16", "18", "20", "22", "24"].contains(p.size) { continue }
@@ -3254,8 +3319,23 @@ enum PatientNote {
             }
             out.append(r)
         }
-        return out
+        // 1.12: "bronchial blocker through a single lumen ETT" is two devices, the blocker and the tube it goes through.
+        var split: [NSRange] = []
+        for r in out {
+            let t = ns.substring(with: r)
+            if let m = blockerThroughRx.first(t) {
+                let cut = r.location + m.range.location + m.range.length
+                split.append(NSRange(location: r.location, length: cut - r.location))
+                split.append(NSRange(location: cut, length: r.location + r.length - cut))
+            } else {
+                split.append(r)
+            }
+        }
+        return split
     }
+
+    /// A blocker (and its side) said to go through the tube: the tube is the next device.
+    static let blockerThroughRx = NoteRx(#"\bblockers?\b(?:\s+(?:left|right|l|r)\b)?\s+(?:through|thru|via|inside|in)\s+(?=(?:an?\s+|the\s+)?(?:single[- ]lumen\s+|slt\s+)?(?:ett|et tube|endotracheal))"#)
 
     /// The words of a phrase the device parser reads; the rest ("pt has", "placed yesterday") would only lower its
     /// confidence and end up in the device's detail.
@@ -3763,6 +3843,10 @@ enum PatientNote {
             return .replaces(o == .normal ? "none" : o.label.lowercased())
         case .antibioticDose(let d):
             return IntraopAntibiotic.status(d, in: r)
+        case .antibioticReminder(let d):
+            return IntraopAntibiotic.reminderStatus(d, in: r)
+        case .heparinDose(let d):
+            return IntraopHeparin.status(d, in: r)
         }
     }
 
@@ -4015,6 +4099,10 @@ enum PatientNote {
                 r.echoFindings.setEchoGrade(g, valve: v, lesion: lesion)
             case .antibioticDose(let d):
                 IntraopAntibiotic.apply(d, to: &r)
+            case .antibioticReminder(let d):
+                IntraopAntibiotic.applyReminder(d, to: &r)
+            case .heparinDose(let d):
+                IntraopHeparin.apply(d, to: &r)
             }
         }
         // Ids a finding added that the History details hold (an aneurysm, severe valve disease) go to their place.

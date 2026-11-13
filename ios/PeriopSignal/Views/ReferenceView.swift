@@ -145,6 +145,8 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-BANG", blurb: "Sleep apnea screening"),
             RefItem(route: .score("apfel"), icon: "list.number", title: "APFEL PONV Score", blurb: "Adult risk of nausea and vomiting after surgery"),
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
+            // 1.12 (Ben, Nov 12: "Reference tab"): the prophylaxis card is listed here, not only found by search or from Case Timers.
+            RefItem(route: .quickref("ashp-surgical-prophylaxis"), icon: "shield.lefthalf.filled", title: "Surgical Antibiotic Prophylaxis", blurb: "Recommended and β-lactam allergy agents by surgery"),
             RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "APFEL score, how many agents, rescue"),
             RefItem(route: .abg, icon: "testtube.2", title: "ABG Interpretation", blurb: "Primary disorder, compensation, mixed disorders"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),

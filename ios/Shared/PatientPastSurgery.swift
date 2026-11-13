@@ -84,20 +84,32 @@ enum PastSurgeryNote {
     /// guards stay; this only adds to them for a date with a day.
     static let notSurgeryDateRx = NoteRx(#"\b(?:dob|d\.o\.b\.?|born|birth(?:day|date)?|drawn|draw|collected|vitals?|labs?|today|as of)\b|\b(?:k|na|cr|creat\w*|hgb|hb|hct|plt|inr|ptt|bun|glucose|lactate|wbc|trop\w*|bnp|bp|hr|rr|spo2|sat|temp)\b\s*[:=]?\s*\d"#)
 
+    /// An anesthetic remark that stands alone ("under GA", "with spinal"): the anesthesia history's, never an operation.
+    static let asideStartRx = NoteRx(#"^(?:under|with|w/|using|via|had|received)\s+(?:general|ga\b|spinal|epidural|mac\b|local|regional|sedation|an(?:a)?esthesia|nerve block)"#)
+    /// A planned procedure told as "for ..." at the start of an item.
+    static let forStartRx = NoteRx(#"^\s*for\b"#)
+
     static let cardiacWordsRx = NoteRx(PatientNote.cardiacOpWords)
 
     /// Words that name no operation.
     private static let generic: Set<String> = ["surgery", "surgeries", "operation", "operations", "procedure", "procedures", "surgical", "history"]
 
     static var allPatterns: [NoteRx] {
-        [cardiacWordsRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, shorthandRx, chestRx, monthYearRx, fullDateRx, numericRx, apostropheRx, yearRx, notSurgeryDateRx]
+        [cardiacWordsRx, asideStartRx, forStartRx, hintRx, studyRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, shorthandRx, chestRx, monthYearRx, fullDateRx, numericRx, apostropheRx, yearRx, notSurgeryDateRx]
     }
 
     // MARK: Reading a sentence
 
     /// The operations a sentence gives. `state` carries a header across lines; `skip` holds the stretches already read as
     /// something else (Previous cardiac surgery), which are not read again.
-    static func read(_ c: String, state: inout State, skip: [NSRange] = [], now: Date = Date()) -> Reading {
+    ///
+    /// `lenient` (1.12 follow-up, Ben: the Past Surgical History bar "adds the first procedure but not the ones after it"): on that
+    /// bar everything typed is an operation, so a line is read as a list of operations by what it is NOT: any item of at least three
+    /// letters that is not a date alone, a negation ("none", "no surgeries"), an anesthetic remark, a diagnosis, a planned
+    /// procedure or plainly something else the note reader reads (a lab, a drug, a history item) becomes an entry, from the
+    /// procedure list when it matches and as typed when it does not. The Preoperative tab's bar and the note reader keep the
+    /// stricter rule: a diagnosis after "h/o" is not an operation.
+    static func read(_ c: String, state: inout State, skip: [NSRange] = [], now: Date = Date(), lenient: Bool = false) -> Reading {
         let ns = c as NSString
         var out = Reading()
         func clear(_ r: NSRange) -> Bool { !skip.contains { NSIntersectionRange($0, r).length > 0 } }
@@ -106,15 +118,18 @@ enum PastSurgeryNote {
         if state.open {
             if let b = bulletRx.first(c) {
                 let start = b.range.location + b.range.length
-                let ops = items(ns, NSRange(location: start, length: ns.length - start), strict: false, now: now)
+                let ops = items(ns, NSRange(location: start, length: ns.length - start), strict: false, lenient: lenient, now: now)
                 out.operations = ops.filter { clear($0.range) }
                 state.open = true
                 return out
             }
             let numberOnly = c.trimmingCharacters(in: .whitespaces).allSatisfy { $0.isNumber || $0 == "." || $0 == ")" }
             if numberOnly { return out }
-            if state.bodyEmpty, otherHeaderRx.first(c) == nil, headerRx.first(c) == nil {
-                let ops = items(ns, NSRange(location: 0, length: ns.length), strict: true, now: now)
+            // The bar's line has no other sections: "Appendectomy: 2010" is an operation, not another section's header (a known
+            // section's header, "PMH:" or "Meds:", still is).
+            let otherHeader = otherHeaderRx.first(c) != nil && !(lenient && sectionEndRx.first(c) == nil)
+            if state.bodyEmpty, !otherHeader, headerRx.first(c) == nil {
+                let ops = items(ns, NSRange(location: 0, length: ns.length), strict: !lenient, lenient: lenient, now: now)
                 if !ops.isEmpty {
                     out.operations = ops.filter { clear($0.range) }
                     return out
@@ -170,11 +185,16 @@ enum PastSurgeryNote {
             if let op {
                 if !op.text.isEmpty {
                     out.append(op)
-                } else if var last = out.popLast(), last.date.isEmpty {
-                    // A bare date after a comma belongs to the operation before it.
-                    last.date = op.date
-                    last.range = NSUnionRange(last.range, op.range)
-                    out.append(last)
+                } else if let last = out.last {
+                    if last.date.isEmpty {
+                        // A bare date after a comma belongs to the operation before it.
+                        out[out.count - 1].date = op.date
+                        out[out.count - 1].range = NSUnionRange(last.range, op.range)
+                    } else {
+                        // A second bare date ("C-section 2012, 2015"): the same operation again, on that date. (Until 1.12
+                        // the operation before it was dropped here.)
+                        out.append(Operation(text: last.text, date: op.date, aside: "", range: op.range))
+                    }
                 } else {
                     break
                 }
@@ -189,18 +209,23 @@ enum PastSurgeryNote {
     }
 
     /// The items of a section body.
-    private static func items(_ ns: NSString, _ range: NSRange, strict: Bool, now: Date) -> [Operation] {
+    private static func items(_ ns: NSString, _ range: NSRange, strict: Bool, lenient: Bool = false, now: Date) -> [Operation] {
         var out: [Operation] = []
         for p in split(ns, range) {
             var stopped = false
-            if let op = operation(ns, p, strict: strict, now: now, stopped: &stopped) {
+            if let op = operation(ns, p, strict: strict, lenient: lenient, now: now, stopped: &stopped) {
                 if !op.text.isEmpty {
                     out.append(op)
-                } else if var last = out.popLast(), last.date.isEmpty {
-                    // A date on its own ("CABG x3, 2019").
-                    last.date = op.date
-                    last.range = NSUnionRange(last.range, op.range)
-                    out.append(last)
+                } else if let last = out.last {
+                    if last.date.isEmpty {
+                        // A date on its own ("CABG x3, 2019").
+                        out[out.count - 1].date = op.date
+                        out[out.count - 1].range = NSUnionRange(last.range, op.range)
+                    } else {
+                        // A second date on its own ("C-section 2012, 2015"): the same operation again, on that date. (Until
+                        // 1.12 the operation before it was dropped here.)
+                        out.append(Operation(text: last.text, date: op.date, aside: "", range: op.range))
+                    }
                 }
             }
             if stopped { break }
@@ -244,7 +269,7 @@ enum PastSurgeryNote {
 
     /// One item as an operation; nil when it is not one. An item that is only a date has empty text. `stopped` is set when
     /// the item runs on into the rest of the sentence ("... now presenting for ..."): nothing after it is read.
-    private static func operation(_ ns: NSString, _ range: NSRange, strict: Bool, historyLead: Bool = false, now: Date, stopped: inout Bool) -> Operation? {
+    private static func operation(_ ns: NSString, _ range: NSRange, strict: Bool, lenient: Bool = false, historyLead: Bool = false, now: Date, stopped: inout Bool) -> Operation? {
         var t = ns.substring(with: range)
         if let b = bulletRx.first(t) { t = (t as NSString).substring(from: b.range.length) }
         var historyLead = historyLead
@@ -253,7 +278,9 @@ enum PastSurgeryNote {
             t = (t as NSString).substring(from: l.range.length)
         }
         // The planned procedure: the item is dropped, whole, and nothing after it is read.
-        if planningRx.first(t) != nil || (strict && forRx.first(t) != nil) {
+        // (On the bar, "for" in the middle of an item is its reason, not a plan: "tonsillectomy for sleep apnea, jaw wiring" is two
+        // operations. An item that starts with "for" is a plan.)
+        if planningRx.first(t) != nil || (strict && forRx.first(t) != nil) || (lenient && forStartRx.first(t) != nil) {
             stopped = true
             return nil
         }
@@ -278,8 +305,37 @@ enum PastSurgeryNote {
             guard isOperation(t, historyLead: historyLead) else { return nil }
         } else {
             guard t.filter(\.isLetter).count >= 3, !diagnosisLike(t) else { return nil }
+            // On the bar: a recognized operation is one; so is any other item unless the note reader reads it as something else.
+            if lenient, !isOperation(t), plainlySomethingElse(t, now: now) { return nil }
         }
         return Operation(text: t, date: date, aside: aside, range: range)
+    }
+
+    /// Words that say an operation was done, for the Past Surgical History bar's free text: they keep an item an operation even
+    /// when the note reader also reads a diagnosis in it ("stent for CAD").
+    static let hintRx = NoteRx(#"\b(?:stent(?:s|ed|ing)?|scope|scoping|wiring|pinning|nailing|plating|banding|lift|removal|removed|placement|insertion|implantation|drainage|debridement|reduction|tied|clipping|shunt)\b"#)
+    /// A study, not an operation ("TTE", "ECG", "stress test"): the workup's.
+    static let studyRx = NoteRx(#"\b(?:tte|tee|ecg|ekg|eeg|echo|echocardiogram|cxr|x-?ray|ultrasound|mri|ct|pfts?|dobutamine|stress test|lhc|rhc)\b"#)
+    /// Joining and filler words that are no operation on their own.
+    private static let connectives: Set<String> = ["and", "then", "also", "plus", "with", "the", "etc", "other", "others", "too", "as", "well", "unknown", "unsure", "yes", "no"]
+
+    /// An item that is not an operation although it was typed on the Past Surgical History bar (1.12 follow-up): an anesthetic
+    /// remark ("under GA"), a study, words with a number in them (a count "×3" aside: "TTE: EF 55%", "Hgb 12"), only joining
+    /// words, or words the note reader files as anything but a procedure (a lab value, a drug, a history item, the allergies):
+    /// "metoprolol 25 bid", "HTN", "NKDA". Words that say an operation was done (`hintRx`) keep it.
+    static func plainlySomethingElse(_ t: String, now: Date) -> Bool {
+        if asideStartRx.first(t) != nil || studyRx.first(t) != nil { return true }
+        let words = t.lowercased().split(whereSeparator: { !$0.isLetter && $0 != "/" }).map(String.init)
+        if words.allSatisfy({ connectives.contains($0) }) { return true }
+        if hintRx.first(t) != nil { return false }
+        let withoutCount = t.replacingOccurrences(of: #"[x×]\s?\d+"#, with: "", options: [.regularExpression, .caseInsensitive])
+        if withoutCount.contains(where: \.isNumber) { return true }
+        return PatientNote.read(t, now: now, abbreviations: [:], choices: [:], askRoomAir: false).findings.contains { f in
+            switch f.change {
+            case .procedure, .pastSurgery, .cardiacSurgery: return false
+            default: return true
+            }
+        }
     }
 
     private static func tidy(_ s: String) -> String {
@@ -416,7 +472,8 @@ enum PastSurgeryNote {
     }
 
     /// The same operation: the same procedures from the list (with no different side), or the same words, on dates that
-    /// do not differ.
+    /// do not differ. 1.12 follow-up (Ben): the same WORDS, not words that contain the other's ("Hernia repair" is not "Inguinal
+    /// hernia repair", nor "Knee surgery" "Knee surgery on the other side"): a different operation can always be added.
     static func same(_ a: PatientSurgery, _ b: PatientSurgery) -> Bool {
         guard compatible(a.date, b.date) else { return false }
         let x = ids(a), y = ids(b)
@@ -427,7 +484,7 @@ enum PastSurgeryNote {
         }
         let na = normalized(a.name), nb = normalized(b.name)
         guard !na.isEmpty, !nb.isEmpty else { return false }
-        return na == nb || na.contains(nb) || nb.contains(na)
+        return na == nb
     }
 
     /// The same operation entered twice in the editors (1.10): `same`, and either the procedure list knows both or the
@@ -485,5 +542,64 @@ enum PastSurgeryNote {
             if !isRecorded(t, date, in: r) { return false }
         }
         return !parts.isEmpty
+    }
+}
+
+// MARK: - Newest first (1.12 follow-up, Ben: "organize psh by chronological order", then "most recent at top")
+
+extension PatientSurgery {
+    /// Where one date goes beside another in a list of past operations, newest first: -1 when `a` is listed before `b`, 1 after,
+    /// 0 when they tie. Year, then month, then day, each descending. Within the same year an entry with a month comes before one
+    /// with only the year, and with a day before one without (the more exactly dated first). No date at all (or a month with no
+    /// year) comes last. The ONE rule: every list of past operations uses `chronological`.
+    static func listOrder(_ a: PatientMonthYear, _ b: PatientMonthYear) -> Int {
+        func part(_ x: Int?, _ y: Int?) -> Int {
+            switch (x, y) {
+            case (nil, nil): return 0
+            case (nil, _?): return 1
+            case (_?, nil): return -1
+            case (let p?, let q?): return p == q ? 0 : (p > q ? -1 : 1)
+            }
+        }
+        func month(_ d: PatientMonthYear) -> Int? { d.year != nil && d.month.map({ (1...12).contains($0) }) == true ? d.month : nil }
+        func day(_ d: PatientMonthYear) -> Int? { month(d) != nil ? d.day : nil }
+        let year = part(a.year, b.year)
+        if year != 0 { return year }
+        let m = part(month(a), month(b))
+        if m != 0 { return m }
+        return part(day(a), day(b))
+    }
+
+    /// The operations by date, the most recent first (see `listOrder`). Entries with no date come last in the order they were
+    /// entered, and ties keep the order entered (a stable sort: `sorted` alone does not promise one). Nothing is stored in this
+    /// order: references by id (the cardiac page's Previous cardiac surgery) keep pointing at the same entry.
+    static func chronological(_ list: [PatientSurgery]) -> [PatientSurgery] {
+        list.enumerated().sorted { a, b in
+            let c = listOrder(a.element.date, b.element.date)
+            return c != 0 ? c < 0 : a.offset < b.offset
+        }.map(\.element)
+    }
+}
+
+extension PatientRecord {
+    /// Past surgical history for every place it is listed or printed: newest first (PatientSurgery.chronological).
+    var surgeriesNewestFirst: [PatientSurgery] { PatientSurgery.chronological(surgeries) }
+}
+
+/// The rows of a page that lists past operations while they are being edited: their order is fixed when the page appears and
+/// when an entry is added or removed (and so when the page's bar files one), not on every keystroke, so a row does not jump
+/// under the finger while its date is typed. Rows are found by id, so a row edited after the list was sorted edits its own entry.
+enum PastSurgeryOrder {
+    /// The ids, newest first.
+    static func ids(_ list: [PatientSurgery]) -> [UUID] { PatientSurgery.chronological(list).map(\.id) }
+
+    /// The entries in the fixed order; an entry that is not in it yet comes after them in the order entered, one that is gone is
+    /// dropped. With nothing fixed yet the list is sorted (the page's first frame).
+    static func rows(_ list: [PatientSurgery], fixed: [UUID]) -> [PatientSurgery] {
+        guard !fixed.isEmpty else { return PatientSurgery.chronological(list) }
+        var byID: [UUID: PatientSurgery] = [:]
+        for s in list where byID[s.id] == nil { byID[s.id] = s }
+        let placed = Set(fixed)
+        return fixed.compactMap { byID[$0] } + list.filter { !placed.contains($0.id) }
     }
 }

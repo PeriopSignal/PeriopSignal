@@ -548,8 +548,9 @@ struct IntraopNotableMedicationLink: View {
     /// The row's lines: each charted antibiotic ("Cefazolin 2 g · last 08:12 · next due 12:12", red when its redose is
     /// overdue), the chosen chips with their doses, then the free text. Empty while nothing is recorded. The row shows
     /// them whole: a dose or a redose time is never behind an ellipsis.
-    static func lines(_ r: PatientRecord, antibiotics: [CaseAntibiotics.Line]) -> [PatientSummary.Line] {
+    static func lines(_ r: PatientRecord, antibiotics: [CaseAntibiotics.Line], now: Date = Date()) -> [PatientSummary.Line] {
         var out = antibiotics.map { PatientSummary.Line(nil, $0.tabText, alert: $0.overdue) }
+        if let heparin = CaseHeparin.text(r, now: now) { out.append(PatientSummary.Line(nil, heparin)) }
         if !r.notableMeds.isEmpty { out.append(PatientSummary.Line(nil, r.notableMeds.items.joined(separator: "; "))) }
         let free = r.capitalized.medsGiven.trimmingCharacters(in: .whitespacesAndNewlines)
         if !free.isEmpty { out.append(PatientSummary.Line(nil, free)) }
@@ -560,7 +561,7 @@ struct IntraopNotableMedicationLink: View {
         TimelineView(.everyMinute) { ctx in
             let r = patient.record
             IntraopLinkRow(title: Self.title, icon: "pills", editor: .intraopPart("meds"),
-                           lines: Self.lines(r, antibiotics: CaseAntibiotics.lines(r, data: refs.caseTimers ?? CaseAntibiotics.current, now: ctx.date)),
+                           lines: Self.lines(r, antibiotics: CaseAntibiotics.lines(r, data: refs.caseTimers ?? CaseAntibiotics.current, now: ctx.date), now: ctx.date),
                            hint: Self.hint, whole: true)
         }
     }
