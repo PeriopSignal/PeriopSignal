@@ -390,7 +390,7 @@ enum QuickAdd {
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
         let fresh = choices.filter { !out.stale.contains($0.key) }
         if tab == .intraop { for m in placedTiming.all(s.text) { s.mask(m.range) } }
-        let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: fresh, askRoomAir: false)
+        let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: fresh, askRoomAir: false, typed: s.baseline)
         let mine = Set(out.findings.map(\.id))
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.

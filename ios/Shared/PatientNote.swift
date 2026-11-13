@@ -921,7 +921,7 @@ enum PatientNote {
         out += PatientCodeStatus.patterns
         out += LabResults.patterns
         out += PastSurgeryNote.allPatterns + PatientLHC.patterns
-        out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, ageSexYoLowerRx, ageSexOpeningLowerRx, ageSexIntroducedLowerRx, ageSexArticleLowerRx, procedureLowerPersonRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
+        out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, ageSexYoLowerRx, ageSexOpeningLowerRx, ageSexItemLowerRx, ageSexIntroducedLowerRx, ageSexArticleLowerRx, lowerFollowFor, lowerFollowContext, lowerFollowWord, lowerFollowChildOpening, lowerDeviceBefore, lowerItemBefore, lowerMovingBefore, procedureLowerPersonRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
         out += [devicePlannedBefore, devicePlannedAfter, ivRoute, supportCue]
@@ -999,8 +999,17 @@ enum PatientNote {
     /// AmbiguousAbbreviation.id, MedAbbreviations.asWritten to leave one as written).
     /// `askRoomAir`: a saturation with no room air written is asked about (PatientNote.roomAir) and read only when room
     /// air is chosen; the quick-add bar, which asks it itself, passes false and gets it marked roomAirUnstated.
+    /// `typed` (1.12): the same text before the caller blanked what its own readers took (the quick-add bar). The lowercase
+    /// "68m" is judged on it: blanking would make a mid-line "20m post transfusion" open the line, and take away the "for"
+    /// after "pt is a 68m".
     static func read(_ text: String, now: Date = Date(), abbreviations user: [String: String] = [:], choices: [String: String] = [:],
-                     askRoomAir: Bool = true) -> PatientNoteReading {
+                     askRoomAir: Bool = true, typed: String? = nil) -> PatientNoteReading {
+        let typedLower: (age: Double, sex: PatientSex, token: String)? = typed.flatMap { line -> (age: Double, sex: PatientSex, token: String)? in
+            for clause in clauses(line) {
+                if let low = lowerAgeSex(clause) { return (low.age, low.sex, (clause as NSString).substring(with: low.range)) }
+            }
+            return nil
+        }
         var found: [String: PatientNoteFinding] = [:]
         var order: [String] = []
         var other: [String] = []
@@ -1096,8 +1105,21 @@ enum PatientNote {
                                          change: .lhcResult(m.result)), at: m.cadWords.map { NSUnionRange(m.phrase, $0) } ?? m.phrase)
                 h.seen(m.cath)
             }
-            readPatient(c, &h)
-            readProcedure(c, choices, &h)
+            // The lowercase "68m": from the line as typed when the caller has it, found again in this clause; else from the clause.
+            let lower: (age: Double, sex: PatientSex, range: NSRange)?
+            if typed != nil {
+                lower = typedLower.flatMap { t -> (age: Double, sex: PatientSex, range: NSRange)? in
+                    let found = (c as NSString).range(of: t.token)
+                    guard found.location != NSNotFound else { return nil }
+                    if found.location > 0, let before = UnicodeScalar((c as NSString).character(at: found.location - 1)),
+                       CharacterSet.alphanumerics.contains(before) || before == "." { return nil }
+                    return (t.age, t.sex, found)
+                }
+            } else {
+                lower = lowerAgeSex(c)
+            }
+            readPatient(c, &h, lower: lower)
+            readProcedure(c, choices, &h, lower: lower?.range)
             readInfusions(c, &h)
             readMeds(c, &h, names: &names)
             readAllergies(c, &h)
@@ -2436,32 +2458,81 @@ enum PatientNote {
     static let notAge = NoteRx(#"\b(?:t|tmax|t\s?max|temp|temperature|febrile(?:\s+to)?|fever(?:\s+(?:of|to))?|max|spiked(?:\s+to)?)\s*:?\s*$"#)
     static let ageSexRx = NoteRx(#"(?:^|\s)(\d{1,3})\s?(?i:yo|y/o|y\.o\.?)?\s?(M|F)\b"#, caseSensitive: true)
     /// 1.12 (Ben, Nov 13: "68m should = 68 year old male and 26f = 26 year old female"): the lowercase forms are the age and sex
-    /// where they can only be the patient: with "yo" between ("68yom", "68 yo m"); opening the line or a comma-separated item
-    /// ("68m for lap chole", "26f, G2P1", "HTN, DM, 68m for CABG"); or after words that introduce the patient ("pt is a 68m for
-    /// TKA", "healthy 26f with asthma"; a bare article only right before for / with / w/ / s/p / here). Anywhere else a
-    /// lowercase m or f after a number is meters, minutes, months, French or Fahrenheit ("walks 100m with a walker", "30m ago",
-    /// "7f sheath", "temp 101f") and is not read. The capitals are read as before (`ageSexRx`).
-    static let ageSexYoLowerRx = NoteRx(#"(?<![\w./])(\d{1,3})\s?(?:yo|y/o|y\.o\.?)\s?(m|f)\b"#, caseSensitive: true)
-    static let ageSexOpeningLowerRx = NoteRx(#"(?:^|[,;\n])[ \t]*(?:[-•*][ \t]*)?(\d{1,2})(m|f)\b(?![ \t]*(?i:walk(?:s|ed|ing)?|runs?|dash|sprint|swim|distance|ago|old|long|later|prior|before|after|per|each|away|tall|high|deep|wide|test|mwt|sheaths?|introducer|cath(?:eter)?s?|foley|tubes?|drains?|lines?|picc|cordis|french|fr|x|of)\b|[ \t]*[/.\d])"#, caseSensitive: true)
-    /// After words that introduce the patient ("pt is a 68m", "healthy 26f"): before a word that carries on about the patient,
-    /// or closing the item (the bar blanks a procedure it has already read, so "pt is a 68m for TKA" reaches here as "pt is a 68m").
-    static let ageSexIntroducedLowerRx = NoteRx(#"(?i:\b(?:(?:pt|patient)[ \t]+(?:is[ \t]+)?(?:an?[ \t]+)?|(?:healthy|elderly|obese|frail|pleasant|active|young|anxious|diabetic|hypertensive|thin|cachectic|pregnant|gravid|intubated|known)[ \t]+))(\d{1,2})(m|f)\b(?=[ \t]+(?:(?:for|with|here|presenting|presents|scheduled|undergoing|s/p)\b|w/)|[ \t]*(?:[,;.]|$))"#, caseSensitive: true)
-    /// After a bare article ("a 68m for TKA"), only right before for / with / w/ / s/p / here: "a 50m, then stopped" is a distance.
-    static let ageSexArticleLowerRx = NoteRx(#"(?i:\b(?:a|an|this)[ \t]+)(\d{1,2})(m|f)[ \t]+(?=(?:for|with|here|presenting|presents|scheduled|undergoing|s/p)\b|w/)"#, caseSensitive: true)
+    /// where they can only be the patient (`lowerAgeSex`). A lowercase m or f after a number is also meters, minutes, months,
+    /// French and Fahrenheit ("walks 100m", "MI, 3m s/p PCI", "Impella, 14f", "temp 101f"), so each form has its own conditions.
+    /// The capitals are read as before (`ageSexRx`).
+    private static let lowerNotAfter = #"(?!(?:[ \t]*-?[ \t]*(?i:old|ago|long|later|prior|before|after|post|per|each|away|tall|high|deep|wide|walk(?:s|ed|ing)?|runs?|dash|sprint|swim|distance|test|mwt|case|apnea|pause|hold|delay|wait|of|x|sheaths?|introducer|cath(?:eter)?s?|cannulas?|arterial|venous|art|ven|foley|tubes?|drains?|lines?|picc|cordis|french|fr|blake|chest|dlt|ng|og|ngt|ogt|impella|mahurkar|swan|pigtail|trach|ett|iabp|ecmo|vad)\b)|\.?\d|/(?i:s|sec|min|h|hr|kg|m)\b)"#
+    /// "68yom", "68 yo m": with "yo" between it is an age wherever it stands ("45 yo f/u" is a follow-up).
+    static let ageSexYoLowerRx = NoteRx(#"(?<![\w./])(\d{1,3})\s?(?:yo|y/o|y\.o\.?)\s?(m|f)\b(?![ \t]?/)"#, caseSensitive: true)
+    /// Opening the line: "68m for lap chole", "26f".
+    static let ageSexOpeningLowerRx = NoteRx(#"^[ \t]*(?:[-•*][ \t]*)?(\d{1,2})(m|f)\b"# + lowerNotAfter, caseSensitive: true)
+    /// Opening a comma-separated item: "HTN, DM, 68m for CABG".
+    static let ageSexItemLowerRx = NoteRx(#"[,;][ \t]*(\d{1,2})(m|f)\b"# + lowerNotAfter, caseSensitive: true)
+    /// After words that introduce the patient: "pt is a 68m", "Pt: 68m", "healthy 26f".
+    static let ageSexIntroducedLowerRx = NoteRx(#"(?i:\b(?:(?:pt|patient)(?:[ \t]*:[ \t]*|[ \t]+)(?:is[ \t]+)?(?:an?[ \t]+)?|(?:healthy|elderly|obese|frail|pleasant|active|young|anxious|diabetic|hypertensive|thin|cachectic|pregnant|gravid|intubated|known)[ \t]+))(\d{1,2})(m|f)\b"# + lowerNotAfter, caseSensitive: true)
+    /// After a bare article: "a 68m for TKA".
+    static let ageSexArticleLowerRx = NoteRx(#"(?i:\b(?:a|an|this)[ \t]+)(\d{1,2})(m|f)\b"# + lowerNotAfter, caseSensitive: true)
+    /// What may follow: "for" (a child's age needs it, or to stand alone); a word that carries on about the patient, or the end
+    /// of the item.
+    static let lowerFollowFor = NoteRx(#"^[ \t]+for\b"#)
+    static let lowerFollowContext = NoteRx(#"^(?:[ \t]+(?:(?:for|with|here|presenting|presents|scheduled|undergoing|s/p)\b|w/)|[ \t]*[,;.]|[ \t]*$)"#)
+    static let lowerFollowWord = NoteRx(#"^[ \t]+(?:(?:for|with|here|presenting|presents|scheduled|undergoing|s/p)\b|w/)"#)
+    static let lowerFollowChildOpening = NoteRx(#"^(?:[ \t]+for\b|[ \t]*,|[ \t]*$)"#)
+    /// Before it in the clause: a device or a size (the number is French), and in the item before a comma-separated one a time,
+    /// a drug or a temperature (the number is minutes, months or degrees); before an article, moving ("walk a 50m").
+    static let lowerDeviceBefore = NoteRx(#"\b(?:ecmo|impella|iabp|vad|chest tubes?|dlt|picc|cvc|cordis|foley|ng|og|turp|lhc|rhc|sheaths?|cannulas?|pigtail|introducer|swan|pac|trach|ett|tubes?|drains?|caths?|catheters?|french|fr|size|sizes)\b"#)
+    static let lowerItemBefore = NoteRx(#"\b(?:cpb|bypass|clamp|x-?clamp|cross-?clamp|pump|apnea|arrest|tourniquet|duration|lasting|lasted|ischemi\w*|run|time|on|x|for|since|every|q|hypotherm\w*|hypertherm\w*|febrile|afebrile|fever|temp\w*)\b"#)
+    static let lowerMovingBefore = NoteRx(#"\b(?:walk\w*|ran|run\w*|jog\w*|swim\w*|swam|climb\w*|manage\w*|ambulat\w*|go|goes|went|do|does|did|about|only|for|in|within|over|after)[ \t]+$"#)
 
-    /// The lowercase age and sex of a sentence, with the range of "68m" itself. Glued to the number, 95f and up is a temperature
-    /// and 100m and up a distance; after a temperature word (`notAge`) it is not an age.
+    /// The lowercase age and sex of a clause as it was typed, with the range of "68m" itself; nil when a lowercase m or f after a
+    /// number is not the patient.
+    /// - With "yo" between: always.
+    /// - Beside an age or a sex written out in the clause ("68 yo male, 3m post stent"): never (that age and sex are the patient's).
+    /// - Opening the line: an adult as it stands ("68m HTN DM for CABG"); under 18 only before "for", a comma or the end
+    ///   ("5m for tonsillectomy"; "3m s/p DES" is three months).
+    /// - Opening a comma-separated item: 25 and over, before for / with / w/ / s/p / here or closing the item, and not after an
+    ///   item that tells a time, a drug or a temperature ("on Plavix, 24m for DES", "CPB, 95m").
+    /// - After words that introduce the patient, or a bare article right before for / with / w/ / s/p / here; under 18 only
+    ///   before "for".
+    /// - Never 95f and up (a temperature) or 100m and up (a distance), after a temperature word (`notAge`), after a device or a
+    ///   size in the clause ("Impella, 14f"), or before a word that makes it a distance, a time or a tube (`lowerNotAfter`).
     static func lowerAgeSex(_ c: String) -> (age: Double, sex: PatientSex, range: NSRange)? {
+        enum Form { case yo, opening, item, introduced, article }
         let ns = c as NSString
-        let rules: [(NoteRx, Bool)] = [(ageSexYoLowerRx, false), (ageSexOpeningLowerRx, true), (ageSexIntroducedLowerRx, true), (ageSexArticleLowerRx, true)]
-        for (rx, glued) in rules {
+        let explicit = ageRx.first(c) != nil || ageMonthsRx.first(c) != nil || ageWeeksRx.first(c) != nil
+            || maleRx.first(c) != nil || femaleRx.first(c) != nil || ageSexRx.first(c) != nil
+        let rules: [(NoteRx, Form)] = [(ageSexYoLowerRx, .yo), (ageSexOpeningLowerRx, .opening), (ageSexItemLowerRx, .item),
+                                       (ageSexIntroducedLowerRx, .introduced), (ageSexArticleLowerRx, .article)]
+        for (rx, form) in rules {
+            if explicit, form != .yo { break }
             for m in rx.all(c) where m.numberOfRanges > 2 {
                 let digits = m.range(at: 1), letter = m.range(at: 2)
                 guard digits.location != NSNotFound, letter.location != NSNotFound,
                       let v = Double(ns.substring(with: digits)), v > 0, v < 120 else { continue }
                 let female = ns.substring(with: letter) == "f"
-                if glued, v >= (female ? 95 : 100) { continue }
-                if notAge.first(ns.substring(to: digits.location)) != nil { continue }
+                let before = ns.substring(to: digits.location)
+                let after = ns.substring(from: letter.location + letter.length)
+                if notAge.first(before) != nil { continue }
+                if form != .yo {
+                    if v >= (female ? 95 : 100) || lowerDeviceBefore.first(before) != nil { continue }
+                    var allowed = true
+                    switch form {
+                    case .yo: break
+                    case .opening:
+                        allowed = v >= 18 || lowerFollowChildOpening.first(after) != nil
+                    case .item:
+                        // The item before this one: what stands between the comma that opens this item and the one before it.
+                        let head = before.trimmingCharacters(in: .whitespaces)
+                        let previous = String(head.dropLast()).components(separatedBy: CharacterSet(charactersIn: ",;")).last ?? ""
+                        allowed = v >= 25 && lowerFollowContext.first(after) != nil && lowerItemBefore.first(previous) == nil
+                    case .introduced:
+                        allowed = (v < 18 ? lowerFollowFor : lowerFollowContext).first(after) != nil
+                    case .article:
+                        allowed = (v < 18 ? lowerFollowFor : lowerFollowWord).first(after) != nil
+                            && lowerMovingBefore.first(ns.substring(to: m.range.location)) == nil
+                    }
+                    if !allowed { continue }
+                }
                 return (v, female ? .female : .male, NSUnionRange(digits, letter))
             }
         }
@@ -2478,7 +2549,8 @@ enum PatientNote {
     static let lossCue = NoteRx(#"\b(?:lost|loss of|losing|gained|gain of|gaining|down|up|dropped)\s*(?:about |around |~|approximately )?$"#)
     static let bmiRx = NoteRx(#"\bbmi\s*(?:of|is|:|=)?\s*\d{2}(?:\.\d)?\b"#)
 
-    private static func readPatient(_ c: String, _ h: inout Hits) {
+    /// `lower`: the lowercase age and sex of this clause ("68m"), worked out by `read` on the line as typed.
+    private static func readPatient(_ c: String, _ h: inout Hits, lower: (age: Double, sex: PatientSex, range: NSRange)? = nil) {
         if let m = ageMonthsRx.first(c), let v = number(m, [1], c), v > 0 {
             h.add(PatientNoteFinding(id: "age", section: Part.patient, label: "Age " + NumText.short(v) + " months", change: .age(v / 12)), at: m.range)
         } else if let m = ageWeeksRx.first(c), let v = number(m, [1], c), v > 0 {
@@ -2489,7 +2561,7 @@ enum PatientNote {
                                      change: .age(Swift.min(v, PatientRecord.oldestAge))), at: m.range)
             let sex: PatientSex = s == "M" ? .male : .female
             h.add(PatientNoteFinding(id: "sex", section: Part.patient, label: sex.label, change: .sex(sex)), at: m.range)
-        } else if let low = lowerAgeSex(c) {
+        } else if let low = lower {
             h.add(PatientNoteFinding(id: "age", section: Part.patient, label: "Age " + PatientRecord.ageText(low.age),
                                      change: .age(Swift.min(low.age, PatientRecord.oldestAge))), at: low.range)
             h.add(PatientNoteFinding(id: "sex", section: Part.patient, label: low.sex.label, change: .sex(low.sex)), at: low.range)
@@ -2567,12 +2639,18 @@ enum PatientNote {
     static let regionalRx = NoteRx(#"nerve block|regional (?:an(?:a)?esthesia|block)|interscalene|supraclavicular|infraclavicular|axillary block|femoral (?:nerve )?block|adductor canal|(?-i:\b(?:TAP|ESP|PENG|QL)\b) block|popliteal|sciatic (?:nerve )?block|fascia iliaca"#)
     static let asaRx = NoteRx(#"\bASA\s*(?:class|PS|physical status)?\s*:?\s*(VI|IV|V|III|II|I|[1-6])(E)?\b"#, caseSensitive: true)
 
-    private static func readProcedure(_ c: String, _ choices: [String: String], _ h: inout Hits) {
+    /// `lower`: where the lowercase age and sex of this clause was read ("68m"); the lowercase "68m for ..." is a procedure only there.
+    private static func readProcedure(_ c: String, _ choices: [String: String], _ h: inout Hits, lower: NSRange? = nil) {
         let pastClause = pastCare.first(c) != nil
         var gotProcedure = false
         if !pastClause {
             for rx in [procedureHeaderRx, procedureRx, procedurePersonRx, procedureLowerPersonRx, procedureLeadRx, procedureTechniqueRx] {
                 guard let m = rx.first(c), var p = m.text(1, in: c) else { continue }
+                // "fever, 99f for 2 days" and "Plavix, 12m for DAPT" are not a patient and a procedure: the lowercase form counts
+                // only where the same "68m" was read as the patient.
+                if rx.pattern == procedureLowerPersonRx.pattern {
+                    guard let lower, NSLocationInRange(lower.location, m.range) else { continue }
+                }
                 if let cut = procedureCut.first(p) { p = (p as NSString).substring(to: cut.range.location) }
                 p = p.trimmingCharacters(in: CharacterSet(charactersIn: " ,.:;"))
                 if p.count >= 3 && p.count <= 120 {
