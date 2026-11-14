@@ -285,7 +285,8 @@ struct PatientCardiacEvaluationContent: View {
             if PatientFunctional.stepwiseApplies(r) {
                 Hairline().padding(.leading, 14)
                 let step = PatientFunctional.cardiacStep(r)
-                let open = resultOpen ?? step.alert
+                // 1.12 (Ben, Nov 13): the result starts as its one line, a warning too; a tap shows the reasoning.
+                let open = PatientFunctional.resultRowOpen(chosen: resultOpen)
                 resultRow(step, open: open) { resultOpen = !open }
                 if open {
                     let mods = PatientFunctional.riskModifiers(r)

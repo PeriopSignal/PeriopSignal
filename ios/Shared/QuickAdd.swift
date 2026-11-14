@@ -52,6 +52,10 @@ enum QuickAddPlace: Hashable {
     /// There "extubated" and "remains intubated" are the airway at handoff and "hypotension after induction" an
     /// event; on the Preoperative tab and its pages they are not read ("extubated POD1 last year" is history).
     var handoff: Bool { tab == .intraop || self == .summaryTab }
+
+    /// Where the patient is typed in one line (1.12): the Preoperative tab's own bar. Only there is a lowercase "68m" the age
+    /// and sex; on the editor pages' bars and where the case is told, a number and an m or an f is a time or a size.
+    var patientLine: Bool { self == .preopTab }
 }
 
 /// What a line gives: findings to file, and what is shown but never filed.
@@ -324,7 +328,7 @@ enum QuickAdd {
     /// are not read.
     static func read(_ line: String, record: PatientRecord, tab: QuickAddTab, now: Date = Date(),
                      abbreviations user: [String: String] = [:], choices: [String: String] = [:],
-                     surgicalHistory: Bool = false, handoff: Bool = false) -> QuickAddReading {
+                     surgicalHistory: Bool = false, handoff: Bool = false, patientLine: Bool = true) -> QuickAddReading {
         let one = line.components(separatedBy: .newlines).joined(separator: " ")
         var s = QuickScan(one)
         var reading = QuickAddReading()
@@ -390,7 +394,9 @@ enum QuickAdd {
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
         let fresh = choices.filter { !out.stale.contains($0.key) }
         if tab == .intraop { for m in placedTiming.all(s.text) { s.mask(m.range) } }
-        let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: fresh, askRoomAir: false)
+        // The lowercase "68m" is the patient on the Preoperative tab's own bar only (`patientLine`): elsewhere a number and an m is a time.
+        let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: fresh, askRoomAir: false, typed: s.baseline,
+                                    lowerPatient: patientLine && tab == .preop && !handoff && !surgicalHistory)
         let mine = Set(out.findings.map(\.id))
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.
@@ -1105,7 +1111,8 @@ enum QuickAdd {
     /// Other pressures written as a pair (PA, RV, ventilator) are not the blood pressure.
     private static let notBPBefore = NoteRx(#"\b(?:pa|pap|pas|rv|lv|cvp|pcwp|wedge|mpap|swan|peep|ps|pip|vt|tv|bipap|cpap|niv|fio2|aug|augmentation)(?:\s+(?:pressures?|press|systolic|sys))?\s*(?:of|is|was|:|=)?\s*$"#)
     private static let vSep = #"^[\s,;|]*"#
-    private static let noUnit = #"(?![\d.%/])(?!\s*(?:g|ga|gauge|fr|f|mg|mcg|kg|cm|mm|ml|l|lpm|units?|u|mmhg)\b)"#
+    // 1.12: an "m" after the number is the patient's sex ("BP 120/70, 55m for TKA"), as an "f" already was: not a bare heart rate.
+    private static let noUnit = #"(?![\d.%/])(?!\s*(?:g|ga|gauge|fr|f|m|mg|mcg|kg|cm|mm|ml|l|lpm|units?|u|mmhg)\b)"#
     private static let vHR = NoteRx(vSep + #"(?:hr|heart rate|pulse|p)\s*:?\s*(\d{2,3})"# + noUnit + #"(?:\s*(?:bpm|/min)\b)?"#)
     private static let vSpO2 = NoteRx(vSep + #"(?:spo2|spo₂|sats?|o2 sat|sao2|pulse ox)\s*:?\s*(\d{2,3})(?![\d.])\s*%?"#)
     private static let vPercent = NoteRx(vSep + #"(\d{2,3})\s*%"#)

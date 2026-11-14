@@ -139,8 +139,10 @@ extension PatientBox {
     /// What the Cardiopulmonary box shows: the symptoms and acute conditions, previous intrathoracic surgery, and the
     /// workup (ECG, echo, stress test, catheterizations, carotid and radial ultrasound, PFTs, the cautions, the TEE screen)
     /// as the Preprocedure Summary's cardiac-workup block says it; a line that block carries and the assessment does not
-    /// know (the chest X-ray) is carried too. The stepwise result and the guideline advice are worked out, not entered, and
-    /// the summaries do not carry them, so the folded box does not either (they are in the box when it is open).
+    /// know (the chest X-ray) is carried too. The guideline advice is worked out, not entered, and the summaries do not carry
+    /// it, so the folded box does not either (it is in the box when it is open). The stepwise result is worked out too, but
+    /// when it is a warning its red title line stays in view on the folded box (1.12, Ben, Nov 13: a folded box always shows
+    /// its red alerts); like the TEE screen's line it never makes the box count as filled in.
     private static func cardioSummary(_ r: PatientRecord, now: Date = Date()) -> PatientBoxSummary {
         // The box is inside the app, so its lines carry a full date (`.app`); the summary's block is made with `.summary(now:)`
         // (a day only within 90 days), so the same study reads differently there. To drop what the box already says, the
@@ -157,7 +159,9 @@ extension PatientBox {
                 all.append(PatientSummary.Line(nil, text, marks: block.marks.filter { !$0.isEmpty && text.contains($0) }))
             }
         }
-        return PatientBoxSummary(entered: all, derivedAlerts: tee.map { [$0] } ?? [])
+        var derived = tee.map { [$0] } ?? []
+        if let result = PatientFunctional.foldedResultLine(r) { derived.append(result) }
+        return PatientBoxSummary(entered: all, derivedAlerts: derived)
     }
 
     /// The entered lines of the Cardiopulmonary box (assessment lines plus the stress test), dates worded in `dates`.

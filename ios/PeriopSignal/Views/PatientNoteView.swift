@@ -90,6 +90,9 @@ struct PatientNoteSheet: View {
     var initialText = ""
     /// The tab the sheet was opened from: on the Intraoperative tab the note is routed as the quick-add bar routes it.
     var tab: QuickAddTab = .preop
+    /// A lowercase "68m" opening the note is the patient (1.12): only when the sheet was opened from the Preoperative tab's own
+    /// bar; a long paste on a bar where the case is told ("40m s/p incision") is not.
+    var lowerPatient = true
     /// After adding: how many items, and the record as it was (for Undo).
     var onAdded: (Int, PatientRecord) -> Void
 
@@ -509,7 +512,7 @@ struct PatientNoteSheet: View {
     private func read() {
         Keyboard.dismiss()
         adding = nil
-        let result = QuickAdd.forTab(PatientNote.read(text, abbreviations: abbreviations.items, choices: choices), tab: tab, record: patient.record)
+        let result = QuickAdd.forTab(PatientNote.read(text, abbreviations: abbreviations.items, choices: choices, lowerPatient: lowerPatient), tab: tab, record: patient.record)
         let r = patient.record
         chosen = Set(result.findings.filter { PatientNote.status($0, in: r).onByDefault }.map(\.id))
         other = result.other
@@ -523,7 +526,7 @@ struct PatientNoteSheet: View {
     /// Reads the note again after an abbreviation's meaning changed, keeping what the user ticked, unticked or edited.
     private func reread() {
         guard let old = reading else { return }
-        let result = QuickAdd.forTab(PatientNote.read(text, abbreviations: abbreviations.items, choices: choices), tab: tab, record: patient.record)
+        let result = QuickAdd.forTab(PatientNote.read(text, abbreviations: abbreviations.items, choices: choices, lowerPatient: lowerPatient), tab: tab, record: patient.record)
         let r = patient.record
         let before = Set(old.findings.map(\.id))
         chosen = Set(result.findings.filter { before.contains($0.id) ? chosen.contains($0.id) : PatientNote.status($0, in: r).onByDefault }.map(\.id))

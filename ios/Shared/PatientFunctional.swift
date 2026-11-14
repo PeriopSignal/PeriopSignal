@@ -362,6 +362,19 @@ enum PatientFunctional {
         return peptide && troponin ? "Natriuretic peptide & troponin" : (troponin ? "Troponin" : "Natriuretic peptide")
     }
 
+    /// Whether the result row shows its reasoning: only once the user has opened it. Until 1.12 a warning ("Assess functional
+    /// capacity") opened itself, a paragraph under the red line; Ben (Nov 13): "Have this default collapsed (and all warnings)".
+    /// It was the one warning in My Patient that opened by itself. The red title line is always in view.
+    static func resultRowOpen(chosen: Bool?) -> Bool { chosen ?? false }
+
+    /// The result as the folded Cardiopulmonary box shows it: its title, in red, when it is a warning; nil when the stepwise
+    /// approach does not apply (a child, cardiac surgery) or the result is not a warning.
+    static func foldedResultLine(_ r: PatientRecord) -> PatientSummary.Line? {
+        guard stepwiseApplies(r) else { return nil }
+        let step = cardiacStep(r)
+        return step.alert ? PatientSummary.Line(nil, step.title, alert: true) : nil
+    }
+
     /// Where the patient sits in the stepwise approach, from what is recorded.
     static func cardiacStep(_ r: PatientRecord) -> CardiacStep {
         if r.emergency {
