@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-11-16",
-  "revision": 1794846793,
+  "revision": 1794846900,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -16945,7 +16945,7 @@
         "agents": [
           "gentamicin"
         ],
-        "note": "Gentamicin or tobramycin; the dose here is gentamicin's."
+        "note": "Periop Signal note: the dose shown is Case Timers' gentamicin dose."
       },
       {
         "id": "fluoroquinolone",
@@ -16964,10 +16964,6 @@
       {
         "id": "cefotaxime",
         "name": "Cefotaxime"
-      },
-      {
-        "id": "fluconazole",
-        "name": "Fluconazole"
       }
     ],
     "mrsaAgent": "vancomycin",
@@ -16975,7 +16971,7 @@
       "about": [
         "From the 2013 ASHP, IDSA, SIS and SHEA guideline (Bratzler 2013): its Recommended Agents column, and its Alternative Agents in Patients With β-Lactam Allergy column when β-lactam allergy is Yes. Follow your institution's current protocol.",
         "Start within 60 minutes before incision (120 minutes for vancomycin or a fluoroquinolone). A single dose is usually enough, and prophylaxis should last less than 24 hours for every procedure.",
-        "Doses and redose intervals are the adult ones Case Timers uses. The guideline says which agent.",
+        "Periop Signal note: the doses and redose intervals shown are the ones Case Timers uses, for adults only. The guideline's table says which agent.",
         "Redose a short half-life agent (e.g., cefazolin, cefoxitin) when the procedure outlasts its redosing interval, counted from the start of the preoperative dose; also consider it with prolonged or excessive bleeding or other causes of a shortened half-life (e.g., extensive burns). It may not be warranted when the half-life is prolonged (renal insufficiency or failure)."
       ],
       "allergy": "True Type 1 (IgE-mediated) cross-allergic reactions between penicillins, cephalosporins and carbapenems are uncommon, but cephalosporins and carbapenems should not be used for surgical prophylaxis in patients with documented or presumed IgE-mediated penicillin allergy. In the guideline's words, they “can safely be used in patients with an allergic reaction to penicillins that is not an IgE-mediated reaction (e.g., anaphylaxis, urticaria, bronchospasm) or exfoliative dermatitis (Stevens-Johnson syndrome, toxic epidermal necrolysis)”. Patients should be carefully questioned about their history of antimicrobial allergies to determine whether a true allergy exists before agents are selected: confusion about true allergy leads to alternative therapy with the potential for a lack of efficacy, increased costs and adverse events. Because the predominant organisms after clean procedures are gram-positive, including vancomycin may be appropriate for a patient with a life-threatening allergy to β-lactam antimicrobials.",
@@ -17220,9 +17216,7 @@
         "sections": [
           "Thoracic"
         ],
-        "specialties": [
-          "Thoracic"
-        ],
+        "specialties": [],
         "procedures": [
           {
             "id": "open",
@@ -17362,8 +17356,7 @@
               "vats-lobectomy",
               "wedge",
               "pleurodesis",
-              "vats-pleural-biopsy",
-              "hemothorax"
+              "vats-pleural-biopsy"
             ]
           }
         ]
@@ -17374,9 +17367,7 @@
         "sections": [
           "Vascular"
         ],
-        "specialties": [
-          "Vascular"
-        ],
+        "specialties": [],
         "procedures": [
           {
             "id": "vascular",
@@ -17404,7 +17395,7 @@
                     }
                   ],
                   "notes": [
-                    "Brachiocephalic procedures (e.g., carotid): prophylaxis is not routinely indicated; with a vascular prosthesis or patch it may be of benefit."
+                    "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it."
                   ]
                 },
                 "allergy": {
@@ -17432,7 +17423,7 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Brachiocephalic procedures (e.g., carotid): prophylaxis is not routinely indicated; with a vascular prosthesis or patch it may be of benefit."
+                    "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it."
                   ]
                 }
               }
@@ -17674,7 +17665,7 @@
                     }
                   ],
                   "notes": [
-                    "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed."
+                    "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed, not for noninfected biliary conditions."
                   ]
                 },
                 "allergy": {
@@ -17806,7 +17797,7 @@
                     }
                   ],
                   "notes": [
-                    "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed."
+                    "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed, not for noninfected biliary conditions."
                   ]
                 },
                 "allergy": {
@@ -17872,10 +17863,10 @@
         "procedures": [
           {
             "id": "appendectomy",
-            "name": "Appendectomy for uncomplicated appendicitis",
+            "name": "Appendectomy",
             "variants": [
               {
-                "id": "only",
+                "id": "uncomplicated",
                 "table": {
                   "section": "Appendix, Small Intestine, Hernia, Colorectal",
                   "row": "Appendectomy for uncomplicated appendicitis"
@@ -17955,13 +17946,20 @@
                       ]
                     }
                   ]
-                }
+                },
+                "label": "Uncomplicated"
+              },
+              {
+                "id": "complicated",
+                "label": "Complicated",
+                "outside": "The guideline's table has no row for this: its recommendation is for appendectomy for uncomplicated appendicitis."
               }
             ],
             "catalog": [
               "lap-appy",
               "open-appy"
-            ]
+            ],
+            "question": "Appendicitis?"
           },
           {
             "id": "small-intestine",
@@ -18150,8 +18148,7 @@
               "ventral-hernia-lap",
               "ventral-hernia-etep",
               "spigelian-hernia",
-              "lap-umbilical-hernia",
-              "obturator-hernia"
+              "lap-umbilical-hernia"
             ]
           },
           {
@@ -18289,7 +18286,6 @@
               "lap-right-hemi",
               "lap-left-hemi",
               "lap-sigmoid",
-              "hartmann",
               "hartmann-reversal",
               "open-lar",
               "lap-lar",
@@ -18301,8 +18297,7 @@
               "lap-total-colectomy",
               "lap-proctocolectomy",
               "tatme",
-              "lap-cecectomy",
-              "colonic-volvulus"
+              "lap-cecectomy"
             ]
           }
         ],
@@ -18609,7 +18604,6 @@
             "catalog": [
               "craniotomy-tumor",
               "awake-craniotomy",
-              "aneurysm-clipping",
               "suboccipital",
               "mvd",
               "acoustic-neuroma",
@@ -19068,7 +19062,6 @@
               }
             ],
             "catalog": [
-              "femoral-nail",
               "distal-femur-orif",
               "patella-orif",
               "tibial-plateau-orif",
@@ -19148,8 +19141,6 @@
             "catalog": [
               "tka",
               "tha",
-              "revision-tka",
-              "revision-tha",
               "tsa",
               "rtsa"
             ]
@@ -19240,11 +19231,7 @@
               }
             ],
             "catalog": [
-              "cystoscopy",
-              "turbt",
-              "turp",
-              "holep",
-              "cystolitholapaxy"
+              "cystoscopy"
             ],
             "question": "Risk factors for infection?"
           },
@@ -19275,7 +19262,7 @@
                             "class:aminoglycoside"
                           ],
                           "optional": true,
-                          "why": "for placement of prosthetic material, e.g., penile prosthesis"
+                          "why": "a single dose may be recommended for placement of prosthetic material, e.g., penile prosthesis"
                         }
                       ]
                     }
@@ -19408,7 +19395,7 @@
                             "class:aminoglycoside"
                           ],
                           "optional": true,
-                          "why": "for placement of prosthetic material, e.g., penile prosthesis"
+                          "why": "a single dose may be recommended for placement of prosthetic material, e.g., penile prosthesis"
                         }
                       ]
                     }
@@ -19529,9 +19516,7 @@
         "sections": [
           "Transplantation"
         ],
-        "specialties": [
-          "Transplant"
-        ],
+        "specialties": [],
         "procedures": [
           {
             "id": "heart",
@@ -19928,9 +19913,7 @@
         "sections": [
           "Plastic Surgery and Ophthalmic"
         ],
-        "specialties": [
-          "Ophthalmology"
-        ],
+        "specialties": [],
         "procedures": [
           {
             "id": "ophthalmic",
@@ -19949,7 +19932,10 @@
                 },
                 "allergy": {
                   "text": "None",
-                  "kind": "none"
+                  "kind": "text",
+                  "notes": [
+                    "The guideline's table lists no alternative agent for ophthalmic procedures. Its recommended agents are topical (set β-lactam allergy to No to see them); the optional cefazolin or cefuroxime at the end of the procedure is a cephalosporin."
+                  ]
                 }
               }
             ],
