@@ -62,6 +62,7 @@ struct ProphylaxisInfoSheet: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             }
         }
+        .tint(PS.action)
         .presentationDetents(content.isLong ? [.large] : [.medium, .large])
         .presentationDragIndicator(.visible)
     }
@@ -121,7 +122,7 @@ private struct ProphylaxisYesNo: View {
             Text(title)
                 .font(PS.sys(size: 13.5, weight: selected ? .semibold : .medium))
                 .foregroundStyle(ChipStyle.color(look.text, tint: PS.action))
-                .padding(.horizontal, 14).padding(.vertical, 7)
+                .padding(.horizontal, 12).padding(.vertical, 7)
                 .background(ChipStyle.color(look.fill, tint: PS.action), in: Capsule())
                 .overlay(Capsule().stroke(ChipStyle.color(look.edge, tint: PS.action), lineWidth: 1))
         }
@@ -207,7 +208,6 @@ struct SurgicalProphylaxisView: View {
         .navigationBarTitleDisplayMode(.inline)
         .modifier(ProphylaxisCaseCaption(on: inCaseTimers))
         .modifier(DebugContentWidth())
-        .navigationDestination(isPresented: $showTable) { tableView }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -490,7 +490,7 @@ struct SurgicalProphylaxisView: View {
 
     private func toggleTitle(_ title: String, info: @escaping () -> Void) -> some View {
         HStack(spacing: 6) {
-            Text(title).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg).lineLimit(1).fixedSize()
+            Text(title).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg).lineLimit(1).fixedSize()
             ProphylaxisInfoButton(label: "About " + title, action: info)
         }
     }
@@ -551,18 +551,36 @@ struct SurgicalProphylaxisView: View {
             .background(PS.surface, in: card)
     }
 
+    /// The title, then the evidence grade and the one ⓘ: beside it when they fit on one line, under it when they do not (a long
+    /// title or a large text size), so the title never breaks inside "β-lactam".
     private func resultHeader(_ a: ProphylaxisAnswer) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(a.title).font(PS.serif(size: 21, weight: .semibold)).foregroundStyle(PS.fg)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
-            Spacer(minLength: 6)
-            if let e = a.evidence {
-                Text(e).font(PS.mono(size: 10.5, weight: .semibold)).foregroundStyle(PS.fg3).fixedSize()
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                titleText(a).fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 6)
+                evidenceAndInfo(a)
             }
-            if let c = resultContent(a) {
-                ProphylaxisInfoButton(label: "About this result") { sheet = c }
+            VStack(alignment: .leading, spacing: 6) {
+                titleText(a).fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 8) { evidenceAndInfo(a); Spacer(minLength: 0) }
             }
+        }
+    }
+
+    /// The title with the hyphen of "β-lactam" that does not break the line.
+    private func titleText(_ a: ProphylaxisAnswer) -> some View {
+        Text(a.title.replacingOccurrences(of: "-", with: "\u{2011}"))
+            .font(PS.serif(size: 21, weight: .semibold)).foregroundStyle(PS.fg)
+            .accessibilityLabel(a.title)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    @ViewBuilder private func evidenceAndInfo(_ a: ProphylaxisAnswer) -> some View {
+        if let e = a.evidence {
+            Text(e).font(PS.mono(size: 10.5, weight: .semibold)).foregroundStyle(PS.fg3).fixedSize()
+        }
+        if let c = resultContent(a) {
+            ProphylaxisInfoButton(label: "About this result") { sheet = c }
         }
     }
 
@@ -807,9 +825,8 @@ struct SurgicalProphylaxisView: View {
 
     private func footer(_ data: ProphylaxisData) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Button {
-                Haptics.light()
-                showTable = true
+            NavigationLink(isActive: $showTable) {
+                tableView
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "tablecells").font(PS.sys(size: 14, weight: .semibold))

@@ -1079,7 +1079,7 @@ jobs:
           shot 1213-proph-ophthalmic-light 14 -ps.ref prophylaxis -ps.proph.group ophthalmic -ps.proph.weight 90 -ps.forceAppearance light
           shot 1214-proph-info-about-light 14 -ps.ref prophylaxis -ps.proph.info about -ps.forceAppearance light
           shot 1215-proph-info-allergy-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.info allergy -ps.forceAppearance light
-          shot 1216-proph-info-mrsa-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.info mrsa -ps.forceAppearance light
+          shot 1216-proph-info-mrsa-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.info mrsa -ps.forceAppearance light
           shot 1217-proph-info-result-star-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.allergy 1 -ps.proph.info result -ps.forceAppearance light
           shot 1218-proph-info-result-classes-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure colorectal -ps.proph.allergy 1 -ps.proph.weight 90 -ps.proph.info result -ps.forceAppearance light
           shot 1219-proph-info-question-light 14 -ps.ref prophylaxis -ps.proph.group biliary -ps.proph.procedure lap -ps.proph.info question -ps.forceAppearance light

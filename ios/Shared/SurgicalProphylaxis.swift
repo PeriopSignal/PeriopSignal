@@ -340,10 +340,11 @@ struct ProphylaxisInput: Hashable {
         return g.procedure(p)
     }
 
-    /// "Cardiac · Coronary artery bypass": the collapsed Surgery row; nil until a procedure is chosen.
+    /// "Cardiac · Coronary artery bypass": the collapsed Surgery row (the group as its chip says it: "Bowel & Hernia · Colorectal");
+    /// nil until a procedure is chosen. A procedure that is its group's name ("Ophthalmic") is said once.
     func summary(_ data: ProphylaxisData) -> String? {
         guard let g = selectedGroup(data), let p = selectedProcedure(data) else { return nil }
-        return g.name + " · " + p.name
+        return g.chip == p.name ? p.name : g.chip + " · " + p.name
     }
 
     /// The prefill laid over the inputs: the procedure (or only the group), the allergy and the MRSA answer. Nothing it does
