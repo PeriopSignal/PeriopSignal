@@ -226,7 +226,7 @@ struct SurgicalProphylaxisView: View {
             Button("Start") { confirmStart() }
             Button("Cancel", role: .cancel) { pending = nil }
         } message: {
-            Text(pending.map { ProphylaxisEngine.startMessage(at: $0.time, hasRedose: $0.hasRedose) } ?? "")
+            Text(pending.map { ProphylaxisEngine.startMessage(hasRedose: $0.hasRedose) } ?? "")
         }
         .onAppear(perform: setUp)
         .onChange(of: refs.prophylaxis != nil) { _, _ in setUp() }
@@ -336,7 +336,8 @@ struct SurgicalProphylaxisView: View {
         inputsCard(data)
         weightRow(r)
         resultCard(answer, r, timers)
-        if !startedAt.isEmpty { openCaseTimersLink }
+        // Wherever an agent of this result has a course in the case (started here or in Case Timers), never from memory alone.
+        if canStartHere, answer.allLines.contains(where: { r.timers.course($0.agent) != nil }) { openCaseTimersLink }
         footer(data)
     }
 
@@ -365,9 +366,10 @@ struct SurgicalProphylaxisView: View {
     }
 
     private var procedureCaption: String? {
-        guard caseBound, let c = prefill.procedureCaption, input.group == prefill.group,
-              prefill.procedure == nil || input.procedure == prefill.procedure else { return nil }
-        return c
+        guard caseBound, let c = prefill.procedureCaption, input.group == prefill.group else { return nil }
+        // True only while it describes the choice: the case's own row, or (a case that selects the group only) no row chosen yet.
+        if let p = prefill.procedure { return input.procedure == p ? c : nil }
+        return input.procedure == nil ? c : nil
     }
 
     private var allergyCaption: String? {
@@ -520,7 +522,9 @@ struct SurgicalProphylaxisView: View {
             .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .accessibilityElement(children: .combine)
         } else {
-            CompactWeightField(text: $weightText, focus: $weightFocused, badge: "For doses", patientWeight: myPatient.weightKg)
+            // Adult doses only: a child's weight in My Patient is never offered here (the scratch record has no age to lock on).
+            CompactWeightField(text: $weightText, focus: $weightFocused, badge: "For doses",
+                               patientWeight: CaseTimerEngine.isChild(myPatient.record) ? nil : myPatient.weightKg)
         }
     }
 
@@ -593,6 +597,9 @@ struct SurgicalProphylaxisView: View {
             Text(a.body).font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
             notes(a)
         case .regimens:
+            if let weightLine = a.weightLine {
+                Text(weightLine).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+            }
             regimens(a, r, timers)
             notes(a)
             if let m = a.mrsa {
@@ -693,6 +700,12 @@ struct SurgicalProphylaxisView: View {
         .accessibilityElement(children: .contain)
     }
 
+    /// "Cefazolin, 2 g, Redose every 4 h": the dose is read with its drug, not as a separate stop after it.
+    static func spoken(_ line: ProphylaxisLine) -> String {
+        let parts: [String?] = [line.name, line.caption, line.dose, line.needs, line.redose, line.noDose, line.note]
+        return parts.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+    }
+
     private func agentText(_ line: ProphylaxisLine) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(line.name).font(PS.sys(size: 15.5, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
@@ -701,6 +714,8 @@ struct SurgicalProphylaxisView: View {
             if let n = line.noDose { Text(n).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true) }
             if let n = line.note { Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Self.spoken(line))
     }
 
     private func doseColumn(_ line: ProphylaxisLine, _ r: PatientRecord, _ timers: CaseTimerData, trailing: Bool) -> some View {
@@ -709,14 +724,15 @@ struct SurgicalProphylaxisView: View {
             if let head = parts.head {
                 Text(head).font(PS.serif(size: 20, weight: .semibold)).foregroundStyle(PS.fg)
                     .multilineTextAlignment(trailing ? .trailing : .leading).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
             }
             if let working = parts.working {
                 Text(working).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).multilineTextAlignment(trailing ? .trailing : .leading)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityHidden(true)
             }
             if let needs = line.needs {
                 Text(needs).font(PS.sys(size: 12, weight: .medium)).foregroundStyle(PS.fg2).multilineTextAlignment(trailing ? .trailing : .leading)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityHidden(true)
             }
             startControl(line, r, timers)
         }
@@ -736,9 +752,6 @@ struct SurgicalProphylaxisView: View {
         if canStartHere && line.startable {
             switch ProphylaxisEngine.startState(line.agent, record: r, timers: timers) {
             case .available:
-                if let t = startedAt[line.agent] {
-                    startedText("Started " + ClockText.time(t))
-                } else {
                     Button {
                         askToStart(line.agent, timers)
                     } label: {
@@ -751,9 +764,10 @@ struct SurgicalProphylaxisView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Start " + line.name)
                     .accessibilityHint("Asks to log a dose now and start its redose timer in Case Timers")
-                }
             case .running(let last, _):
-                if let t = startedAt[line.agent] {
+                // "Started" only while the dose logged from here is still the course's last dose: after an Undo or a removal in
+                // Case Timers the record decides, and Start is offered again.
+                if let t = startedAt[line.agent], let last, abs(last.timeIntervalSince(t)) < 1 {
                     startedText("Started " + ClockText.time(t))
                 } else {
                     startedText("In Case Timers" + (last.map { " · last dose " + ClockText.time($0) } ?? ""))

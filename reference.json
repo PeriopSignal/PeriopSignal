@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-11-16",
-  "revision": 1794846900,
+  "revision": 1794847000,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -19934,8 +19934,9 @@
                   "text": "None",
                   "kind": "text",
                   "notes": [
-                    "The guideline's table lists no alternative agent for ophthalmic procedures. Its recommended agents are topical (set β-lactam allergy to No to see them); the optional cefazolin or cefuroxime at the end of the procedure is a cephalosporin."
-                  ]
+                    "The guideline's table lists no alternative agent for ophthalmic procedures. Its recommended agents are: Topical neomycin–polymyxin B–gramicidin, or a fourth-generation topical fluoroquinolone (gatifloxacin or moxifloxacin), 1 drop every 5–15 min for 5 doses. Optional at the end of the procedure: cefazolin 100 mg subconjunctival, or intracameral cefazolin 1–2.5 mg or cefuroxime 1 mg. The optional cefazolin and cefuroxime are cephalosporins."
+                  ],
+                  "display": "No alternative agent listed"
                 }
               }
             ],

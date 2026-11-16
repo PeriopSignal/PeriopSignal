@@ -1089,7 +1089,7 @@ jobs:
           shot 1223-proph-case-confirm-light 22 -ps.tab patient -ps.patient demo-112-proph-plain -ps.patient.open prophylaxis -ps.proph.confirm cefazolin -ps.forceAppearance light
           shot 1224-proph-case-started-light 22 -ps.tab patient -ps.patient demo-112-proph-plain -ps.patient.open prophylaxis -ps.proph.start cefazolin -ps.forceAppearance light
           shot 1225-proph-case-running-light 22 -ps.tab patient -ps.patient demo-112-proph-running -ps.patient.open prophylaxis -ps.forceAppearance light
-          shot 1226-proph-case-child-light 22 -ps.tab patient -ps.patient demo-112-proph-child -ps.patient.open prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.forceAppearance light
+          shot 1226-proph-case-child-light 22 -ps.tab patient -ps.patient demo-112-proph-child -ps.patient.open prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.variant uncomplicated -ps.forceAppearance light
           shot 1227-proph-case-group-only-light 22 -ps.tab patient -ps.patient demo-112-proph-avr -ps.patient.open prophylaxis -ps.forceAppearance light
           shot 1228-proph-large-text-cabg-allergy-light 16 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.allergy 1 -ps.textScale 1.5 -ps.forceAppearance light
           shot 1229-proph-cabg-light-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
@@ -1099,6 +1099,10 @@ jobs:
           shot 1233-proph-full-table-light 16 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.table 1 -ps.forceAppearance light
           shot 1234-proph-case-prefilled-dark 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.forceAppearance dark
           shot 1235-proph-cabg-90-dark 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.forceAppearance dark
+          shot 1236-proph-ophthalmic-allergy-light 14 -ps.ref prophylaxis -ps.proph.group ophthalmic -ps.proph.allergy 1 -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1237-proph-appendectomy-question-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1238-proph-appendectomy-complicated-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.variant complicated -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1239-proph-weight-outside-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.allergy 1 -ps.proph.weight 9 -ps.forceAppearance light
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light
           shot 891-d112-preop-meds-dark 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance dark

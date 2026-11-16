@@ -332,7 +332,48 @@ final class S112Tests: XCTestCase {
         XCTAssertEqual(a.state, .text)
         XCTAssertEqual(a.body, d.group("ophthalmic")?.procedure("ophthalmic")?.variants.first?.recommended?.text)
         XCTAssertTrue(a.allLines.isEmpty)
-        XCTAssertEqual(answer("ophthalmic", "ophthalmic", allergy: true).state, .none, "the allergy cell is None")
+        // The allergy cell reads "None": no alternative agent is listed, which is not "no prophylaxis" (the recommended agents are
+        // topical). It is shown as the cell's text with the note that says so, never as "No prophylaxis recommended".
+        let alt = answer("ophthalmic", "ophthalmic", allergy: true)
+        XCTAssertEqual(alt.state, .text)
+        XCTAssertEqual(alt.body, "No alternative agent listed")
+        XCTAssertNotEqual(alt.body, d.info.none)
+        XCTAssertEqual(alt.notes.count, 1)
+        XCTAssertTrue(alt.notes[0].hasPrefix("The guideline's table lists no alternative agent for ophthalmic procedures."), alt.notes[0])
+        // The note carries the recommended (topical) agents word for word, so nothing has to be toggled to read them.
+        let recommended = try XCTUnwrap(d.group("ophthalmic")?.procedure("ophthalmic")?.variants.first?.recommended?.text)
+        XCTAssertTrue(alt.notes[0].contains(recommended), alt.notes[0])
+        XCTAssertTrue(alt.info.contains { $0.hasSuffix("None") }, "the table's own cell stays behind the info link: \(alt.info)")
+        XCTAssertTrue(alt.allLines.isEmpty)
+        XCTAssertNil(answer("ophthalmic", "ophthalmic", allergy: true, mrsa: true).mrsa, "nothing is added to a result with no agents")
+    }
+
+    func testAppendectomyAsksWhetherTheAppendicitisIsUncomplicated() throws {
+        // The table's row is for uncomplicated appendicitis only: a planned appendectomy selects the procedure and the user answers.
+        let p = ProphylaxisEngine.prefill(record: caseWith([try planned("lap-appy")]), data: d)
+        XCTAssertEqual(p.group, "lowergi")
+        XCTAssertEqual(p.procedure, "appendectomy")
+        XCTAssertEqual(answer("lowergi", "appendectomy").state, .question)
+        let yes = answer("lowergi", "appendectomy", "uncomplicated")
+        XCTAssertEqual(yes.state, .regimens)
+        XCTAssertEqual(yes.regimens.count, 3)
+        let no = answer("lowergi", "appendectomy", "complicated")
+        XCTAssertEqual(no.state, .outside)
+        XCTAssertTrue(no.body.contains("uncomplicated appendicitis"), no.body)
+        XCTAssertTrue(no.allLines.isEmpty)
+    }
+
+    func testThePrefillLeavesOutOperationsThatAreOftenEmergenciesOrAnotherRow() throws {
+        // Removed after an independent check of the mapping (Nov 16): each of these selects no table row.
+        for id in ["hartmann", "colonic-volvulus", "obturator-hernia", "aneurysm-clipping", "revision-tka", "revision-tha", "femoral-nail", "hemothorax",
+                   "turp", "holep", "turbt", "cystolitholapaxy"] {
+            XCTAssertNotNil(ProcedureCatalog.byID(id), id)
+            XCTAssertNil(ProphylaxisEngine.prefill(record: caseWith([try planned(id)]), data: d).procedure, id)
+        }
+        // A specialty whose operations the group's rows do not all describe opens no group: an esophagectomy is not a lung resection.
+        for id in ["ivor-lewis", "angiogram-diagnostic", "donor-nephrectomy", "blepharoplasty"] {
+            XCTAssertNil(ProphylaxisEngine.prefill(record: caseWith([try planned(id)]), data: d).group, id)
+        }
     }
 
     func testLiverTransplantNamesCefotaximeWithNoDoseAndNeverStartsIt() throws {
@@ -638,8 +679,9 @@ final class S112Tests: XCTestCase {
 
     func testTheStartQuestionIsWordedAsSpecified() {
         XCTAssertEqual(ProphylaxisEngine.startTitle("Cefazolin"), "Start cefazolin now?")
-        XCTAssertEqual(ProphylaxisEngine.startMessage(at: "14:32", hasRedose: true), "Logs a dose at 14:32 and starts its redose timer.")
-        XCTAssertEqual(ProphylaxisEngine.startMessage(at: "14:32", hasRedose: false), "Logs a dose at 14:32.")
+        // No clock time in the question: the dose is logged when Start is tapped, which may be after the question appeared.
+        XCTAssertEqual(ProphylaxisEngine.startMessage(hasRedose: true), "Logs a dose now and starts its redose timer.")
+        XCTAssertEqual(ProphylaxisEngine.startMessage(hasRedose: false), "Logs a dose now.")
     }
 
     @MainActor func testStartIsOneUndoStepOnTheStore() throws {

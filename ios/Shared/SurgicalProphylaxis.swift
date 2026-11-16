@@ -51,6 +51,8 @@ struct ProphylaxisData: Codable, Hashable {
     }
 
     func group(_ id: String) -> ProphylaxisGroup? { groups.first { $0.id == id } }
+    /// There is something to choose: a section that decoded to no group with a procedure never stands in for the quick reference.
+    var isUsable: Bool { groups.contains { !$0.procedures.isEmpty } }
     func agentName(_ id: String) -> String? { agents.first { $0.id == id }?.name }
     func cls(_ id: String) -> ProphylaxisClass? { classes.first { $0.id == id } }
 }
@@ -254,9 +256,13 @@ struct ProphylaxisResult: Codable, Hashable {
     /// The cell carries the guideline's asterisk.
     var star: Bool
     var notes: [String]
+    /// What a "text" result shows in place of the cell when the cell alone would mislead (the ophthalmic row's "None" under
+    /// β-lactam allergy means no alternative agent is listed, not that no prophylaxis is given). The cell stays in `text`.
+    var display: String?
 
-    init(text: String = "", kind: Kind = .text, regimens: [ProphylaxisRegimen] = [], star: Bool = false, notes: [String] = []) {
-        self.text = text; self.kind = kind; self.regimens = regimens; self.star = star; self.notes = notes
+    init(text: String = "", kind: Kind = .text, regimens: [ProphylaxisRegimen] = [], star: Bool = false, notes: [String] = [],
+         display: String? = nil) {
+        self.text = text; self.kind = kind; self.regimens = regimens; self.star = star; self.notes = notes; self.display = display
     }
 
     init(from decoder: Decoder) throws {
@@ -267,6 +273,7 @@ struct ProphylaxisResult: Codable, Hashable {
         regimens = (try? c.decodeIfPresent([ProphylaxisRegimen].self, forKey: .regimens)) ?? []
         star = (try? c.decodeIfPresent(Bool.self, forKey: .star)) ?? false
         notes = (try? c.decodeIfPresent([String].self, forKey: .notes)) ?? []
+        display = try? c.decodeIfPresent(String.self, forKey: .display)
     }
 }
 
@@ -427,6 +434,8 @@ struct ProphylaxisAnswer: Hashable {
     var timing: String?
     /// "Adult doses only: no dose is shown for a patient under 18."
     var childLine: String?
+    /// "9 kg is outside 35–200 kg: check the weight. Doses are shown as written, not worked out for this weight."
+    var weightLine: String?
     /// What the result's ⓘ opens: paragraphs, none twice.
     var info: [String] = []
     var alternative = false
@@ -501,6 +510,8 @@ enum ProphylaxisEngine {
         a.evidence = v.evidence.flatMap { $0.isEmpty ? nil : "Evidence " + $0 }
         a.notes = res.notes
         let child = CaseTimerEngine.isChild(r)
+        let dosing = dosingRecord(r, timers: timers)
+        let dr = dosing.record
 
         var info = InfoBuilder()
         info.add(data.info.evidence)
@@ -512,7 +523,7 @@ enum ProphylaxisEngine {
             a.body = data.info.none
         case .text:
             a.state = .text
-            a.body = res.text
+            a.body = res.display.flatMap { $0.isEmpty ? nil : $0 } ?? res.text
         case .regimens:
             a.state = .regimens
             var usedClasses: [ProphylaxisClass] = []
@@ -526,10 +537,10 @@ enum ProphylaxisEngine {
                             guard let c = data.cls(cid) else { continue }
                             if !usedClasses.contains(where: { $0.id == c.id }) { usedClasses.append(c) }
                             for agent in c.agents {
-                                lines.append(line(agent, caption: c.name, id: "r\(ri).s\(si).", record: r, data: data, timers: timers, child: child))
+                                lines.append(line(agent, caption: c.name, id: "r\(ri).s\(si).", record: dr, data: data, timers: timers, child: child))
                             }
                         } else {
-                            lines.append(line(token, caption: nil, id: "r\(ri).s\(si).", record: r, data: data, timers: timers, child: child))
+                            lines.append(line(token, caption: nil, id: "r\(ri).s\(si).", record: dr, data: data, timers: timers, child: child))
                         }
                     }
                     slots.append(ProphylaxisSlotAnswer(lines: lines, optional: slot.optional, why: slot.why))
@@ -547,16 +558,30 @@ enum ProphylaxisEngine {
             if agentIDs.contains(ampicillinSulbactam) { for s in data.info.ampicillinSulbactam { info.add(s) } }
             if input.mrsa {
                 a.mrsaTitle = mrsaTitle
-                var m = line(data.mrsaAgent, caption: nil, id: "mrsa.", record: r, data: data, timers: timers, child: child)
+                var m = line(data.mrsaAgent, caption: nil, id: "mrsa.", record: dr, data: data, timers: timers, child: child)
                 if m.dose != nil || m.noDose == nil { m.redose = child ? nil : mrsaDoseNote }
                 a.mrsa = m
             }
             a.timing = data.info.timing.isEmpty ? nil : data.info.timing
-            if child { a.childLine = childLine }
+            if child { a.childLine = childLine } else { a.weightLine = dosing.line }
         }
         if let n = g.note { info.add(n) }
         a.info = info.paragraphs
         return a
+    }
+
+    /// The record the doses are worked out for. A weight outside Case Timers' own plausible range (`weightFlag`, 35–200 kg: a
+    /// slip of the finger, or a child typed into the adult tool) works out no number: the doses read as each drug's written rule,
+    /// and `line` says why. The weight is never changed on the patient.
+    static func dosingRecord(_ r: PatientRecord, timers: CaseTimerData) -> (record: PatientRecord, line: String?) {
+        guard let w = r.weightKg, w > 0, let lim = timers.weightFlag, lim.count == 2, w < lim[0] || w > lim[1] else { return (r, nil) }
+        var out = r
+        out.weightKg = nil
+        // No Int(...) of an unbounded number: a 20-digit weight typed into the field must not trap.
+        let shown: String = w < 100000 ? CaseTimerEngine.grouped(w) + " kg" : "This weight"
+        let range: String = CaseTimerEngine.fmt(lim[0]) + "–" + CaseTimerEngine.fmt(lim[1]) + " kg"
+        let line: String = shown + " is outside " + range + ": check the weight. Doses are shown as written, not worked out for this weight."
+        return (out, line)
     }
 
     /// Paragraphs for an ⓘ, never the same one twice.
@@ -630,9 +655,10 @@ enum ProphylaxisEngine {
     /// "Start cefazolin now?"
     static func startTitle(_ name: String) -> String { "Start " + name.lowercasedFirst + " now?" }
 
-    /// "Logs a dose at 14:32 and starts its redose timer." (a drug with no redose interval: "Logs a dose at 14:32.")
-    static func startMessage(at time: String, hasRedose: Bool) -> String {
-        hasRedose ? "Logs a dose at " + time + " and starts its redose timer." : "Logs a dose at " + time + "."
+    /// "Logs a dose now and starts its redose timer." (a drug with no redose interval: "Logs a dose now."). No clock time: the
+    /// dose is logged at the moment Start is tapped, which may be after the question appeared.
+    static func startMessage(hasRedose: Bool) -> String {
+        hasRedose ? "Logs a dose now and starts its redose timer." : "Logs a dose now."
     }
 
     // MARK: Prefill
@@ -733,7 +759,16 @@ enum ProphylaxisAllergy {
         return out
     }
 
-    static func betaLactams(_ r: PatientRecord) -> [PatientAllergy] { items(r).filter(isBetaLactam) }
+    /// "Cefazolin tolerated" is filed by the Allergies reader as cefazolin with the reaction "tolerated": that is a tolerance, and
+    /// never sets β-lactam allergy to Yes.
+    static func isTolerance(_ a: PatientAllergy) -> Bool {
+        let words = CatalogText.fold(a.reaction).split(whereSeparator: { !$0.isLetter }).map(String.init)
+        guard let first = words.first, a.severity == nil else { return false }
+        return AllergyCatalog.tolerates.contains(first) || (words.count >= 2 && ["well", "previously", "has", "is"].contains(first)
+                                                               && AllergyCatalog.tolerates.contains(words[1]))
+    }
+
+    static func betaLactams(_ r: PatientRecord) -> [PatientAllergy] { items(r).filter { isBetaLactam($0) && !isTolerance($0) } }
 }
 
 // MARK: - Where the calculator replaces the quick reference
@@ -744,7 +779,7 @@ enum ProphylaxisGate {
     nonisolated(unsafe) static var available = true
 
     static func update(from b: ReferenceBundle?) {
-        if let b { available = b.prophylaxis != nil }
+        if let b { available = b.prophylaxis?.isUsable ?? false }
     }
 
     /// The route key "Which antibiotic?" opens: the calculator, or the quick reference while the bundle lacks the section.

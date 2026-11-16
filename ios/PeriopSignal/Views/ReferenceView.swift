@@ -211,10 +211,13 @@ struct FavoriteToolbar: ViewModifier {
         } else {
             content.toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    let on = favorites.contains(route.key)
+                    // The key the Reference tab lists the route under: starring the table opened directly stars the calculator that
+                    // stands for it, so the star, the folder tile and the favorites tile always agree.
+                    let key = route.listed.key
+                    let on = favorites.contains(key)
                     Button {
                         Haptics.light()
-                        withAnimation(.snappy) { favorites.toggle(route.key) }
+                        withAnimation(.snappy) { favorites.toggle(key) }
                     } label: { Image(systemName: on ? "star.fill" : "star") }
                     .accessibilityLabel(on ? "Remove from favorites" : "Add to favorites")
                 }
