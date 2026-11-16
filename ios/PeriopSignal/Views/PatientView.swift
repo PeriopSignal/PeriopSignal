@@ -273,7 +273,7 @@ struct PatientView: View {
                     #endif
             }
             .navigationDestination(for: RefRoute.self) { route in
-                RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: nil, handoff: handoff)
+                RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: nil, handoff: handoff, caseBound: true)
                     // 1.12 (note 10): Case Timers opened from the tab says which case it is for, under its title.
                     .modifier(PatientRouteCaption(route: route))
                     #if DEBUG
