@@ -1,6 +1,5 @@
-[0;93m2026-11-13 09:14:35.346286490 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-3 post(s) to synthesize with kokoro:af_heart
-  bmj-2026-acei-arb-morning-hold-hypotension-older-noncardiac: 216 s, 1686 KB, 100 s to make
-  jhlt-2026-eppvdn-pediatric-pulmonary-hypertension-treatment-consensus: 189 s, 1477 KB, 86 s to make
-  jhlt-2026-eppvdn-fontan-cardiovascular-dysfunction-consensus: 182 s, 1424 KB, 83 s to make
-synthesized 3, failed 0, 7840 characters, 4 min
+[0;93m2026-11-16 09:11:55.583006474 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+2 post(s) to synthesize with kokoro:af_heart
+  fda-2026-intersurgical-smoothbore-breathing-tube-connector-early-alert: 188 s, 1466 KB, 74 s to make
+  fda-2026-arrow-hydrophilic-guidewire-picc-early-alert: 157 s, 1230 KB, 61 s to make
+synthesized 2, failed 0, 4518 characters, 2 min
