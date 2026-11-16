@@ -87,7 +87,7 @@ final class S112Tests: XCTestCase {
         let v = try XCTUnwrap(p.groups.first?.procedures.first?.variants.first)
         XCTAssertEqual(v.recommended?.kind, .text, "an unknown kind shows the table's text")
         XCTAssertEqual(v.recommended?.text, "A new table cell")
-        XCTAssertEqual(v.allergy?.kind, .none)
+        XCTAssertEqual(v.allergy?.kind, ProphylaxisResult.Kind.none)
         XCTAssertEqual(v.recommended?.notes, [])
         XCTAssertFalse(v.recommended?.star ?? true)
         XCTAssertNil(v.evidence); XCTAssertNil(v.table); XCTAssertNil(v.outside); XCTAssertNil(p.reviewed)
@@ -599,6 +599,9 @@ final class S112Tests: XCTestCase {
                                                                     every: CaseTimerRecurrence.storedInterval(pick), typedDose: nil))
         XCTAssertEqual(ProphylaxisEngine.startState("cefazolin", record: r, timers: t), .available)
         XCTAssertTrue(ProphylaxisEngine.start("cefazolin", in: &r, timers: t, now: now))
+        // Each logged dose carries its own random id: the same dose, whatever its id.
+        XCTAssertEqual(r.timers.antibiotics.count, 1)
+        expected.timers.antibiotics[0].doses[0].id = r.timers.antibiotics[0].doses[0].id
         XCTAssertEqual(r, expected)
         XCTAssertEqual(r.timers.course("cefazolin")?.everyMinutes, 240)
         XCTAssertEqual(r.timers.course("cefazolin")?.doses.first?.ebl, 150)
