@@ -1061,6 +1061,7 @@ jobs:
           shot 1187-abxdose-vanc-weight-needed-light-375 24 -ps.tab patient -ps.patient demo-112-abxdose-vanc -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.scroll antibiotic -ps.timers.abx.dose vancomycin -ps.patient.width 375 -ps.forceAppearance light
           shot 1188-abxdose-large-text-light-375 24 -ps.tab patient -ps.patient demo-112-abxdose-custom -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.scroll antibiotic -ps.textScale 1.5 -ps.patient.width 375 -ps.forceAppearance light
           shot 1189-abxdose-handoff-dark 20 -ps.tab patient -ps.patient demo-112-abxdose-custom -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          # ---- 1.12 helper S shots (1200-1239): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light

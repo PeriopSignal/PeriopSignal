@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-11-12",
-  "revision": 1794501193,
+  "updated": "2026-11-16",
+  "revision": 1794846793,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -16927,6 +16927,3044 @@
         "q": "Can the ASE diastolic algorithm grade function from intraoperative TEE values?",
         "a": "No: Nagueh 2025 excludes intraoperative use and gives no TEE cut-offs.",
         "source": "Nagueh 2025"
+      }
+    ]
+  },
+  "prophylaxis": {
+    "reviewed": "2026-11-12",
+    "quickref": "ashp-surgical-prophylaxis",
+    "source": {
+      "id": "bratzler",
+      "label": "Bratzler 2013, ASHP/IDSA/SIS/SHEA surgical prophylaxis",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/23327981/"
+    },
+    "classes": [
+      {
+        "id": "aminoglycoside",
+        "name": "Aminoglycoside",
+        "agents": [
+          "gentamicin"
+        ],
+        "note": "Gentamicin or tobramycin; the dose here is gentamicin's."
+      },
+      {
+        "id": "fluoroquinolone",
+        "name": "Fluoroquinolone",
+        "agents": [
+          "ciprofloxacin",
+          "levofloxacin"
+        ]
+      }
+    ],
+    "agents": [
+      {
+        "id": "tmp-smx",
+        "name": "Trimethoprim–sulfamethoxazole"
+      },
+      {
+        "id": "cefotaxime",
+        "name": "Cefotaxime"
+      },
+      {
+        "id": "fluconazole",
+        "name": "Fluconazole"
+      }
+    ],
+    "mrsaAgent": "vancomycin",
+    "info": {
+      "about": [
+        "From the 2013 ASHP, IDSA, SIS and SHEA guideline (Bratzler 2013): its Recommended Agents column, and its Alternative Agents in Patients With β-Lactam Allergy column when β-lactam allergy is Yes. Follow your institution's current protocol.",
+        "Start within 60 minutes before incision (120 minutes for vancomycin or a fluoroquinolone). A single dose is usually enough, and prophylaxis should last less than 24 hours for every procedure.",
+        "Doses and redose intervals are the adult ones Case Timers uses. The guideline says which agent.",
+        "Redose a short half-life agent (e.g., cefazolin, cefoxitin) when the procedure outlasts its redosing interval, counted from the start of the preoperative dose; also consider it with prolonged or excessive bleeding or other causes of a shortened half-life (e.g., extensive burns). It may not be warranted when the half-life is prolonged (renal insufficiency or failure)."
+      ],
+      "allergy": "True Type 1 (IgE-mediated) cross-allergic reactions between penicillins, cephalosporins and carbapenems are uncommon, but cephalosporins and carbapenems should not be used for surgical prophylaxis in patients with documented or presumed IgE-mediated penicillin allergy. In the guideline's words, they “can safely be used in patients with an allergic reaction to penicillins that is not an IgE-mediated reaction (e.g., anaphylaxis, urticaria, bronchospasm) or exfoliative dermatitis (Stevens-Johnson syndrome, toxic epidermal necrolysis)”. Patients should be carefully questioned about their history of antimicrobial allergies to determine whether a true allergy exists before agents are selected: confusion about true allergy leads to alternative therapy with the potential for a lack of efficacy, increased costs and adverse events. Because the predominant organisms after clean procedures are gram-positive, including vancomycin may be appropriate for a patient with a life-threatening allergy to β-lactam antimicrobials.",
+      "allergyNote": "From the guideline's section on allergy to β-lactam antimicrobials. Periop Signal note: this guideline dates from 2013; follow your institution's current protocol.",
+      "mrsa": "Known MRSA colonization: it is reasonable to add a single preoperative dose of vancomycin to the recommended agent.",
+      "evidence": "Evidence is the guideline's own grade for using or not using prophylaxis: A (levels I–III), B (levels IV–VI), C (level VII, expert opinion).",
+      "star": [
+        "* Where pathogens other than staphylococci and streptococci are likely, an additional agent active against them could be considered.",
+        "* in practice: if surveillance shows gram-negative organisms cause surgical-site infections for the procedure, clindamycin or vancomycin may be combined with aztreonam, gentamicin or a single-dose fluoroquinolone in a β-lactam-allergic patient (with cefazolin if not allergic)."
+      ],
+      "classes": "Aminoglycoside means gentamicin or tobramycin. Fluoroquinolone means ciprofloxacin or levofloxacin.",
+      "fluoroquinolone": [
+        "Escherichia coli increasingly resists fluoroquinolones and ampicillin–sulbactam: review local susceptibility before using either.",
+        "Fluoroquinolones are associated with an increased risk of tendonitis and tendon rupture at all ages; the risk is expected to be quite small with single-dose prophylaxis. They may be necessary in some children but are not drugs of first choice in the pediatric population, because of more adverse events than controls in some trials."
+      ],
+      "ampicillinSulbactam": [
+        "Escherichia coli increasingly resists fluoroquinolones and ampicillin–sulbactam: review local susceptibility before using either."
+      ],
+      "timing": "Start within 60 min before incision (120 min for vancomycin or a fluoroquinolone).",
+      "noDose": "Dose not in this app",
+      "none": "No prophylaxis recommended"
+    },
+    "groups": [
+      {
+        "id": "cardiac",
+        "name": "Cardiac",
+        "sections": [
+          "Cardiac"
+        ],
+        "specialties": [
+          "Cardiac"
+        ],
+        "procedures": [
+          {
+            "id": "cabg",
+            "name": "Coronary artery bypass",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Cardiac",
+                  "row": "Coronary artery bypass"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin, cefuroxime",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefuroxime"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "cabg",
+              "opcab",
+              "midcab",
+              "coronary-endarterectomy"
+            ]
+          },
+          {
+            "id": "device",
+            "name": "Cardiac device insertion (e.g., pacemaker)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Cardiac",
+                  "row": "Cardiac device insertion (e.g., pacemaker implantation)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin, cefuroxime",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefuroxime"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin, vancomycin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "ppm",
+              "icd",
+              "crt"
+            ]
+          },
+          {
+            "id": "vad",
+            "name": "Ventricular assist device",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Cardiac",
+                  "row": "Ventricular assist devices"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin, cefuroxime",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefuroxime"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin, vancomycin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "lvad",
+              "rvad",
+              "bivad"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "thoracic",
+        "name": "Thoracic",
+        "sections": [
+          "Thoracic"
+        ],
+        "specialties": [
+          "Thoracic"
+        ],
+        "procedures": [
+          {
+            "id": "open",
+            "name": "Lobectomy, pneumonectomy, lung resection, thoracotomy",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Thoracic",
+                  "row": "Noncardiac procedures, including lobectomy, pneumonectomy, lung resection and thoracotomy"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "open-lobectomy",
+              "pneumonectomy",
+              "sleeve-lobectomy",
+              "bilobectomy",
+              "completion-lobectomy",
+              "open-wedge",
+              "thoracotomy"
+            ]
+          },
+          {
+            "id": "vats",
+            "name": "Video-assisted thoracoscopic surgery",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Thoracic",
+                  "row": "Video-assisted thoracoscopic surgery"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "vats-lobectomy",
+              "wedge",
+              "pleurodesis",
+              "vats-pleural-biopsy",
+              "hemothorax"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vascular",
+        "name": "Vascular",
+        "sections": [
+          "Vascular"
+        ],
+        "specialties": [
+          "Vascular"
+        ],
+        "procedures": [
+          {
+            "id": "vascular",
+            "name": "Vascular procedures",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Vascular",
+                  "row": "Vascular procedures"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Brachiocephalic procedures (e.g., carotid): prophylaxis is not routinely indicated; with a vascular prosthesis or patch it may be of benefit."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true,
+                  "notes": [
+                    "Brachiocephalic procedures (e.g., carotid): prophylaxis is not routinely indicated; with a vascular prosthesis or patch it may be of benefit."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "open-aaa",
+              "juxtarenal-aaa",
+              "taaa",
+              "open-dtaa",
+              "aortobifemoral",
+              "axillobifemoral",
+              "fem-fem",
+              "fem-pop",
+              "fem-distal",
+              "iliofemoral-bypass",
+              "obturator-bypass",
+              "mesenteric-bypass",
+              "femoral-endarterectomy",
+              "popliteal-aneurysm",
+              "open-iliac-aneurysm"
+            ]
+          }
+        ],
+        "note": "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it."
+      },
+      {
+        "id": "gastroduodenal",
+        "name": "Gastroduodenal",
+        "sections": [
+          "Gastroduodenal"
+        ],
+        "specialties": [
+          "Upper GI & bariatric"
+        ],
+        "procedures": [
+          {
+            "id": "entry",
+            "name": "Entry into the lumen of the GI tract (bariatric, pancreaticoduodenectomy)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Gastroduodenal",
+                  "row": "Entry into the lumen of the gastrointestinal tract (bariatric, pancreaticoduodenectomy)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "sleeve",
+              "rygb",
+              "duodenal-switch",
+              "oagb",
+              "bariatric-revision",
+              "whipple",
+              "robotic-whipple",
+              "total-gastrectomy",
+              "partial-gastrectomy",
+              "lap-gastrectomy"
+            ]
+          },
+          {
+            "id": "no-entry",
+            "name": "No entry into the GI tract (antireflux, highly selective vagotomy)",
+            "variants": [
+              {
+                "id": "high",
+                "table": {
+                  "section": "Gastroduodenal",
+                  "row": "No entry into the gastrointestinal tract (antireflux, highly selective vagotomy), high-risk patients"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "label": "High risk"
+              },
+              {
+                "id": "not-high",
+                "label": "Not high risk",
+                "outside": "The guideline's table has no row for this: its recommendation is for high-risk patients. Prophylaxis may not be needed when the lumen of the intestinal tract is not entered."
+              }
+            ],
+            "catalog": [
+              "nissen"
+            ],
+            "question": "Patient at high risk of infection?",
+            "questionInfo": "Highest risk of postoperative gastroduodenal infection: increased gastric pH (e.g., H2-receptor antagonists or proton-pump inhibitors), gastroduodenal perforation, decreased gastric motility, gastric outlet obstruction, gastric bleeding, morbid obesity or cancer."
+          }
+        ],
+        "note": "Consider prophylaxis for patients at highest risk of postoperative gastroduodenal infection: increased gastric pH (e.g., H2-receptor antagonists or proton-pump inhibitors), gastroduodenal perforation, decreased gastric motility, gastric outlet obstruction, gastric bleeding, morbid obesity or cancer. Prophylaxis may not be needed when the lumen of the intestinal tract is not entered. Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract."
+      },
+      {
+        "id": "biliary",
+        "name": "Biliary",
+        "sections": [
+          "Biliary Tract"
+        ],
+        "specialties": [],
+        "procedures": [
+          {
+            "id": "open",
+            "name": "Open procedure",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Biliary Tract",
+                  "row": "Open procedure"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin, cefoxitin, cefotetan, ceftriaxone, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefoxitin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefotetan"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ceftriaxone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "open-chole"
+            ]
+          },
+          {
+            "id": "lap",
+            "name": "Laparoscopic, elective",
+            "variants": [
+              {
+                "id": "low",
+                "table": {
+                  "section": "Biliary Tract",
+                  "row": "Laparoscopic, elective, low risk"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "None",
+                  "kind": "none",
+                  "notes": [
+                    "Several risk factors cannot be known beforehand, so a single dose for every laparoscopic cholecystectomy may be reasonable."
+                  ]
+                },
+                "allergy": {
+                  "text": "None",
+                  "kind": "none",
+                  "notes": [
+                    "Several risk factors cannot be known beforehand, so a single dose for every laparoscopic cholecystectomy may be reasonable."
+                  ]
+                },
+                "label": "Low risk"
+              },
+              {
+                "id": "high",
+                "table": {
+                  "section": "Biliary Tract",
+                  "row": "Laparoscopic, elective, high risk"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin, cefoxitin, cefotetan, ceftriaxone, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefoxitin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefotetan"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ceftriaxone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "label": "High risk"
+              }
+            ],
+            "catalog": [
+              "lap-chole"
+            ],
+            "question": "Risk of infection?",
+            "questionInfo": "High risk: emergency procedure, diabetes, long procedure, intraoperative gallbladder rupture, age over 70, conversion to open, ASA class 3 or greater, colic within 30 days, reintervention within a month for a noninfectious complication, acute cholecystitis, bile spillage, jaundice, pregnancy, nonfunctioning gallbladder, immunosuppression, prosthetic device."
+          }
+        ],
+        "note": "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed, not for noninfected biliary conditions. High risk in laparoscopic cholecystectomy: emergency procedure, diabetes, long procedure, intraoperative gallbladder rupture, age over 70, conversion to open, ASA class 3 or greater, colic within 30 days, reintervention within a month for a noninfectious complication, acute cholecystitis, bile spillage, jaundice, pregnancy, nonfunctioning gallbladder, immunosuppression, prosthetic device. Several of these cannot be known beforehand, so a single dose for every laparoscopic cholecystectomy may be reasonable."
+      },
+      {
+        "id": "lowergi",
+        "name": "Appendix, Small Intestine, Hernia, Colorectal",
+        "short": "Bowel & Hernia",
+        "sections": [
+          "Appendix, Small Intestine, Hernia, Colorectal"
+        ],
+        "specialties": [
+          "Hernia"
+        ],
+        "procedures": [
+          {
+            "id": "appendectomy",
+            "name": "Appendectomy for uncomplicated appendicitis",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Appendix, Small Intestine, Hernia, Colorectal",
+                  "row": "Appendectomy for uncomplicated appendicitis"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefoxitin, cefotetan, cefazolin + metronidazole",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefoxitin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefotetan"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "lap-appy",
+              "open-appy"
+            ]
+          },
+          {
+            "id": "small-intestine",
+            "name": "Small intestine",
+            "variants": [
+              {
+                "id": "nonobstructed",
+                "table": {
+                  "section": "Appendix, Small Intestine, Hernia, Colorectal",
+                  "row": "Small intestine, nonobstructed"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "label": "Nonobstructed"
+              },
+              {
+                "id": "obstructed",
+                "table": {
+                  "section": "Appendix, Small Intestine, Hernia, Colorectal",
+                  "row": "Small intestine, obstructed"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin + metronidazole, cefoxitin, cefotetan",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefoxitin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefotetan"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Metronidazole + aminoglycoside or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "label": "Obstructed"
+              }
+            ],
+            "catalog": [
+              "small-bowel-resection",
+              "lap-sbr"
+            ],
+            "question": "Obstructed?"
+          },
+          {
+            "id": "hernia",
+            "name": "Hernia repair (hernioplasty and herniorrhaphy)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Appendix, Small Intestine, Hernia, Colorectal",
+                  "row": "Hernia repair (hernioplasty and herniorrhaphy)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin, vancomycin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "inguinal-hernia-open",
+              "inguinal-hernia-lap",
+              "inguinal-hernia-tep",
+              "femoral-hernia",
+              "umbilical-hernia",
+              "ventral-hernia-open",
+              "ventral-hernia-lap",
+              "ventral-hernia-etep",
+              "spigelian-hernia",
+              "lap-umbilical-hernia",
+              "obturator-hernia"
+            ]
+          },
+          {
+            "id": "colorectal",
+            "name": "Colorectal",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Appendix, Small Intestine, Hernia, Colorectal",
+                  "row": "Colorectal"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin + metronidazole, cefoxitin, cefotetan, ampicillin–sulbactam, ceftriaxone + metronidazole, ertapenem",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefoxitin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefotetan"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ceftriaxone"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ertapenem"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "For most patients, also give a mechanical bowel preparation with oral neomycin plus oral erythromycin base or oral metronidazole."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "For most patients, also give a mechanical bowel preparation with oral neomycin plus oral erythromycin base or oral metronidazole."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "open-colectomy",
+              "open-right-hemi",
+              "open-left-hemi",
+              "open-sigmoid",
+              "lap-colectomy",
+              "lap-right-hemi",
+              "lap-left-hemi",
+              "lap-sigmoid",
+              "hartmann",
+              "hartmann-reversal",
+              "open-lar",
+              "lap-lar",
+              "apr",
+              "lap-apr",
+              "total-colectomy",
+              "proctocolectomy",
+              "transverse-colectomy",
+              "lap-total-colectomy",
+              "lap-proctocolectomy",
+              "tatme",
+              "lap-cecectomy",
+              "colonic-volvulus"
+            ]
+          }
+        ],
+        "note": "Colorectal: for most patients, give a mechanical bowel preparation with oral neomycin plus oral erythromycin base or oral metronidazole in addition to the intravenous dose. Where gram-negative isolates increasingly resist first- and second-generation cephalosporins, a single dose of ceftriaxone plus metronidazole may be preferred over routine carbapenems."
+      },
+      {
+        "id": "headneck",
+        "name": "Head and Neck",
+        "short": "Head & Neck",
+        "sections": [
+          "Head and Neck"
+        ],
+        "specialties": [
+          "ENT & head and neck"
+        ],
+        "procedures": [
+          {
+            "id": "clean",
+            "name": "Clean",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Head and Neck",
+                  "row": "Clean"
+                },
+                "evidence": "B",
+                "recommended": {
+                  "text": "None",
+                  "kind": "none"
+                },
+                "allergy": {
+                  "text": "None",
+                  "kind": "none"
+                }
+              }
+            ]
+          },
+          {
+            "id": "prosthesis",
+            "name": "Clean with placement of prosthesis (excludes tympanostomy tubes)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Head and Neck",
+                  "row": "Clean with placement of prosthesis (excludes tympanostomy tubes)"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin, cefuroxime",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefuroxime"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ]
+          },
+          {
+            "id": "cancer",
+            "name": "Clean-contaminated cancer surgery",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Head and Neck",
+                  "row": "Clean-contaminated cancer surgery"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin + metronidazole, cefuroxime + metronidazole, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefuroxime"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ]
+          },
+          {
+            "id": "other-cc",
+            "name": "Other clean-contaminated (not tonsillectomy or functional endoscopic sinus procedures)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Head and Neck",
+                  "row": "Other clean-contaminated procedures, except tonsillectomy and functional endoscopic sinus procedures"
+                },
+                "evidence": "B",
+                "recommended": {
+                  "text": "Cefazolin + metronidazole, cefuroxime + metronidazole, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefuroxime"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "neurosurgery",
+        "name": "Neurosurgery",
+        "sections": [
+          "Neurosurgery"
+        ],
+        "specialties": [
+          "Neurosurgery"
+        ],
+        "procedures": [
+          {
+            "id": "craniotomy",
+            "name": "Elective craniotomy and CSF-shunting procedures",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Neurosurgery",
+                  "row": "Elective craniotomy and cerebrospinal fluid-shunting procedures"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "craniotomy-tumor",
+              "awake-craniotomy",
+              "aneurysm-clipping",
+              "suboccipital",
+              "mvd",
+              "acoustic-neuroma",
+              "cavernoma",
+              "intraventricular-tumor",
+              "epilepsy-surgery",
+              "vp-shunt"
+            ]
+          },
+          {
+            "id": "pump",
+            "name": "Implantation of intrathecal pumps",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Neurosurgery",
+                  "row": "Implantation of intrathecal pumps"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "obgyn",
+        "name": "Obstetric and Gynecologic",
+        "short": "OB/GYN",
+        "sections": [
+          "Obstetric and Gynecologic"
+        ],
+        "specialties": [
+          "Gynecology & obstetrics"
+        ],
+        "procedures": [
+          {
+            "id": "cesarean",
+            "name": "Cesarean delivery",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Obstetric and Gynecologic",
+                  "row": "Cesarean delivery"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin + aminoglycoside",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "cesarean",
+              "emergency-cesarean"
+            ]
+          },
+          {
+            "id": "hysterectomy",
+            "name": "Hysterectomy (vaginal or abdominal)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Obstetric and Gynecologic",
+                  "row": "Hysterectomy (vaginal or abdominal)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin, cefotetan, cefoxitin, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefotetan"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefoxitin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "tah",
+              "tvh",
+              "radical-hysterectomy"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "orthopedic",
+        "name": "Orthopedic",
+        "sections": [
+          "Orthopedic"
+        ],
+        "specialties": [
+          "Orthopedics",
+          "Spine"
+        ],
+        "procedures": [
+          {
+            "id": "clean",
+            "name": "Clean hand, knee or foot operation, no implanted foreign material",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Orthopedic",
+                  "row": "Clean operations on the hand, knee or foot without implantation of foreign material"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "None",
+                  "kind": "none"
+                },
+                "allergy": {
+                  "text": "None",
+                  "kind": "none"
+                }
+              }
+            ],
+            "catalog": [
+              "carpal-tunnel",
+              "trigger-finger",
+              "dupuytren",
+              "knee-arthroscopy"
+            ]
+          },
+          {
+            "id": "spine",
+            "name": "Spinal procedures, with or without instrumentation",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Orthopedic",
+                  "row": "Spinal procedures with and without instrumentation"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "acdf",
+              "multilevel-acdf",
+              "cervical-disc-arthroplasty",
+              "cervical-corpectomy",
+              "posterior-cervical-fusion",
+              "laminoplasty",
+              "cervical-foraminotomy",
+              "thoracic-laminectomy",
+              "microdiscectomy",
+              "lumbar-laminectomy",
+              "posterior-lumbar-fusion",
+              "tlif",
+              "plif",
+              "xlif",
+              "alif",
+              "circumferential-fusion",
+              "deformity",
+              "revision-lumbar-fusion",
+              "lumbar-disc-arthroplasty",
+              "thoracolumbar-fracture"
+            ]
+          },
+          {
+            "id": "hip-fracture",
+            "name": "Hip fracture repair",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Orthopedic",
+                  "row": "Hip fracture repair"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "hip-fracture-fixation",
+              "hip-hemi",
+              "femoral-neck-orif"
+            ]
+          },
+          {
+            "id": "fixation",
+            "name": "Internal fixation devices (nails, screws, plates, wires)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Orthopedic",
+                  "row": "Implantation of internal fixation devices (e.g., nails, screws, plates, wires)"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "femoral-nail",
+              "distal-femur-orif",
+              "patella-orif",
+              "tibial-plateau-orif",
+              "tibial-nail",
+              "pilon-orif",
+              "ankle-orif",
+              "calcaneus-orif",
+              "lisfranc-orif",
+              "pelvic-orif",
+              "acetabular-orif",
+              "clavicle-orif",
+              "proximal-humerus-orif",
+              "humeral-shaft-orif",
+              "distal-humerus-orif",
+              "olecranon-orif",
+              "forearm-orif",
+              "distal-radius-orif",
+              "scaphoid",
+              "hand-fracture",
+              "talus-orif",
+              "scapula-orif"
+            ]
+          },
+          {
+            "id": "joint",
+            "name": "Total joint replacement",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Orthopedic",
+                  "row": "Total joint replacement"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "tka",
+              "tha",
+              "revision-tka",
+              "revision-tha",
+              "tsa",
+              "rtsa"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "urologic",
+        "name": "Urologic",
+        "sections": [
+          "Urologic"
+        ],
+        "specialties": [
+          "Urology"
+        ],
+        "procedures": [
+          {
+            "id": "lower-tract",
+            "name": "Lower tract instrumentation (includes transrectal prostate biopsy)",
+            "variants": [
+              {
+                "id": "risk",
+                "table": {
+                  "section": "Urologic",
+                  "row": "Lower tract instrumentation with risk factors for infection (includes transrectal prostate biopsy)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Fluoroquinolone, trimethoprim–sulfamethoxazole, cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "tmp-smx"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Aminoglycoside with or without clindamycin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "class:aminoglycoside"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "clindamycin"
+                          ],
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "label": "Risk factors"
+              },
+              {
+                "id": "no-risk",
+                "label": "No risk factors",
+                "outside": "The guideline's table has no row for this: its recommendation is for lower tract instrumentation with risk factors for infection."
+              }
+            ],
+            "catalog": [
+              "cystoscopy",
+              "turbt",
+              "turp",
+              "holep",
+              "cystolitholapaxy"
+            ],
+            "question": "Risk factors for infection?"
+          },
+          {
+            "id": "clean-no-entry",
+            "name": "Clean, without entry into the urinary tract",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Urologic",
+                  "row": "Clean without entry into the urinary tract"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin (the addition of a single dose of an aminoglycoside may be recommended for placement of prosthetic material, e.g., penile prosthesis)",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside"
+                          ],
+                          "optional": true,
+                          "why": "for placement of prosthetic material, e.g., penile prosthesis"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ]
+          },
+          {
+            "id": "prosthesis",
+            "name": "Involving implanted prosthesis",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Urologic",
+                  "row": "Involving implanted prosthesis"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin ± aminoglycoside, cefazolin ± aztreonam, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam"
+                          ],
+                          "optional": true
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin ± aminoglycoside or aztreonam, vancomycin ± aminoglycoside or aztreonam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam"
+                          ],
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "penile-prosthesis",
+              "aus"
+            ]
+          },
+          {
+            "id": "clean-entry",
+            "name": "Clean, with entry into the urinary tract",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Urologic",
+                  "row": "Clean with entry into the urinary tract"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin (the addition of a single dose of an aminoglycoside may be recommended for placement of prosthetic material, e.g., penile prosthesis)",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside"
+                          ],
+                          "optional": true,
+                          "why": "for placement of prosthetic material, e.g., penile prosthesis"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Fluoroquinolone, aminoglycoside with or without clindamycin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "class:aminoglycoside"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "clindamycin"
+                          ],
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "clean-contaminated",
+            "name": "Clean-contaminated",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Urologic",
+                  "row": "Clean-contaminated"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin + metronidazole, cefoxitin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefoxitin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Fluoroquinolone, aminoglycoside + metronidazole or clindamycin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "class:aminoglycoside"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole",
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "transplant",
+        "name": "Transplantation",
+        "short": "Transplant",
+        "sections": [
+          "Transplantation"
+        ],
+        "specialties": [
+          "Transplant"
+        ],
+        "procedures": [
+          {
+            "id": "heart",
+            "name": "Heart",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Transplantation",
+                  "row": "Heart"
+                },
+                "evidence": "A (based on cardiac procedures)",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "heart-transplant",
+              "heart-retransplant"
+            ]
+          },
+          {
+            "id": "lung",
+            "name": "Lung and heart–lung",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Transplantation",
+                  "row": "Lung and heart–lung"
+                },
+                "evidence": "A (based on cardiac procedures)",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
+              "bilateral-lung-transplant",
+              "single-lung-transplant",
+              "heart-lung-transplant"
+            ]
+          },
+          {
+            "id": "liver",
+            "name": "Liver",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Transplantation",
+                  "row": "Liver"
+                },
+                "evidence": "B",
+                "recommended": {
+                  "text": "Piperacillin–tazobactam, cefotaxime + ampicillin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "piperacillin-tazobactam"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefotaxime"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "ampicillin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "liver-transplant"
+            ]
+          },
+          {
+            "id": "pancreas",
+            "name": "Pancreas and pancreas–kidney",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Transplantation",
+                  "row": "Pancreas and pancreas–kidney"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin, fluconazole (for patients at high risk of fungal infection, e.g., those with enteric drainage of the pancreas)",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Fluconazole is for patients at high risk of fungal infection, e.g., those with enteric drainage of the pancreas."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "pancreas-transplant"
+            ]
+          },
+          {
+            "id": "kidney",
+            "name": "Kidney",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Transplantation",
+                  "row": "Kidney"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Aminoglycosides with other nephrotoxic drugs may cause renal dysfunction: avoid unless alternatives are contraindicated."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "kidney-transplant",
+              "robotic-kidney-transplant"
+            ]
+          }
+        ],
+        "note": "These recommendations prevent surgical-site infection; they do not cover prevention of opportunistic infection in immunosuppressed patients (e.g., antifungal or antiviral medications). Heart, lung and pancreas rows: patients with a left ventricular assist device as a bridge who are chronically infected might also benefit from coverage of the infecting microorganism. Lung and heart–lung: the regimen may need to be modified to cover potential pathogens isolated from the donor lung or the recipient before transplantation, including gram-negative (e.g., Pseudomonas aeruginosa) or fungal organisms; with negative pretransplantation cultures, give prophylaxis as for other cardiothoracic surgery; for cystic fibrosis, 7–14 days of treatment selected by pretransplantation culture and susceptibility results, which may include additional antibacterial or antifungal agents. Liver: the regimen may need to be modified to cover potential pathogens isolated from the recipient before transplantation, including vancomycin-resistant enterococci. Kidney: this row has no procedure name in the published table and is identified from the guideline's kidney transplantation recommendations, which name gentamicin, aztreonam or a fluoroquinolone with clindamycin or vancomycin, limit prophylaxis to 24 hours or less, and say fluconazole adjusted for renal function may be considered for patients at high risk of Candida infection."
+      },
+      {
+        "id": "plastic",
+        "name": "Plastic Surgery",
+        "short": "Plastic",
+        "sections": [
+          "Plastic Surgery and Ophthalmic"
+        ],
+        "specialties": [
+          "Plastics"
+        ],
+        "procedures": [
+          {
+            "id": "plastic",
+            "name": "Plastic surgery",
+            "variants": [
+              {
+                "id": "risk",
+                "table": {
+                  "section": "Plastic Surgery and Ophthalmic",
+                  "row": "Plastic surgery: clean with risk factors, or clean-contaminated"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                },
+                "label": "Clean with risk factors, or clean-contaminated"
+              },
+              {
+                "id": "clean",
+                "label": "Clean, no risk factors",
+                "outside": "The guideline's table has no row for this: its recommendation is for clean procedures with risk factors and for clean-contaminated procedures."
+              }
+            ],
+            "question": "Wound class?"
+          }
+        ]
+      },
+      {
+        "id": "ophthalmic",
+        "name": "Ophthalmic",
+        "sections": [
+          "Plastic Surgery and Ophthalmic"
+        ],
+        "specialties": [
+          "Ophthalmology"
+        ],
+        "procedures": [
+          {
+            "id": "ophthalmic",
+            "name": "Ophthalmic",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Plastic Surgery and Ophthalmic",
+                  "row": "Ophthalmic"
+                },
+                "evidence": "B",
+                "recommended": {
+                  "text": "Topical neomycin–polymyxin B–gramicidin, or a fourth-generation topical fluoroquinolone (gatifloxacin or moxifloxacin), 1 drop every 5–15 min for 5 doses. Optional at the end of the procedure: cefazolin 100 mg subconjunctival, or intracameral cefazolin 1–2.5 mg or cefuroxime 1 mg",
+                  "kind": "text"
+                },
+                "allergy": {
+                  "text": "None",
+                  "kind": "none"
+                }
+              }
+            ],
+            "catalog": [
+              "cataract",
+              "vitrectomy",
+              "scleral-buckle",
+              "glaucoma-surgery",
+              "keratoplasty",
+              "phaco-vitrectomy",
+              "secondary-iol"
+            ]
+          }
+        ],
+        "note": "Ophthalmic: the need to continue topical antimicrobials after the procedure has not been established."
       }
     ]
   }
