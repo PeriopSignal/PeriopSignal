@@ -25,6 +25,9 @@ enum RefRoute: Hashable {
     case tee
     case mcs
     case caseTimers
+    /// 1.12 (Ben, Nov 16): the surgical antibiotic prophylaxis calculator (SurgicalProphylaxisView); the quick reference it grew from
+    /// stays reachable as `.quickref("ashp-surgical-prophylaxis")` ("Full guideline table", the feed, Ask and links).
+    case prophylaxis
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -53,6 +56,7 @@ enum RefRoute: Hashable {
         case .tee: return "tee"
         case .mcs: return "mcs"
         case .caseTimers: return "case-timers"
+        case .prophylaxis: return "prophylaxis"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -82,6 +86,7 @@ enum RefRoute: Hashable {
         case "tee": self = .tee
         case "mcs": self = .mcs
         case "case-timers": self = .caseTimers
+        case "prophylaxis": self = .prophylaxis
         case "folder" where parts.count == 2:
             // General Anesthesia joined Preoperative ("Preoperative & General"); old favorites and links land there.
             if parts[1] == "generalAnesthesia" { self = .folder(.preoperative); return }
@@ -89,6 +94,17 @@ enum RefRoute: Hashable {
             self = .folder(f)
         default: return nil
         }
+    }
+}
+
+extension RefRoute {
+    /// The route the Reference tab's lists show for this one: a favorite saved as "quickref:ashp-surgical-prophylaxis" is the calculator,
+    /// and the calculator is the quick reference while the bundle lacks the section. Opening the quick reference itself (the feed, Ask,
+    /// a link, "Full guideline table") still opens the table.
+    var listed: RefRoute {
+        if case .quickref(let id) = self, id == IntraopAntibiotic.referenceID, ProphylaxisGate.available { return .prophylaxis }
+        if self == .prophylaxis, !ProphylaxisGate.available { return .quickref(IntraopAntibiotic.referenceID) }
+        return self
     }
 }
 
@@ -146,7 +162,8 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .score("apfel"), icon: "list.number", title: "APFEL PONV Score", blurb: "Adult risk of nausea and vomiting after surgery"),
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
             // 1.12 (Ben, Nov 12: "Reference tab"): the prophylaxis card is listed here, not only found by search or from Case Timers.
-            RefItem(route: .quickref("ashp-surgical-prophylaxis"), icon: "shield.lefthalf.filled", title: "Surgical Antibiotic Prophylaxis", blurb: "Recommended and β-lactam allergy agents by surgery"),
+            // Nov 16: it is a calculator (surgery and allergy in, agent, dose and redose out); a bundle without the section lists the card.
+            RefItem.prophylaxis,
             RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "APFEL score, how many agents, rescue"),
             RefItem(route: .abg, icon: "testtube.2", title: "ABG Interpretation", blurb: "Primary disorder, compensation, mixed disorders"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
@@ -214,7 +231,14 @@ struct RefItem: Hashable, Identifiable {
     var id: RefRoute { route }
 
     static var all: [RefItem] { RefFolder.allCases.flatMap(\.items) }
-    static func item(for route: RefRoute) -> RefItem? { all.first { $0.route == route } }
+    static func item(for route: RefRoute) -> RefItem? { all.first { $0.route == route.listed } }
+
+    /// The Surgical Antibiotic Prophylaxis item: the calculator, or (while the bundle has no "prophylaxis" section) the quick reference.
+    static var prophylaxis: RefItem {
+        ProphylaxisGate.available
+            ? RefItem(route: .prophylaxis, icon: "shield.lefthalf.filled", title: "Surgical Antibiotic Prophylaxis", blurb: "Surgery and allergy in, agent, dose and redose out")
+            : RefItem(route: .quickref(IntraopAntibiotic.referenceID), icon: "shield.lefthalf.filled", title: "Surgical Antibiotic Prophylaxis", blurb: "Recommended and β-lactam allergy agents by surgery")
+    }
     static func item(forKey key: String) -> RefItem? { RefRoute(key: key).flatMap { item(for: $0) } }
     /// The folder a tool lives in.
     static func folder(of route: RefRoute) -> RefFolder? { RefFolder.allCases.first { $0.items.contains { $0.route == route } } }
@@ -557,6 +581,7 @@ struct ReferenceSearchResults: View {
         case .tee: return ["cardiothoracic", "cardiac", "tee", "transesophageal", "echo", "views", "probe", "midesophageal", "transgastric", "pre-bypass", "post-bypass", "cpb", "rwma", "sam", "paravalvular", "dvi", "cabg", "mitral repair", "avr"]
         case .mcs: return ["cardiothoracic", "cardiac", "mcs", "mechanical support", "lvad", "heartmate", "vad", "impella", "ecmo", "ecls", "va ecmo", "vv ecmo", "iabp", "balloon pump", "protekduo", "rvad", "purge", "suction event", "pulsatility"]
         case .caseTimers: return ["timer", "case timer", "redose", "antibiotic", "cefazolin", "heparin", "act", "protamine", "bypass", "cpb", "glucose", "abg", "reminder"]
+        case .prophylaxis: return ["antibiotic", "antibiotics", "prophylaxis", "surgical prophylaxis", "ssi", "surgical site infection", "cefazolin", "redose", "allergy", "beta-lactam", "mrsa", "vancomycin", "ashp"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -564,6 +589,10 @@ struct ReferenceSearchResults: View {
     private func matches(_ item: RefItem) -> Bool {
         switch item.route {
         case .quickref, .folder: return false          // quick references have their own list
+        case .prophylaxis:
+            // Found by the words the quick reference was found by (its keywords and its text), now that the calculator stands for it.
+            let card = refs.quickref(refs.prophylaxis?.quickref ?? IntraopAntibiotic.referenceID)
+            return wordsMatch(item.route) || (card?.searchText.contains(q) ?? false)
         case .score(let id): return Scores.byID(id)?.searchText.contains(q) ?? false
         case .peds:
             guard let p = refs.peds else { return false }
@@ -586,7 +615,10 @@ struct ReferenceSearchResults: View {
     }
 
     private var tools: [RefItem] { RefItem.all.filter(matches) }
-    private var quickrefs: [QuickRef] { refs.quickrefs.filter { $0.searchText.contains(q) } }
+    /// The prophylaxis quick reference is not listed on its own while the calculator stands for it.
+    private var quickrefs: [QuickRef] {
+        refs.quickrefs.filter { !(ProphylaxisGate.available && $0.id == IntraopAntibiotic.referenceID) && $0.searchText.contains(q) }
+    }
     private var papers: [Post] {
         store.posts.filter { $0.searchText.contains(q) }
     }
@@ -690,6 +722,8 @@ struct RefDestination: View {
     /// The Reference tab's path, for folders; nil elsewhere.
     var path: Binding<NavigationPath>?
     var handoff: PatientHandoff
+    /// Opened from My Patient's stack: the calculators that can work on the case (the prophylaxis one) are bound to it.
+    var caseBound = false
 
     var body: some View {
                 switch route {
@@ -746,6 +780,14 @@ struct RefDestination: View {
                     McsView(onOpen: { openURL($0) })
                 case .caseTimers:
                     CaseTimersView(inSheet: false)
+                case .prophylaxis:
+                    if refs.prophylaxis != nil {
+                        SurgicalProphylaxisView(caseBound: caseBound, onOpen: { openURL($0) })
+                    } else if let ref = refs.quickref(IntraopAntibiotic.referenceID) {
+                        QuickRefView(ref: ref, onOpen: { openURL($0) })
+                    } else {
+                        ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
+                    }
                 case .folder(let f):
                     if let path { FolderView(folder: f, path: path) }
                 }

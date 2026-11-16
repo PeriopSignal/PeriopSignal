@@ -103,12 +103,14 @@ final class AbxReference112Tests: XCTestCase {
     }
 
     /// Ben asked for the card in the Reference tab: it is listed in the Preoperative & General folder (a card only search finds
-    /// is not "in the tab"), and it opens the card the bundle carries.
+    /// is not "in the tab"). Nov 16: the item is the calculator (route key "prophylaxis"), whose "Full guideline table" opens the card.
     func testTheCardIsListedInTheReferenceTab() throws {
+        ProphylaxisGate.available = true
         let keys = RefFolder.preoperative.items.map(\.route.key)
-        XCTAssertTrue(keys.contains("quickref:ashp-surgical-prophylaxis"), "\(keys)")
+        XCTAssertTrue(keys.contains("prophylaxis"), "\(keys)")
+        XCTAssertFalse(keys.contains("quickref:ashp-surgical-prophylaxis"), "the card itself is no longer listed on its own")
         XCTAssertEqual(Set(keys).count, keys.count, "no tool is listed twice")
-        let item = try XCTUnwrap(RefFolder.preoperative.items.first { $0.route.key == "quickref:ashp-surgical-prophylaxis" })
+        let item = try XCTUnwrap(RefFolder.preoperative.items.first { $0.route.key == "prophylaxis" })
         XCTAssertEqual(item.title, "Surgical Antibiotic Prophylaxis")
     }
 }

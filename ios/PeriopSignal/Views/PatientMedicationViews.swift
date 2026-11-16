@@ -743,7 +743,7 @@ struct IntraopMedicationsPage: View {
                     Hairline().padding(.leading, 14)
                     Button {
                         Haptics.light()
-                        openRoute("quickref:" + IntraopAntibiotic.referenceID)
+                        openRoute(ProphylaxisGate.linkRoute(hasCalculator: refs.prophylaxis != nil))
                     } label: {
                         ReferenceLinkLabel(title: IntraopAntibiotic.referenceLink).padding(.horizontal, 14).padding(.vertical, 10)
                     }
