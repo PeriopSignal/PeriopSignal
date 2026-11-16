@@ -1,7 +1,74 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-13T09:09:05+00:00",
+ "generatedAt": "2026-11-16T09:10:50+00:00",
  "posts": [
+  {
+   "id": "fda-2026-intersurgical-smoothbore-breathing-tube-connector-early-alert",
+   "date": "2026-11-10",
+   "dateApprox": false,
+   "addedAt": "2026-11-15",
+   "journal": "FDA",
+   "jshort": "FDA",
+   "kind": "Safety alert",
+   "topics": [
+    "criticalCare",
+    "general"
+   ],
+   "headline": "FDA early alert: Intersurgical 22 mm Smoothbore breathing systems can detach at the connector; listed lots being removed",
+   "summary": "Intersurgical is removing specific lots of 22 mm Smoothbore tubes and heated-wire, exhalation-valve and bilevel breathing systems because some soft end connectors were bonded with too little solvent and can come off during ventilation. FDA posted the early alert on November 10.",
+   "takeHome": [
+    "Some products were made with too little tetrahydrofuran solvent, so the soft connectors may not be securely bonded to the Smoothbore tube",
+    "A detached connector can interrupt ventilation, causing desaturation until ventilation is restarted manually, with possible hypoxic organ injury or death",
+    "Immediately stop using and quarantine the affected product and lot numbers, return them, and share the notice with all users"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** A circuit that comes apart at a connector is a sudden, complete loss of ventilation, and in a sedated or paralysed patient the first sign is often the saturation falling. These are humidified, heated-wire, exhalation-valve and bilevel systems, the kind used on ICU ventilators, noninvasive support and transport.\n\n**What happened.** After reports from markets outside the US of connectors disconnecting, Intersurgical tested its internal stock and found some products had been made with too little tetrahydrofuran (THF) solvent to bond the soft connectors to the Smoothbore tube. The company wrote to customers on November 3, and FDA posted an early alert on November 10. Intersurgical reported no serious injuries or deaths as of November 3.\n\n**What is affected.**\n- Eleven product references, including the 5018000 Smoothbore tube, 5025000/5025310/5026000 heated-wire systems, 5183000/5191000/5191850/5194850 exhalation-valve systems and 5804000/5805000/5805030 bilevel systems.\n- Only specific lot numbers listed on the FDA page are affected; the 5805030 bilevel system with Clear-Guard Midi filter accounts for 18 of them.\n\n**What users are told.** Stop using and quarantine the listed lots immediately, return them to Intersurgical, pass the notice to everyone in the facility who uses these products, and contact any customers you distributed them to.\n\n**For us.** Ask respiratory therapy and supply chain whether these references are stocked, including in the ICU, step-down units and transport. With any circuit, a sudden loss of tidal volume, a low-pressure alarm or falling end-tidal CO2 should prompt a fast hands-on check of every connection, and a self-inflating bag should be at the bedside to take over while you look.",
+   "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/early-alert-intersurgical-inc-removes-22mm-smoothbore-breathing-tubes-and-systems",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "",
+   "quiz": {
+    "question": "According to the November 2026 FDA early alert, why can Intersurgical 22 mm Smoothbore breathing systems detach during use?",
+    "options": [
+     "Too little tetrahydrofuran solvent was used to bond the soft connectors to the tube",
+     "The heated wire overheats and melts the tube where it meets the connector",
+     "A hydrophilic coating inside the tube swells and pushes the connector off",
+     "The exhalation valve sticks open and the pressure pushes the connector off"
+    ],
+    "answer": 0,
+    "explanation": "Intersurgical found some products were made with too little THF solvent to bond the soft connectors securely; a detached connector can interrupt ventilation and cause desaturation. Swelling coating is the Arrow guidewire problem, not this one. No serious injuries or deaths had been reported as of November 3."
+   }
+  },
+  {
+   "id": "fda-2026-arrow-hydrophilic-guidewire-picc-early-alert",
+   "date": "2026-11-10",
+   "dateApprox": false,
+   "addedAt": "2026-11-15",
+   "journal": "FDA",
+   "jshort": "FDA",
+   "kind": "Safety alert",
+   "topics": [
+    "criticalCare",
+    "general"
+   ],
+   "headline": "FDA early alert: coating on Arrow hydrophilic guidewires and PICC kit wires can detach and embolize; products removed",
+   "summary": "Teleflex's Arrow International is removing products containing hydrophilic-coated spring wire guides, including Arrow marked hydrophilic guidewires, several pressure-injectable PICC and JACC kits and the VPS Precision Stylet, because the coating may clump and detach when wetted with saline. FDA posted the early alert on November 10.",
+   "takeHome": [
+    "The hydrophilic coating on the spring wire guide may swell unevenly when hydrated with saline, clump and potentially detach",
+    "Detached coating could release particles into the bloodstream, with risks including emboli, thrombosis, ischemia, stroke, further intervention and death",
+    "Check inventory, stop using and quarantine affected products, and return them; Arrow reported no serious injuries or deaths as of November 5"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** Guidewires go into central veins every day, and particulate embolism from a coating is invisible at the time of insertion. This removal covers wires that may sit in line carts and PICC kits used by vascular access teams, ICUs and anesthesia.\n\n**What happened.** Teleflex, Arrow's parent company, confirmed that the hydrophilic coating on the spring wire guide components may swell unevenly when hydrated with saline, which can make it clump and potentially detach. Arrow sent its customer letter on November 5 and FDA posted an early alert on November 10. Arrow reported no serious injuries or deaths as of November 5.\n\n**What is affected.**\n- Arrow Marked Hydrophilic-Coated Guidewires, nitinol and stainless steel.\n- Pressure-injectable Arrowg+ard Blue Advance PICCs and JACCs (one to three lumens) with 80 cm or 130 cm hydrophilic-coated nitinol wires, and PICC kits preloaded with the Arrow VPS Precision Stylet.\n- The VPS Precision Stylet itself, and pressure-injectable one- to three-lumen PICCs with or without the 80 or 130 cm wire.\n- The full device list is linked from the FDA page; the alert does not name standard central venous or arterial catheter kits.\n\n**What users are told.** Check inventory now, stop using and distributing affected products, quarantine and return them through Teleflex, and pass the notice to any customers who received them.\n\n**For us.** Ask whoever stocks your line carts and PICC service which Arrow wires and kits you carry and check them against the full list. Until stock is cleared, a plain stainless wire from an unaffected kit is a simple substitute for routine central access.",
+   "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/early-alert-arrow-international-removes-products-containing-spring-wire-guide-components",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": ""
+  },
   {
    "id": "bmj-2026-acei-arb-morning-hold-hypotension-older-noncardiac",
    "date": "2026-11-11",
@@ -4708,8 +4775,11 @@
     "Reordering moved 67% of recipients down the list and put sicker candidates first without longer donor travel"
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract",
+   "authorLimitations": [
+    "Match-run analysis cannot quantify effects on posttransplant survival of directing donor hearts to sicker candidates; a full simulation study is needed",
+    "A full simulation of a US-CRS-based policy with fair access for durable-LVAD and blood-type O candidates must precede implementation"
+   ],
+   "authorBasis": "full text",
    "citation": {
     "title": "Development and Validation of an Adult Medical Urgency Score for US Donor Heart Allocation",
     "authors": [

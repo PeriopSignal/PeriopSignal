@@ -6,7 +6,6 @@ jama-2025-bicaricu-2 | PMC12573113 | embargoed
 anaesthesia-2026-sterile-gowns-single-shot-spinal-consensus | PMC13446829 | embargoed
 jama-2025-top-transfusion-high-cardiac-risk | PMC12596742 | embargoed
 jcva-2025-cabg-delirium-nis-trends | PMC12683655 | embargoed
-jama-2026-us-crs-heart-allocation-score | PMC13659629 | embargoed
 jama-2026-dapagliflozin-cardiac-surgery-aki | PMC13425237 | embargoed
 nejm-2026-prompt-bolus-balanced-vs-saline-children | PMC13134814 | embargoed
 bja-2025-lidocaine-vs-remifentanil-vats-lung-resection | PMC12597338 | embargoed
@@ -34,3 +33,4 @@ anesthesiology-2026-optipam-individualized-map-cardiac-surgery | 42993977 | PMID
 bmj-2026-lma-vs-ett-pediatric-adenotonsillectomy | 42982504 | PMID; no PMC copy yet
 lancet-2026-dapt-shock-ami-cangrelor-vs-crushed-ticagrelor | 42998670 | PMID; no PMC copy yet
 jama-2026-ischemia-extend-long-term-survival | 42998244 | PMID; no PMC copy yet
+nejm-2026-pepper-aspirin-rivaroxaban-warfarin-arthroplasty | 43013818 | PMID; no PMC copy yet
