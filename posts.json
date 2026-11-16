@@ -39,6 +39,12 @@
     ],
     "answer": 0,
     "explanation": "Intersurgical found some products were made with too little THF solvent to bond the soft connectors securely; a detached connector can interrupt ventilation and cause desaturation. Swelling coating is the Arrow guidewire problem, not this one. No serious injuries or deaths had been reported as of November 3."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-intersurgical-smoothbore-breathing-tube-connector-early-alert.mp3",
+    "seconds": 188,
+    "bytes": 1501484,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -67,7 +73,13 @@
    "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/early-alert-arrow-international-removes-products-containing-spring-wire-guide-components",
    "impact": 1,
    "trialName": "",
-   "firstAuthor": ""
+   "firstAuthor": "",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-arrow-hydrophilic-guidewire-picc-early-alert.mp3",
+    "seconds": 157,
+    "bytes": 1259948,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "bmj-2026-acei-arb-morning-hold-hypotension-older-noncardiac",
