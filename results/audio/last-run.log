@@ -1,5 +1,4 @@
-[0;93m2026-11-16 09:11:55.583006474 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-2 post(s) to synthesize with kokoro:af_heart
-  fda-2026-intersurgical-smoothbore-breathing-tube-connector-early-alert: 188 s, 1466 KB, 74 s to make
-  fda-2026-arrow-hydrophilic-guidewire-picc-early-alert: 157 s, 1230 KB, 61 s to make
-synthesized 2, failed 0, 4518 characters, 2 min
+[0;93m2026-11-17 09:09:47.870986171 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+1 post(s) to synthesize with kokoro:af_heart
+  circulation-2026-ablation-biatrial-vs-left-atrial-maze-rheumatic-mitral: 229 s, 1788 KB, 89 s to make
+synthesized 1, failed 0, 2785 characters, 1 min
