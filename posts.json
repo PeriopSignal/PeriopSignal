@@ -46,6 +46,12 @@
     ],
     "answer": 2,
     "explanation": "Biatrial maze gave 78.7% vs 68.6% freedom from atrial tachyarrhythmias off antiarrhythmic drugs (adjusted difference 10.7%) and met noninferiority for pacemaker-free survival (97.0% vs 98.1%). Caveat: 12-month follow-up in a rheumatic mitral population."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circulation-2026-ablation-biatrial-vs-left-atrial-maze-rheumatic-mitral.mp3",
+    "seconds": 229,
+    "bytes": 1830956,
+    "voice": "kokoro:af_heart"
    }
   },
   {
