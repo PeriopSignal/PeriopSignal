@@ -1,7 +1,53 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-16T09:10:50+00:00",
+ "generatedAt": "2026-11-17T09:08:46+00:00",
  "posts": [
+  {
+   "id": "circulation-2026-ablation-biatrial-vs-left-atrial-maze-rheumatic-mitral",
+   "date": "2026-11-16",
+   "dateApprox": false,
+   "addedAt": "2026-11-17",
+   "journal": "Circulation",
+   "jshort": "Circ",
+   "kind": "RCT",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac"
+   ],
+   "headline": "Biatrial maze beat left atrial maze for AF-free survival at 12 months (78.7% vs 68.6%) in rheumatic mitral surgery",
+   "summary": "The ABLATION trial randomized 323 patients with persistent or long-standing persistent atrial fibrillation having rheumatic mitral valve surgery to a full biatrial Cox-Maze IV lesion set or a left-sided maze, with surgeon certification and central video review of the procedures.",
+   "takeHome": [
+    "Freedom from atrial tachyarrhythmias off antiarrhythmic drugs at 12 months was 78.7% with biatrial versus 68.6% with left atrial maze (adjusted difference 10.7%, P=0.01)",
+    "Freedom from permanent pacemaker implantation was 97.0% versus 98.1%, meeting the prespecified noninferiority margin of -5%",
+    "Biatrial maze was superior for recurrent atrial tachyarrhythmias while keeping pacemaker risk noninferior, giving direct evidence for lesion-set selection"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Guidelines recommend concomitant surgical ablation for atrial fibrillation (AF) during cardiac surgery, but which lesion set to use has stayed unsettled: a complete biatrial Cox-Maze IV adds right atrial lesions, while a left atrial maze is quicker and simpler. This is one of the few randomized comparisons of the two.\n\n**What they did.** In a multicenter, single-blind trial, patients with persistent or long-standing persistent AF undergoing rheumatic mitral valve surgery (with or without other cardiac procedures) were randomized 1:1 to biatrial or left atrial maze ablation. Surgeons were trained and certified before the trial, and all procedures were video-recorded and centrally reviewed. The primary outcome was freedom from atrial tachyarrhythmias lasting more than 30 seconds without antiarrhythmic drugs at 12 months; the key secondary outcome was freedom from permanent pacemaker implantation.\n\n**What they found.** All 323 randomized patients were analysed (mean age 56.5, 72.1% women, mean left atrial diameter 51.9 mm). At 12 months, 129 of 164 (78.7%) in the biatrial group and 109 of 159 (68.6%) in the left atrial group were free of atrial tachyarrhythmias (adjusted difference 10.7%, P=0.01). Pacemaker-free rates were 97.0% and 98.1%, which met the noninferiority margin.\n\n**Caveats.** The population is rheumatic mitral disease, mostly women, in one health system, with a 12-month endpoint, so durability and generalizability to degenerative or ischemic disease are open. The ClinicalTrials.gov registration (NCT05021601) lists the same primary outcome and time point, and per that record it excluded patients with right ventricular dysfunction, moderate-to-severe tricuspid regurgitation or pulmonary artery pressure above 60 mmHg.\n\n**For the anesthesiologist.** Expect more full biatrial lesion sets in AF patients having mitral surgery, which means the usual post-ablation questions: rhythm at separation from bypass, pacing readiness, and the epicardial wire plan. The trial did not show a higher pacemaker rate with the bigger lesion set, which is reassuring for the postoperative course.",
+   "url": "https://doi.org/10.1161/CIRCULATIONAHA.126.083005",
+   "impact": 2,
+   "trialName": "ABLATION",
+   "firstAuthor": "Li",
+   "title": "Biatrial Versus Left Atrial Maze Ablation During Cardiac Valve Surgery for Persistent Atrial Fibrillation: The ABLATION Trial",
+   "glance": {
+    "design": "Multicenter single-blind RCT, 1:1, rheumatic mitral valve surgery",
+    "n": "323 patients with persistent or long-standing persistent AF",
+    "outcome": "Freedom from atrial tachyarrhythmias >30 s off antiarrhythmics at 12 months",
+    "result": "78.7% vs 68.6% biatrial vs left atrial maze; adjusted difference 10.7%, P=0.01"
+   },
+   "quiz": {
+    "question": "In a randomized trial of maze ablation during rheumatic mitral valve surgery for persistent AF, how did biatrial ablation compare with left atrial maze at 12 months?",
+    "options": [
+     "No difference in rhythm outcome, but fewer permanent pacemakers with biatrial ablation",
+     "Left atrial maze gave better rhythm control and was equally safe for pacemaker implantation",
+     "More freedom from atrial tachyarrhythmias off drugs (78.7% vs 68.6%), with pacemaker rates noninferior",
+     "More freedom from atrial tachyarrhythmias (78.7% vs 68.6%), but significantly more permanent pacemakers"
+    ],
+    "answer": 2,
+    "explanation": "Biatrial maze gave 78.7% vs 68.6% freedom from atrial tachyarrhythmias off antiarrhythmic drugs (adjusted difference 10.7%) and met noninferiority for pacemaker-free survival (97.0% vs 98.1%). Caveat: 12-month follow-up in a rheumatic mitral population."
+   }
+  },
   {
    "id": "fda-2026-intersurgical-smoothbore-breathing-tube-connector-early-alert",
    "date": "2026-11-10",
