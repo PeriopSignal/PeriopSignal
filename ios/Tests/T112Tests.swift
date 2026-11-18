@@ -976,7 +976,7 @@ final class T112Tests: XCTestCase {
         XCTAssertEqual(rest, before)
     }
 
-    func testAddingIsOneUndoStep() {
+    @MainActor func testAddingIsOneUndoStep() {
         let store = PatientStore(url: nil)
         let before = store.record
         let q = QuickAdd.read("TTE 6/26 EF 35%, RV nl; LHC LAD 90%", record: before, tab: .preop, now: now)
