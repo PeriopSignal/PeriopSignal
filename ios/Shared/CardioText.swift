@@ -1204,12 +1204,17 @@ enum CardioText {
                             if p.pure { act.parses.append(p) }
                         }
                     }
+                    // "for TEE", "undergoing LHC": the planned procedure, which the procedure reader reads: no cue.
+                    if CardioRx.plannedBefore.first(before) != nil { continue }
                     let nb = CardioRx.notDoneBefore.first(before)
                     let na = CardioRx.notDoneAfter.first(after)
                     if nb != nil || na != nil {
-                        let from = nb.map { prevEnd + $0.range.location } ?? cue.a
-                        let to = cue.b + (na.map { end($0.range) } ?? 0)
-                        ndMasks.append(NSRange(location: from, length: to - from))
+                        // LHC, RHC and TEE are also procedures' names: those words are left to the procedure reader.
+                        if !(cue.study == "lhc" || cue.study == "rhc" || cue.token == "TEE") {
+                            let from = nb.map { prevEnd + $0.range.location } ?? cue.a
+                            let to = cue.b + (na.map { end($0.range) } ?? 0)
+                            ndMasks.append(NSRange(location: from, length: to - from))
+                        }
                         active = nil
                         continue
                     }
@@ -1469,7 +1474,7 @@ enum CardioText {
             CardioRx.fillerWords, CardioRx.gradeBefore, CardioRx.gradeStart, CardioRx.hedgeAfter, CardioRx.leadIn, CardioRx.letterRx, CardioRx.lhcDom,
             CardioRx.lhcOccA, CardioRx.lhcOccB, CardioRx.lhcPctAfter, CardioRx.lhcPctBefore, CardioRx.maskGap, CardioRx.negatedBefore,
             CardioRx.notDoneAfter, CardioRx.notDoneBefore, CardioRx.numbers, CardioRx.ownForm, CardioRx.pairAfter, CardioRx.pairBefore,
-            CardioRx.pendingGap, CardioRx.pftDlco, CardioRx.pftNormalAfter, CardioRx.pftPattern, CardioRx.pftRatio, CardioRx.pftTlc, CardioRx.pftVol,
+            CardioRx.pendingGap, CardioRx.plannedBefore, CardioRx.pftDlco, CardioRx.pftNormalAfter, CardioRx.pftPattern, CardioRx.pftRatio, CardioRx.pftTlc, CardioRx.pftVol,
             CardioRx.punctOnly, CardioRx.qOrCmpBefore, CardioRx.radCalc, CardioRx.radDiam, CardioRx.radHarvest, CardioRx.radUlnar, CardioRx.rhcCo,
             CardioRx.rhcPa, CardioRx.rhcPam, CardioRx.rhcPasp, CardioRx.rhcPcwp, CardioRx.rhcRa, CardioRx.sentBreak, CardioRx.sideCombine,
             CardioRx.sideGap, CardioRx.sideToken, CardioRx.vAfter, CardioRx.vBefore, CardioRx.vNegated, CardioRx.vPulm, CardioRx.vWritten, CardioRx.wordRx,

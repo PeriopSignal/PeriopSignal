@@ -276,7 +276,7 @@ final class T112Tests: XCTestCase {
         ("s/p cath 2019", false),
         ("cath lab", false),
         ("foley cath", false),
-        ("cardiac cath scheduled Friday", true),
+        ("cardiac cath scheduled Friday", false),
         ("PFTs not done", true),
         ("FEV1", false),
         ("CXR ordered", true),
@@ -303,10 +303,10 @@ final class T112Tests: XCTestCase {
         ("refused TTE", true),
         ("unable to get echo", true),
         ("to get TTE", true),
-        ("LHC ordered", true),
-        ("LHC pending", true),
-        ("needs LHC", true),
-        ("RHC scheduled", true),
+        ("LHC ordered", false),
+        ("LHC pending", false),
+        ("needs LHC", false),
+        ("RHC scheduled", false),
         ("PFTs pending", true),
         ("no PFTs", true),
         ("spirometry not done", true),
@@ -377,6 +377,17 @@ final class T112Tests: XCTestCase {
         ("LHC: ", false),
         ("RHC:", false),
         ("echo?", false),
+        ("for TEE", false),
+        ("73M for TEE", false),
+        ("for LHC", false),
+        ("68M for LHC, LAD 90%", false),
+        ("scheduled for TEE", false),
+        ("for cardiac cath, LAD 90%", false),
+        ("for RHC, PCWP 18", false),
+        ("undergoing LHC", false),
+        ("for cardioversion", false),
+        ("for TEE/DCCV", false),
+        ("for TTE, EF 35%", false),
     ]
     private static let noEcho: [(String, Bool)] = [
         ("TTE: EF 3%", false),
@@ -416,7 +427,7 @@ final class T112Tests: XCTestCase {
         ("TTE: no significant change", false),
         ("echo today", false),
         ("echo tomorrow", true),
-        ("TEE tomorrow, severe AS", true),
+        ("TEE tomorrow, severe AS", false),
         ("TTE 13/26", false),
         ("TTE 6/27 EF", false),
         ("EF 35%, mod MR, RV nl", false),
@@ -448,7 +459,7 @@ final class T112Tests: XCTestCase {
         ("LHC: no significant disease", false),
         ("LHC: possible LAD 90%", false),
         ("cath: EF 35%", false),
-        ("cath: scheduled", true),
+        ("cath: scheduled", false),
         ("cath: 2019", false),
         ("cath: normal", false),
         ("cors: normal", false),
@@ -501,7 +512,7 @@ final class T112Tests: XCTestCase {
         ("central cath RA 12", false),
         ("RHC: RA ?", false),
         ("RHC: possible PCWP 18", false),
-        ("RHC tomorrow", true),
+        ("RHC tomorrow", false),
         ("RHC: elevated PCWP", false),
     ]
     private static let noPft: [(String, Bool)] = [
@@ -882,6 +893,10 @@ final class T112Tests: XCTestCase {
         XCTAssertTrue(ids("TTE: EF 25%").contains("cardio:echo:lvef"))
         // A cath result in a word is the cath's, as today.
         XCTAssertTrue(ids("cath: normal coronaries").contains("lhc:result"))
+        // A planned TEE or LHC is the procedure (the procedure catalog names them), not a study that was done: nothing is read, nothing masked.
+        let plan = QuickAdd.read("73M for TEE", record: r, tab: .preop, now: now)
+        XCTAssertEqual(plan.findings.first { $0.id == "procedure" }?.change, .procedure("TEE"))
+        XCTAssertEqual(codes(QuickAdd.read("68M for LHC, LAD 90%", record: r, tab: .preop, now: now)), [])
         // The words of a study that was not done are masked and read nothing.
         let nd = QuickAdd.read("needs TTE", record: r, tab: .preop, now: now)
         XCTAssertTrue(nd.findings.isEmpty)
