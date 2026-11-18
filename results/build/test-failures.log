@@ -1,2 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:2153: error: -[PeriopSignalTests.T112Tests testScenarios] : XCTAssertEqual failed: ("["echo.lvef=55", "echo.study=TTE", "echo.valve.mitral.regurgitation=moderate"]") is not equal to ("["echo.lvef=55", "echo.study=TTE"]") - TTE EF 55%, no MR, mod MR
-Test Case '-[PeriopSignalTests.T112Tests testScenarios]' failed (6.232 seconds).
