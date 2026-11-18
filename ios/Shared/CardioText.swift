@@ -148,6 +148,20 @@ enum CardioText {
         var end = -1
         /// Carotid: "normal" said of the study as a whole (both sides).
         var bare = false
+        /// The name stood alone in its piece ("Echo", "TTE 6/26:"): the lines under it are its findings.
+        var heading = false
+        /// Chest X-ray: the last piece read opened with a denial ("no infiltrate").
+        var denial = false
+
+        /// The findings from the name's own words, the date apart.
+        var extraReal: [CF] { extra.filter { $0.field != "date" } }
+
+        /// The run has read a finding (the date alone is none).
+        var told: Bool {
+            if !extraReal.isEmpty { return true }
+            for q in parses where !q.findings.isEmpty { return true }
+            return false
+        }
 
         init(_ study: String, _ cue: CCue?, weak: Bool = false) {
             self.study = study
@@ -315,7 +329,7 @@ enum CardioText {
             }
             return f
         }
-        func addValve(_ a: Int, _ b: Int, _ valve: String, _ lesion: String, _ words: [String?]) {
+        func addValve(_ a: Int, _ b: Int, _ valve: String, _ lesion: String, _ words: [String?], lower: Bool = false) {
             if doubted(t, a, b) {
                 p.skip(a, b)
                 return
@@ -323,7 +337,7 @@ enum CardioText {
             let g = gradeOf(words)
             if g == "trivial" {
                 if lesion == "regurgitation" {
-                    p.take(a, b, valveFinding(valve, lesion, "trivial", ownForm(sub(t, a, b))))
+                    p.take(a, b, valveFinding(valve, lesion, "trivial", lower || ownForm(sub(t, a, b))))
                 } else {
                     p.known(a, b)
                 }
@@ -333,7 +347,7 @@ enum CardioText {
                 p.skip(a, b)
                 return
             }
-            p.take(a, b, valveFinding(valve, lesion, grade, ownForm(sub(t, a, b))))
+            p.take(a, b, valveFinding(valve, lesion, grade, lower || ownForm(sub(t, a, b))))
         }
         func valveOf(_ letter: Character) -> String {
             if letter == "A" { return "aortic" }
@@ -351,14 +365,17 @@ enum CardioText {
             let a = m.range.location
             let b = end(m.range)
             if overlaps(a, b, p.consumed) { continue }
-            let letters = grp(m, 3, p.work) ?? ""
+            // "mild tr", typed on a phone: behind a grade the letters are the valve's in either case. The history reader reads only
+            // capitals, so the lowercase form is the echo's own.
+            let typed: String = grp(m, 3, p.work) ?? ""
+            let letters: String = typed.uppercased()
             let second = grp(m, 4, p.work)
             if let s = second, !((letters == "AR" || letters == "AI") && (s == "AR" || s == "AI")) {
                 p.skip(a, b)
                 continue
             }
             guard let first = letters.first else { continue }
-            addValve(a, b, valveOf(first), letters.hasSuffix("S") ? "stenosis" : "regurgitation", [grp(m, 1, p.work), grp(m, 2, p.work)])
+            addValve(a, b, valveOf(first), letters.hasSuffix("S") ? "stenosis" : "regurgitation", [grp(m, 1, p.work), grp(m, 2, p.work)], lower: typed != letters)
         }
         for m in CardioRx.vAfter.all(p.work) {
             let a = m.range.location
@@ -442,6 +459,11 @@ enum CardioText {
             for m in rx.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
                 p.known(m.range.location, end(m.range))
             }
+        }
+        // An aortic dimension is understood and not stored; "aorta intact" beside it says two things and is not read.
+        for m in CardioRx.aortaDim.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            p.known(m.range.location, end(m.range))
+            p.poisoned("echo", "aorta")
         }
     }
 
@@ -824,6 +846,8 @@ enum CardioText {
             let s = words.joined(separator: " ")
             if CardioRx.letterRx.first(s) == nil { continue }
             if CardioRx.cxrVocab.first(s) == nil || s.count > 60 || CardioRx.cxrNormal.first(s) != nil || CardioRx.cxrNegStart.first(s) != nil { continue }
+            // Every word of a description must be a radiographic word: a lab, a drug, a date or another test's name and it is not stored.
+            if CardioRx.cxrPure.first(s) == nil { continue }
             if doubted(t, a, b) {
                 p.skip(a, b)
                 continue
@@ -846,21 +870,42 @@ enum CardioText {
     /// A piece that is not wholly understood (a qualifier, a second side, a size with its unit, "clear except ...") is not a
     /// structured result: the whole piece goes to the findings line exactly as typed, when it speaks of the film at all.
     private static func cxrAsTyped(_ p: CParse) {
-        var hasFree = false
         var structured = 0
         var freeCount = 0
         for f in p.findings {
             if f.field == "findings" {
-                hasFree = true
                 freeCount += 1
             } else {
                 structured += 1
             }
         }
-        if p.pure && !hasFree && CardioRx.runVeto.first(p.text) == nil { return }
         let strip = CharacterSet(charactersIn: " -–.?/:")
-        let words: [String] = p.text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
-        let s: String = words.joined(separator: " ").trimmingCharacters(in: strip)
+        // The date's empty brackets are no part of the description ("CXR (6/26): RLL infiltrate").
+        var unbracketed: String = p.text
+        for m in CardioRx.emptyParens.all(p.text).reversed() { unbracketed = blank(unbracketed, m.range.location, end(m.range)) }
+        let words: [String] = unbracketed.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+        var s: String = words.joined(separator: " ").trimmingCharacters(in: strip)
+        // Words before the finding that are not part of it ("shows", "with", "(portable)") are not stored with it.
+        if let lm = CardioRx.cxrLeadin.first(s) {
+            s = sub(s, end(lm.range), (s as NSString).length).trimmingCharacters(in: strip)
+        }
+        if p.pure && CardioRx.runVeto.first(p.text) == nil {
+            // One description told with filler between its parts ("blunting of the right CP angle", "RLL opacity c/w pneumonia")
+            // is one finding, kept as typed.
+            if freeCount > 1 && structured == 0 && s.count <= 60 && CardioRx.cxrPure.first(s) != nil {
+                var a0 = Int.max
+                var b0 = 0
+                for f in p.findings {
+                    a0 = min(a0, f.a)
+                    b0 = max(b0, f.b)
+                }
+                var f = CF(study: "cxr", field: "findings", value: s)
+                f.a = a0
+                f.b = b0
+                p.findings = [f]
+            }
+            return
+        }
         // A plain denial ("no effusion", "without pneumothorax") is understood and stores nothing; the run goes on.
         if structured == 0 && freeCount == 0 && CardioRx.cxrDenial.first(s) != nil && CardioRx.cxrDenialBut.first(s) == nil {
             p.findings = []
@@ -884,8 +929,8 @@ enum CardioText {
         // Another test's result in the piece ("EKG nl", "labs nl"): not the film's. Neither is a purpose, a denial, an exam or
         // a condition ("to rule out pneumonia", "heart failure", "clear on exam").
         if ok && (CardioRx.cxrOther.first(s) != nil || CardioRx.cxrSkip.first(s) != nil) { ok = false }
-        // Only a piece that names a radiographic finding is kept.
-        if ok && CardioRx.cxrVocab.first(s) == nil { ok = false }
+        // Only a piece that names a radiographic finding, in radiographic words alone, is kept.
+        if ok && (CardioRx.cxrVocab.first(s) == nil || CardioRx.cxrPure.first(s) == nil) { ok = false }
         if ok && tail > lead {
             p.take(lead, tail, CF(study: "cxr", field: "findings", value: s))
         } else {
@@ -948,7 +993,7 @@ enum CardioText {
         let m: NSTextCheckingResult
     }
 
-    private static func walkSides(_ p: CParse, _ study: String, _ specs: [(String, NoteRx)], _ handle: (String, NSTextCheckingResult, String) -> (String, String)?) {
+    private static func walkSides(_ p: CParse, _ study: String, _ specs: [(String, NoteRx)], inherit: String? = nil, _ handle: (String, NSTextCheckingResult, String) -> (String, String)?) {
         let t = p.text
         let snapshot = p.work
         var ev: [SideEvent] = []
@@ -969,11 +1014,16 @@ enum CardioText {
             p.rejected = true
             return
         }
-        var cur: (sides: [String], span: NSRange)? = nil
+        var cur: (sides: [String], span: NSRange?)? = nil
         var usedSides: [NSRange] = []
         var lastEnd = -1
         var ctxEnd = -1
         var pending: [(a: Int, b: Int, field: String, value: String)] = []
+        // "R radial 2.6 mm, calcified": a piece that names no side goes on with the one side the study has named so far.
+        if let inh = inherit, sideWords == 0 {
+            cur = (sides: [inh], span: nil)
+            ctxEnd = 0
+        }
         for e in ev {
             let a = e.m.range.location
             let b = end(e.m.range)
@@ -981,9 +1031,9 @@ enum CardioText {
             if e.kind == "side" {
                 var sidesNow = sidesOf(e.m, snapshot)
                 // "R and L 60%": the sides told together.
-                if let c = cur, ctxEnd == end(c.span), CardioRx.sideCombine.first(sub(t, end(c.span), a)) != nil {
+                if let c = cur, let sp = c.span, ctxEnd == end(sp), CardioRx.sideCombine.first(sub(t, end(sp), a)) != nil {
                     sidesNow = ["right", "left"].filter { sidesNow.contains($0) || c.sides.contains($0) }
-                    usedSides.append(c.span)
+                    usedSides.append(sp)
                 }
                 cur = (sides: sidesNow, span: e.m.range)
                 ctxEnd = b
@@ -1000,6 +1050,12 @@ enum CardioText {
                 lastEnd = b
                 continue
             }
+            // "normal" said without a side is not the one side's.
+            if c.span == nil && res.0 == "stenosis" && res.1 == "normal" {
+                p.skip(a, b)
+                lastEnd = b
+                continue
+            }
             if CardioRx.sideGap.first(sub(t, ctxEnd, a)) == nil {
                 p.skip(a, b)
                 lastEnd = b
@@ -1008,12 +1064,14 @@ enum CardioText {
             ctxEnd = b
             // A vertebral flow needs its own side: after another finding of that side ("R ICA 70% vertebral reversed") it may be
             // the other side's, and is not read.
-            if res.0 == "vertebral" && usedSides.contains(where: { NSEqualRanges($0, c.span) }) {
+            var sideUsed = true
+            if let sp = c.span { sideUsed = usedSides.contains(where: { NSEqualRanges($0, sp) }) }
+            if res.0 == "vertebral" && sideUsed {
                 p.skip(a, b)
                 lastEnd = b
                 continue
             }
-            usedSides.append(c.span)
+            if let sp = c.span { usedSides.append(sp) }
             // With both sides named together only the stenosis is read.
             let single = res.0 != "stenosis"
             if single && c.sides.count > 1 {
@@ -1075,7 +1133,7 @@ enum CardioText {
         }
     }
 
-    private static func parseCarotid(_ p: CParse, adjacentNormal: Bool) {
+    private static func parseCarotid(_ p: CParse, adjacentNormal: Bool, inherit: String? = nil) {
         let t = p.text
         // "carotid US normal": both sides, only when the piece names no side of its own ("normal bilaterally" is read by its side).
         if adjacentNormal, CardioRx.sideToken.first(p.work) == nil, let m = CardioRx.carBareNormal.first(p.work) {
@@ -1102,7 +1160,7 @@ enum CardioText {
             }
         }
         let specs: [(String, NoteRx)] = [("side", CardioRx.sideToken), ("sten", CardioRx.carSten), ("vert", CardioRx.carVert), ("vel", CardioRx.carVel)]
-        walkSides(p, "carotid", specs) { (kind: String, m: NSTextCheckingResult, w: String) -> (String, String)? in
+        walkSides(p, "carotid", specs, inherit: inherit) { (kind: String, m: NSTextCheckingResult, w: String) -> (String, String)? in
             let a = m.range.location
             let b = end(m.range)
             if kind == "sten" {
@@ -1136,7 +1194,7 @@ enum CardioText {
         }
     }
 
-    private static func parseRadial(_ p: CParse) {
+    private static func parseRadial(_ p: CParse, inherit: String? = nil) {
         let t = p.text
         for m in CardioRx.radHarvest.all(p.work) {
             let a = m.range.location
@@ -1149,7 +1207,7 @@ enum CardioText {
             }
         }
         let specs: [(String, NoteRx)] = [("side", CardioRx.sideToken), ("diam", CardioRx.radDiam), ("calc", CardioRx.radCalc), ("ulnar", CardioRx.radUlnar)]
-        walkSides(p, "radial", specs) { (kind: String, m: NSTextCheckingResult, w: String) -> (String, String)? in
+        walkSides(p, "radial", specs, inherit: inherit) { (kind: String, m: NSTextCheckingResult, w: String) -> (String, String)? in
             let a = m.range.location
             let b = end(m.range)
             if kind == "diam" {
@@ -1180,16 +1238,34 @@ enum CardioText {
 
     // MARK: Runs
 
-    private static func runParse(_ study: String, _ s: String, _ base: Int, adjacent: Bool = false) -> CParse {
+    /// The one side a carotid or radial run has named so far, if it named exactly one.
+    private static func oneSide(_ run: CRun) -> String? {
+        if run.study != "carotid" && run.study != "radial" { return nil }
+        var sides = Set<String>()
+        for q in run.parses {
+            for f in q.findings {
+                let head: String = f.field.components(separatedBy: ".").first ?? ""
+                if head == "right" || head == "left" { sides.insert(head) }
+            }
+        }
+        return sides.count == 1 ? sides.first : nil
+    }
+
+    private static func runParse(_ study: String, _ s: String, _ base: Int, adjacent: Bool = false, inherit: String? = nil) -> CParse {
         let p = CParse(s, base)
+        // "PFTs 6/26 - WNL": the statement right after the bare name is said of the study.
+        if study == "pft" && adjacent, let am = CardioRx.pftNormalAfter.first(s) {
+            let g = am.range(at: 1)
+            p.take(g.location, end(g), CF(study: "pft", field: "pattern", value: "normal"))
+        }
         switch study {
         case "echo": parseEcho(p)
         case "lhc": parseLHC(p)
         case "rhc": parseRHC(p)
         case "pft": parsePFT(p)
         case "cxr": parseCXR(p)
-        case "carotid": parseCarotid(p, adjacentNormal: adjacent)
-        default: parseRadial(p)
+        case "carotid": parseCarotid(p, adjacentNormal: adjacent, inherit: inherit)
+        default: parseRadial(p, inherit: inherit)
         }
         // A number given as a bound ("EF 55+", "PCWP 18+", "EF 35-") is not a value.
         if CardioRx.boundMark.first(s) != nil { p.rejected = true }
@@ -1260,6 +1336,19 @@ enum CardioText {
                     s = i + 1
                     soft = c == 44
                 }
+            } else if (c == 45 || c == 0x2013 || c == 124 || c == 47) && i > a && i < b - 1 && ns.character(at: i - 1) == 32 && ns.character(at: i + 1) == 32 {
+                // "TTE EF 55% - CXR clear - PFTs nl": a dash, a slash or a bar with a space on each side separates statements, as a
+                // semicolon does. A value after it belongs to the name before it ("LAD - 70%", "30 - 35%"); "FEV1 / FVC" is one name.
+                var k = i + 1
+                while k < b - 1 && ns.character(at: k) == 32 { k += 1 }
+                let nx = ns.character(at: k)
+                let value: Bool = (nx >= 48 && nx <= 57) || nx == 60 || nx == 62 || nx == 0x2264 || nx == 0x2265
+                let ratio: Bool = c == 47 && CardioRx.noSplitBefore.first(sub(text, s, i)) != nil
+                if !value && !ratio {
+                    out.append((s, i, soft))
+                    s = i + 1
+                    soft = false
+                }
             }
             i += 1
         }
@@ -1282,28 +1371,58 @@ enum CardioText {
         let cues = resolveCues(text)
         var runs: [CRun] = []
         var ndMasks: [NSRange] = []
+        let textNS = text as NSString
+        var active: CRun? = nil
         for sentence in sentences(text) {
-            var active: CRun? = nil
+            // A study told in short sentences ("Echo 6/26: EF 55%. Mild MR.") goes on over the full stop while each statement is
+            // wholly understood; a name alone on its line ("Echo", "TTE 6/26:") heads the lines under it. Anything else ends at
+            // the sentence.
+            var carry: CRun? = nil
+            if let act = active, sentence.0 > 0 {
+                let fullStop: Bool = textNS.character(at: sentence.0 - 1) == 46
+                if act.heading || (fullStop && act.told) { carry = act }
+            }
+            active = carry
+            // A chest X-ray carried over a full stop takes only "normal" and denials from the next sentence: a finding there
+            // ("Trace edema.", "Mass.") may be the exam's or another test's, and the film is then not read.
+            var strictFilm: CRun? = nil
+            if let c = carry, c.study == "cxr", !c.heading { strictFilm = c }
             if let pg = page {
                 let r = CRun(pg.rawValue, nil)
                 runs.append(r)
                 active = r
             }
+            var prev: (Int, Int)? = nil
             for piece in pieces(text, sentence.0, sentence.1) {
                 let pa = piece.0
                 let pb = piece.1
                 let soft = piece.2
+                let last: (Int, Int)? = prev
+                prev = (pa, pb)
                 let pc = cues.filter { $0.a >= pa && $0.a < pb }
                 if pc.isEmpty {
                     if let act = active {
                         let pieceText: String = sub(text, pa, pb)
-                        let p = runParse(act.study, pieceText, pa)
+                        // "PFTs 6/26 - WNL", "Carotid US - normal": the statement right after a bare name is said of the study.
+                        let fresh: Bool = act.heading && !act.told
+                        let p = runParse(act.study, pieceText, pa, adjacent: fresh, inherit: oneSide(act))
+                        let makeBare: Bool = fresh && act.study == "carotid" && CardioRx.carBareNormal.first(pieceText) != nil && CardioRx.sideToken.first(pieceText) == nil
                         let veto: NSTextCheckingResult? = CardioRx.runVeto.first(pieceText)
                         if p.pure && veto == nil {
                             act.parses.append(p)
                             act.end = pb
                             // "no stenosis, L 70%": a study called normal as a whole and then given a finding says two things.
                             if act.bare && !p.findings.isEmpty { act.vetoed = true }
+                            if makeBare { act.bare = true }
+                            // "no infiltrate, effusion, or pneumothorax": after a denial the next item of the list may be denied
+                            // too, and a finding there cannot be told from one: the film is not read.
+                            if act.study == "cxr" {
+                                var abnormal = false
+                                for f in p.findings where f.field == "effusion" || f.field == "findings" { abnormal = true }
+                                if let sf = strictFilm, sf === act, abnormal { act.vetoed = true }
+                                if act.denial && soft && abnormal { act.vetoed = true }
+                                act.denial = CardioRx.cxrDenialOpen.first(pieceText) != nil
+                            }
                         } else {
                             // The piece that ends the run takes the whole run with it when it qualifies what was read: it opens
                             // with a word of change or doubt ("resolved on repeat", "now 35%"), speaks of one beside a number or a
@@ -1341,6 +1460,9 @@ enum CardioText {
                             let lp = runParse(cue.study, sub(before, 0, lm.range.location), prevEnd)
                             if lp.pure && !lp.findings.isEmpty {
                                 leadParse = (parse: lp, span: NSRange(location: prevEnd + lm.range.location, length: lm.range.length))
+                                // "LAD 90%, RCA 40% on LHC": the list began before this piece, and reading its last item alone
+                                // would tell half of it: nothing is read.
+                                if soft, let l = last, !runParse(cue.study, sub(text, l.0, l.1), l.0).findings.isEmpty { leadParse = nil }
                             }
                         } else if let act = active {
                             let p = runParse(act.study, before, prevEnd)
@@ -1415,8 +1537,8 @@ enum CardioText {
                             f.b = dbase + db
                             run.extra.append(f)
                             if dbase == cue.b { body = blank(after, da, db) }
-                        } else if dm0 != nil {
-                            // A date after the name that is in the future or cannot be a month and year: the study is not read.
+                        } else if dm0 != nil || date != nil {
+                            // A date beside the name that is in the future or cannot be a month and year: the study is not read.
                             run.vetoed = true
                         }
                     }
@@ -1444,6 +1566,11 @@ enum CardioText {
                         run.parses.append(p)
                         run.end = afterEnd
                         run.bare = cue.study == "carotid" && CardioRx.carBareNormal.first(body) != nil && CardioRx.sideToken.first(body) == nil
+                        // A name alone in its piece heads what follows, unless the sentence said before it that it was not done
+                        // ("Pending: TTE, LHC").
+                        run.heading = leadParse == nil && p.findings.isEmpty && run.extraReal.isEmpty && CardioRx.punctOnly.first(body) != nil
+                            && CardioRx.notDoneSent.first(sub(text, sentence.0, cue.a)) == nil
+                        run.denial = cue.study == "cxr" && CardioRx.cxrDenialOpen.first(body) != nil
                         active = run
                     } else {
                         // ("EF 35% on echo 3 years ago": the finding told first goes with the rest of its piece.)
@@ -1475,7 +1602,9 @@ enum CardioText {
             var opening = ""
             if let om = CardioRx.nextOpening.first(seg) { opening = grp(om, 1, seg) ?? "" }
             if CardioRx.startsWithValue.first(opening) != nil { r.vetoed = true }
-            if let vm = CardioRx.runVeto.first(opening) {
+            // (A statement that opens with another topic or with the plan is not about the study.)
+            let other: Bool = CardioRx.otherTopic.first(opening) != nil || CardioRx.planOpening.first(opening) != nil
+            if !other, let vm = CardioRx.runVeto.first(opening) {
                 let wordsBefore: Int = CardioRx.wordRx.all(sub(opening, 0, vm.range.location)).count
                 if wordsBefore < 3 { r.vetoed = true }
             }
@@ -1485,7 +1614,13 @@ enum CardioText {
 
     /// The date as PatientMonthYear.parse reads it, whether or not it is plausible yet (studyDate judges that).
     private static func studyDateRaw(_ token: String, _ now: Date) -> PatientMonthYear? {
-        let trimmed = token.trimmingCharacters(in: CharacterSet(charactersIn: " )"))
+        var trimmed: String = token.trimmingCharacters(in: CharacterSet(charactersIn: " )"))
+        // A full date: the study holds its month and year ("3/5/26" and "2026-03-05" are March 2026).
+        if let m = CardioRx.dateMdy.first(trimmed), let mo = grp(m, 1, trimmed), let y = grp(m, 2, trimmed) {
+            trimmed = mo + "/" + y
+        } else if let m = CardioRx.dateIso.first(trimmed), let y = grp(m, 1, trimmed), let mo = grp(m, 2, trimmed) {
+            trimmed = mo + "/" + y
+        }
         guard let d = PatientMonthYear.parse(trimmed, now: now), d.year != nil else { return nil }
         return d
     }
@@ -1714,6 +1849,8 @@ enum CardioText {
             CardioRx.cxrExam, CardioRx.cxrWo, CardioRx.cxrWords, CardioRx.runVeto, CardioRx.vetoBears,
             CardioRx.beforeOk, CardioRx.boundMark, CardioRx.startsWithValue, CardioRx.cxrOther,
             CardioRx.otherPerson, CardioRx.nextOpening, CardioRx.otherTopic, CardioRx.cxrSkip, CardioRx.cxrDenial, CardioRx.cxrDenialBut,
+            CardioRx.aortaDim, CardioRx.cxrPure, CardioRx.cxrLeadin, CardioRx.cxrDenialOpen, CardioRx.emptyParens, CardioRx.noSplitBefore,
+            CardioRx.dateMdy, CardioRx.dateIso, CardioRx.notDoneSent, CardioRx.planOpening,
         ]
         out += Array(CardioRx.restVocab.values)
         out += CardioRx.echoKnown + CardioRx.lhcKnown + CardioRx.rhcKnown + CardioRx.pftKnown
