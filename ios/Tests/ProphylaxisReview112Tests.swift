@@ -51,7 +51,7 @@ final class ProphylaxisReview112Tests: XCTestCase {
         // 9 typed for 90: no "135 mg", the written rule and a line that says why.
         let slip = cabg(allergy: true, record: typed(9))
         XCTAssertEqual(try line(slip, "vancomycin").dose, "15 mg/kg")
-        XCTAssertEqual(try line(slip, "vancomycin").needs, "Weight needed")
+        XCTAssertEqual(try line(slip, "vancomycin").needs, "Check the weight", "a weight was typed: never \"Weight needed\" beside it")
         XCTAssertEqual(slip.weightLine, "9 kg is outside 35–200 kg: check the weight. Doses are shown as written, not worked out for this weight.")
         XCTAssertEqual(try line(cabg(allergy: false, record: typed(9)), "cefazolin").dose, "2 g; 3 g if ≥120 kg")
         // A child's weight typed into the adult tool (the scratch record has no age) gets the same treatment.
@@ -157,6 +157,23 @@ final class ProphylaxisReview112Tests: XCTestCase {
             }
         } } }
         XCTAssertEqual(withDisplay, ["ophthalmic/ophthalmic"])
+    }
+
+    // MARK: How a combination reads
+
+    func testOrIsSaidOnlyBetweenWholeOptions() {
+        // A slot that offers several agents is led by "one of"; a single agent by "plus"; the first slot by nothing unless it is a choice.
+        XCTAssertNil(SurgicalProphylaxisView.joinerWord(optional: false, choices: 1, first: true))
+        XCTAssertEqual(SurgicalProphylaxisView.joinerWord(optional: false, choices: 2, first: true), "one of")
+        XCTAssertEqual(SurgicalProphylaxisView.joinerWord(optional: false, choices: 1, first: false), "plus")
+        XCTAssertEqual(SurgicalProphylaxisView.joinerWord(optional: false, choices: 4, first: false), "plus one of")
+        XCTAssertEqual(SurgicalProphylaxisView.joinerWord(optional: true, choices: 1, first: false), "with or without")
+        XCTAssertEqual(SurgicalProphylaxisView.joinerWord(optional: true, choices: 2, first: false), "with or without one of")
+        XCTAssertEqual(SurgicalProphylaxisView.joinerWord(optional: true, choices: 1, first: true), "with or without")
+    }
+
+    func testWithNoWeightAtAllItStillSaysWeightNeeded() throws {
+        XCTAssertEqual(try line(cabg(allergy: true, record: typed(nil)), "vancomycin").needs, "Weight needed")
     }
 
     // MARK: Read aloud

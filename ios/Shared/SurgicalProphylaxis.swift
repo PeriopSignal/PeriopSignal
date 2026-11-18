@@ -430,6 +430,8 @@ struct ProphylaxisAnswer: Hashable {
     var regimens: [ProphylaxisRegimenAnswer] = []
     var notes: [String] = []
     var mrsaTitle: String?
+    /// In place of the vancomycin line when vancomycin is already among the result's choices: it is named once, with one Start.
+    var mrsaNote: String?
     var mrsa: ProphylaxisLine?
     var timing: String?
     /// "Adult doses only: no dose is shown for a patient under 18."
@@ -470,6 +472,9 @@ enum ProphylaxisEngine {
     static let outsideTitle = "Not in the guideline's table"
     static let mrsaTitle = "Known MRSA colonization"
     static let mrsaDoseNote = "Single preoperative dose"
+    static let mrsaListedLead = "Vancomycin is among the choices above."
+    /// Beside a dose that could not be worked out because the weight is outside the plausible range (a weight WAS given).
+    static let checkWeight = "Check the weight"
     static let tableLead = "As the guideline's table writes it:"
     static let childLine = "Adult doses only: no dose is shown for a patient under 18."
     static let captionLead = "From the case: "
@@ -558,12 +563,29 @@ enum ProphylaxisEngine {
             if agentIDs.contains(ampicillinSulbactam) { for s in data.info.ampicillinSulbactam { info.add(s) } }
             if input.mrsa {
                 a.mrsaTitle = mrsaTitle
-                var m = line(data.mrsaAgent, caption: nil, id: "mrsa.", record: dr, data: data, timers: timers, child: child)
-                if m.dose != nil || m.noDose == nil { m.redose = child ? nil : mrsaDoseNote }
-                a.mrsa = m
+                if agentIDs.contains(data.mrsaAgent) {
+                    // Vancomycin is already a choice (the β-lactam alternatives): one line and one Start, and the guideline's
+                    // sentence says which choice it means.
+                    a.mrsaNote = data.info.mrsa.isEmpty ? mrsaListedLead : mrsaListedLead + " " + data.info.mrsa
+                } else {
+                    var m = line(data.mrsaAgent, caption: nil, id: "mrsa.", record: dr, data: data, timers: timers, child: child)
+                    if m.dose != nil || m.noDose == nil { m.redose = child ? nil : mrsaDoseNote }
+                    a.mrsa = m
+                }
             }
             a.timing = data.info.timing.isEmpty ? nil : data.info.timing
             if child { a.childLine = childLine } else { a.weightLine = dosing.line }
+            if dosing.line != nil {
+                // A weight was given: "Weight needed" beside it would contradict the field.
+                for ri in a.regimens.indices {
+                    for si in a.regimens[ri].slots.indices {
+                        for li in a.regimens[ri].slots[si].lines.indices where a.regimens[ri].slots[si].lines[li].needs != nil {
+                            a.regimens[ri].slots[si].lines[li].needs = checkWeight
+                        }
+                    }
+                }
+                if a.mrsa?.needs != nil { a.mrsa?.needs = checkWeight }
+            }
         }
         if let n = g.note { info.add(n) }
         a.info = info.paragraphs

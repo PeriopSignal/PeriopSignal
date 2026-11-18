@@ -222,7 +222,8 @@ struct SurgicalProphylaxisView: View {
             }
         }
         .sheet(item: $sheet) { ProphylaxisInfoSheet(content: $0) }
-        .confirmationDialog(pending.map { ProphylaxisEngine.startTitle($0.name) } ?? "Start", isPresented: pendingBinding, titleVisibility: .visible) {
+        // An alert, not an action sheet: on an iPhone the sheet's popover hid the answers and its button read as inactive.
+        .alert(pending.map { ProphylaxisEngine.startTitle($0.name) } ?? "Start", isPresented: pendingBinding) {
             Button("Start") { confirmStart() }
             Button("Cancel", role: .cancel) { pending = nil }
         } message: {
@@ -402,8 +403,12 @@ struct SurgicalProphylaxisView: View {
                         if input.procedure != nil { changing = false }
                     }
                 })
-                if let g = input.selectedGroup(data) { procedureList(g, data) }
-                if let c = procedureCaption { captionText(c) }
+                if let g = input.selectedGroup(data) {
+                    // A case that selects the group only: say so above the rows, never under the last one as if it were that row's.
+                    if prefill.procedure == nil, let c = procedureCaption { captionText(c + ". Choose the row that fits.") }
+                    procedureList(g, data)
+                }
+                if prefill.procedure != nil, let c = procedureCaption { captionText(c) }
             }
         } else if let summary = input.summary(data) {
             VStack(alignment: .leading, spacing: 6) {
@@ -573,9 +578,11 @@ struct SurgicalProphylaxisView: View {
 
     /// The title with the hyphen of "β-lactam" that does not break the line.
     private func titleText(_ a: ProphylaxisAnswer) -> some View {
-        Text(a.title.replacingOccurrences(of: "-", with: "\u{2011}"))
+        // "No prophylaxis recommended" is the card's title: never the word "Recommended" above it.
+        let title: String = a.state == .none ? a.body : a.title
+        return Text(title.replacingOccurrences(of: "-", with: "\u{2011}"))
             .font(PS.serif(size: 21, weight: .semibold)).foregroundStyle(PS.fg)
-            .accessibilityLabel(a.title)
+            .accessibilityLabel(title)
             .accessibilityAddTraits(.isHeader)
     }
 
@@ -594,23 +601,23 @@ struct SurgicalProphylaxisView: View {
             Text(a.body).font(PS.sys(size: 15)).foregroundStyle(PS.fg).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
             notes(a)
         case .none:
-            Text(a.body).font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+            // The headline is the card's title (titleText).
             notes(a)
         case .regimens:
-            if let weightLine = a.weightLine {
-                Text(weightLine).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-            }
+            // What changes how every dose below is read comes first.
+            if let weightLine = a.weightLine { leadLine(weightLine) }
+            if let childLine = a.childLine { leadLine(childLine) }
             regimens(a, r, timers)
             notes(a)
-            if let m = a.mrsa {
+            if a.mrsa != nil || a.mrsaNote != nil {
                 VStack(alignment: .leading, spacing: 8) {
                     Hairline()
                     Eyebrow(text: a.mrsaTitle ?? ProphylaxisEngine.mrsaTitle)
-                    agentRow(m, r, timers)
+                    if let m = a.mrsa { agentRow(m, r, timers) }
+                    if let n = a.mrsaNote {
+                        Text(n).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-            }
-            if let childLine = a.childLine {
-                Text(childLine).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
             if let timing = a.timing {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -620,6 +627,14 @@ struct SurgicalProphylaxisView: View {
             }
         default:
             EmptyView()
+        }
+    }
+
+    /// A line that changes how the doses below are read (the weight is outside the range; adult doses only), marked and in ink.
+    private func leadLine(_ text: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Image(systemName: "exclamationmark.triangle").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg2).accessibilityHidden(true)
+            Text(text).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -650,8 +665,7 @@ struct SurgicalProphylaxisView: View {
         VStack(alignment: .leading, spacing: 8) {
             if count > 1 { Eyebrow(text: "Option \(index + 1)", size: 10) }
             ForEach(Array(reg.slots.enumerated()), id: \.offset) { si, slot in
-                if si > 0 { joiner(slot.optional ? "with or without" : "plus", why: slot.optional ? slot.why : nil) }
-                if si == 0, slot.optional { joiner("with or without", why: slot.why) }
+                joinerBefore(slot, first: si == 0)
                 slotView(slot, r, timers)
             }
         }
@@ -660,12 +674,33 @@ struct SurgicalProphylaxisView: View {
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line2, lineWidth: 1))
     }
 
-    private func slotView(_ slot: ProphylaxisSlotAnswer, _ r: PatientRecord, _ timers: CaseTimerData) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(Array(slot.lines.enumerated()), id: \.offset) { li, line in
-                if li > 0 { joiner("or") }
-                agentRow(line, r, timers)
+    /// The words that lead a slot: "plus", "with or without", and "one of" when the slot offers several agents, so "or" is only
+    /// ever said between whole options. The first slot is led only when it is optional or a choice.
+    static func joinerWord(optional: Bool, choices: Int, first: Bool) -> String? {
+        let many: Bool = choices > 1
+        if optional { return many ? "with or without one of" : "with or without" }
+        if first { return many ? "one of" : nil }
+        return many ? "plus one of" : "plus"
+    }
+
+    @ViewBuilder private func joinerBefore(_ slot: ProphylaxisSlotAnswer, first: Bool) -> some View {
+        if let word = Self.joinerWord(optional: slot.optional, choices: slot.lines.count, first: first) {
+            joiner(word, why: slot.optional ? slot.why : nil)
+        }
+    }
+
+    /// One slot: a single agent, or its choices set off by a rule down the left so they read as one group.
+    @ViewBuilder private func slotView(_ slot: ProphylaxisSlotAnswer, _ r: PatientRecord, _ timers: CaseTimerData) -> some View {
+        if slot.lines.count > 1 {
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(Array(slot.lines.enumerated()), id: \.offset) { _, line in
+                    agentRow(line, r, timers)
+                }
             }
+            .padding(.leading, 12)
+            .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 1).fill(PS.line2).frame(width: 2) }
+        } else if let only = slot.lines.first {
+            agentRow(only, r, timers)
         }
     }
 

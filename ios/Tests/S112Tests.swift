@@ -268,8 +268,14 @@ final class S112Tests: XCTestCase {
         XCTAssertEqual(m.redose, "Single preoperative dose")
         XCTAssertNotNil(m.dose)
         XCTAssertTrue(m.startable)
+        XCTAssertNil(a.mrsaNote)
+        // Vancomycin already among the choices (the β-lactam alternatives): named once, with the guideline's sentence in place of a
+        // second line and a second Start.
         let both = answer("cardiac", "cabg", allergy: true, mrsa: true)
-        XCTAssertNotNil(both.mrsa, "shown even when vancomycin is already among the choices")
+        XCTAssertNil(both.mrsa)
+        XCTAssertEqual(both.mrsaTitle, "Known MRSA colonization")
+        XCTAssertEqual(both.mrsaNote, "Vancomycin is among the choices above. " + d.info.mrsa)
+        XCTAssertEqual(both.allLines.filter { $0.agent == "vancomycin" }.count, 1)
         XCTAssertNotNil(try line(both, "vancomycin"))
     }
 
