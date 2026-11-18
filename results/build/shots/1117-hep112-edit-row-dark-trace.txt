@@ -1,9 +1,0 @@
-Timestamp               Ty Process[PID:TID]
-2026-11-18 12:03:33.109 Df PeriopSignal[86948:35e46] [org.periopsignal.app:shots] root appear tab=preop
-2026-11-18 12:03:33.681 Df PeriopSignal[86948:35e46] [org.periopsignal.app:shots] PatientView appear
-2026-11-18 12:03:40.992 Df PeriopSignal[86948:35e46] [org.periopsignal.app:shots] open begin route(PeriopSignal.RefRoute.caseTimers)
-2026-11-18 12:03:48.360 Df PeriopSignal[86948:35e46] [org.periopsignal.app:shots] push (pushed before: false)
-2026-11-18 12:03:48.537 Df PeriopSignal[86948:35e46] [org.periopsignal.app:shots] path 0 -> 1
-2026-11-18 12:03:50.003 Df PeriopSignal[86948:35e46] [org.periopsignal.app:shots] route appear
-2026-11-18 12:03:53.668 Df PeriopSignal[86948:35e46] [org.periopsignal.app:shots] root disappear
-2026-11-18 12:03:54.703 Df PeriopSignal[86948:35e46] [org.periopsignal.app:shots] ready
