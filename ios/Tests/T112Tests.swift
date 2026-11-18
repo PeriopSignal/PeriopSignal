@@ -843,6 +843,13 @@ final class T112Tests: XCTestCase {
         XCTAssertEqual(page.findings.compactMap { CardioText.code($0) }.sorted(), ["rhc.padp=20", "rhc.pam=30", "rhc.pasp=45", "rhc.pcwp=18"])
     }
 
+    func testTheSheetOpenedFromTheOperatingRoomFilesNone() {
+        let note = PatientNote.read("TTE EF 35%, RV nl", now: now, cardio: true)
+        XCTAssertTrue(note.findings.contains { if case .cardio = $0.change { return true }; return false })
+        let routed = QuickAdd.forTab(note, tab: .intraop, record: PatientRecord(), now: now)
+        XCTAssertFalse(routed.findings.contains(where: isCardio), "the preoperative studies are never filed from the OR")
+    }
+
     // MARK: What is read is not read again
 
     func testWhatIsReadIsMaskedFromTheHistoryReader() {
