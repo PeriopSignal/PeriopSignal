@@ -1,9 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:980:21: error: call to main actor-isolated initializer 'init(url:)' in a synchronous nonisolated context
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:981:28: error: main actor-isolated property 'record' can not be referenced from a nonisolated context
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:985:15: error: call to main actor-isolated instance method 'update(discrete:now:_:)' in a synchronous nonisolated context
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:986:30: error: main actor-isolated property 'record' can not be referenced from a nonisolated autoclosure
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:987:30: error: main actor-isolated property 'record' can not be referenced from a nonisolated autoclosure
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:988:15: error: call to main actor-isolated instance method 'undo()' in a synchronous nonisolated context
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:989:30: error: main actor-isolated property 'record' can not be referenced from a nonisolated autoclosure
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:990:30: error: main actor-isolated property 'record' can not be referenced from a nonisolated autoclosure
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/T112Tests.swift:991:28: error: main actor-isolated property 'record' can not be referenced from a nonisolated autoclosure
