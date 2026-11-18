@@ -15,6 +15,9 @@ struct QuickAddBar: View {
     var place: QuickAddPlace
     /// The example in the field, where the page has its own (Previous Intrathoracic Surgery); else the place's.
     var placeholder: String? = nil
+    /// The study of the page the bar sits on (1.12 follow-up, Ben, Nov 18): "EF 35, mod MR, RV nl" typed on the Echo page is the echo, with no
+    /// cue. Nil on the tabs and on every page that is not one of the studies'.
+    var study: CardioStudy? = nil
     private var tab: QuickAddTab { place.tab }
     private var compact: Bool { place.compact }
 
@@ -87,7 +90,7 @@ struct QuickAddBar: View {
         }
         .onChange(of: text) { old, new in handle(old, new) }
         .sheet(item: $sheet) { seed in
-            PatientNoteSheet(initialText: seed.text, tab: tab, lowerPatient: place.patientLine) { n, before in
+            PatientNoteSheet(initialText: seed.text, tab: tab, lowerPatient: place.patientLine, cardio: !place.handoff && !place.surgicalHistory, cardioPage: study) { n, before in
                 withAnimation(.snappy) {
                     added = Added(count: n, before: before, after: patient.record, caseID: patient.currentCase.id)
                     clear()
@@ -333,7 +336,7 @@ struct QuickAddBar: View {
             return
         }
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine, cardioPage: study)
         withAnimation(.snappy) {
             reading = q
             readText = t
@@ -373,7 +376,7 @@ struct QuickAddBar: View {
         let before = patient.record
         let seen = Set(QuickAdd.chips(shown, record: before).map(\.id))
         let q = QuickAdd.read(t, record: before, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine, cardioPage: study)
         let chosen = QuickAdd.chips(q, record: before, dropped: dropped).filter { seen.contains($0.id) && $0.canAdd && !dropped.contains($0.id) }
         guard !chosen.isEmpty else { return Haptics.light() }
         // One discrete step in the store's Undo history, whatever was typed just before.
@@ -439,7 +442,7 @@ struct QuickAddBar: View {
         let t = LaunchSeed.string(compact ? "ps.quickadd.editor" : "ps.quickadd").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty, text.isEmpty, added == nil else { return }
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff, patientLine: place.patientLine, cardioPage: study)
         var still = Transaction()
         still.disablesAnimations = true
         withTransaction(still) {
