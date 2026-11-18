@@ -523,6 +523,11 @@ enum CardioText {
             f.segment = seg
             p.take(a, b, f)
         }
+        // "D1 of LAD 80%": the branch's lesion, not the parent's; understood and not stored.
+        for m in CardioRx.lhcBranchOf.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            p.known(m.range.location, end(m.range))
+            p.flags.insert("disease")
+        }
         for m in CardioRx.lhcOccA.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
             add(vesselID(grp(m, 3, p.work) ?? ""), 100, grp(m, 1, p.work) != nil || grp(m, 2, p.work) != nil, m.range.location, end(m.range))
         }
@@ -957,6 +962,8 @@ enum CardioText {
         if ok && (CardioRx.cxrVocab.first(s) == nil || CardioRx.cxrPure.first(s) == nil) { ok = false }
         // A size word left over from the effusion ("small + cardiomegaly") is not a finding.
         if ok && CardioRx.cxrOrphan.first(s) != nil { ok = false }
+        // A mark of denial beside a finding ("effusion (-)", "-edema", "PTX -", "effusion neg"): not stored.
+        if ok && CardioRx.cxrNegmark.first(p.text) != nil { ok = false }
         if ok && tail > lead {
             p.take(lead, tail, CF(study: "cxr", field: "findings", value: s))
         } else {
@@ -1396,7 +1403,9 @@ enum CardioText {
     }
 
     /// The findings read from the text and the stretches to mask. `page`: the study of the page the line is typed on (no cue needed).
-    private static func readRuns(_ text: String, page: CardioStudy?, now: Date) -> (findings: [CF], masks: [NSRange]) {
+    private static func readRuns(_ typed: String, page: CardioStudy?, now: Date) -> (findings: [CF], masks: [NSRange]) {
+        // A bullet or a list number at the start of a line is no part of what the line says (blanked: every position stays).
+        let text: String = blanked(typed, CardioRx.listMark)
         let cues = resolveCues(text)
         var runs: [CRun] = []
         var ndMasks: [NSRange] = []
@@ -1404,7 +1413,25 @@ enum CardioText {
         var active: CRun? = nil
         // The last line or sentence before this one that was not empty.
         var above = ""
+        // Inside a block that is another person's or another time's ("Father:", "Post-op", "Prior studies"): it runs to the next
+        // blank line or the next label. And on a line that opens with a not-done label ("Pending: TTE, LHC ...").
+        var blocked = false
+        var lineBlocked = false
         for sentence in sentences(text) {
+            if sentence.0 == 0 || textNS.character(at: sentence.0 - 1) == 10 {
+                var eol: Int = textNS.range(of: "\n", options: [], range: NSRange(location: sentence.0, length: textNS.length - sentence.0)).location
+                if eol == NSNotFound { eol = textNS.length }
+                let line: String = sub(text, sentence.0, eol)
+                lineBlocked = CardioRx.notDoneLabel.first(line) != nil
+                if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    blocked = false
+                } else if CardioRx.blockLabel.first(line) != nil || CardioRx.blockLine.first(line) != nil {
+                    blocked = true
+                } else if let lm = CardioRx.anyLabel.first(line) {
+                    let labelEnd: Int = sentence.0 + end(lm.range)
+                    if !cues.contains(where: { $0.a >= sentence.0 && $0.a < labelEnd }) { blocked = false }
+                }
+            }
             // A study told in short sentences ("Echo 6/26: EF 55%. Mild MR.") goes on over the full stop while each statement is
             // wholly understood; a name alone on its line ("Echo", "TTE 6/26:") heads the lines under it. Anything else ends at
             // the sentence.
@@ -1519,7 +1546,7 @@ enum CardioText {
                         active = nil
                         continue
                     }
-                    if labelled {
+                    if labelled || blocked || lineBlocked {
                         active = nil
                         continue
                     }
@@ -1572,10 +1599,20 @@ enum CardioText {
                         if date == nil, let dm2 = CardioRx.dateBefore.first(before) {
                             let g = dm2.range(at: 1)
                             if let d2 = studyDateRaw((before as NSString).substring(with: g), now) {
-                                date = d2
-                                da = g.location
-                                db = end(g)
-                                dbase = prevEnd
+                                // Alone before the name ("6/26: TTE EF 35%", "Testing: 6/26 TTE") the date is the study's. After a
+                                // department's name or inside a bracket begun earlier ("Cardiology 6/26 - TTE", "(Dr. Lee,
+                                // 6/2026): TTE") it may be the note's: it is not stored, and only a date in the future still
+                                // stops the study.
+                                let opens: Int = before.filter { $0 == "(" }.count
+                                let closes: Int = before.filter { $0 == ")" }.count
+                                if CardioRx.dateAlone.first(before) != nil && opens == closes {
+                                    date = d2
+                                    da = g.location
+                                    db = end(g)
+                                    dbase = prevEnd
+                                } else if studyDate(d2.text, now: now) == nil {
+                                    run.vetoed = true
+                                }
                             }
                         }
                         if let d = date, let ok = studyDate(d.text, now: now) {
@@ -1653,7 +1690,10 @@ enum CardioText {
             if let om = CardioRx.nextOpening.first(seg) { opening = grp(om, 1, seg) ?? "" }
             if CardioRx.startsWithValue.first(opening) != nil { r.vetoed = true }
             // (A statement that opens with another topic or with the plan is not about the study.)
-            let other: Bool = CardioRx.otherTopic.first(opening) != nil || CardioRx.planOpening.first(opening) != nil
+            // ("On repeat normal." is about a later study, though it opens with "on".)
+            let other: Bool = (CardioRx.otherTopic.first(opening) != nil || CardioRx.planOpening.first(opening) != nil) && CardioRx.onRepeat.first(opening) == nil
+            // Someone else's value in the next statement: "Cardiology says 50%."
+            if CardioRx.saysValue.first(opening) != nil { r.vetoed = true }
             var vetoAt: Int? = CardioRx.runVeto.first(opening)?.range.location
             if let tm = CardioRx.timeShift.first(opening), vetoAt == nil || tm.range.location < (vetoAt ?? 0) { vetoAt = tm.range.location }
             if !other, let at = vetoAt {
@@ -1756,6 +1796,15 @@ enum CardioText {
         }
         if echoFlags.contains("biv-normal") && echoAll.contains(where: { ($0.field == "lvef" && (Double($0.value) ?? 100) < 50) || (($0.field == "lv" || $0.field == "rv") && $0.value != "normal") }) {
             conflicted.insert("echo")
+        }
+        // "EF 25%, normal LV systolic function" says two things.
+        if echoAll.contains(where: { $0.field == "lv" && $0.value == "normal" }) && echoAll.contains(where: { $0.field == "lvef" && (Double($0.value) ?? 100) < 40 }) {
+            conflicted.insert("echo")
+        }
+        // Chest X-ray: a second effusion in the findings line ("small L effusion, trace R effusion"): the effusion's side is not
+        // the whole of it, and the film is not read.
+        if byKey["cxr.effusion"] != nil && (byKey["cxr.findings"] ?? []).contains(where: { CardioRx.effusionWord.first($0.value) != nil }) {
+            conflicted.insert("cxr")
         }
         // PFT: "normal" beside a clearly abnormal number is not read as normal.
         if pftAll.contains(where: { $0.field == "pattern" && $0.value == "normal" }) {
@@ -1947,6 +1996,8 @@ enum CardioText {
             CardioRx.dateMdy, CardioRx.dateIso, CardioRx.notDoneSent, CardioRx.planOpening,
             CardioRx.timeShift, CardioRx.resultDated, CardioRx.attributed, CardioRx.attribBefore, CardioRx.labelLine, CardioRx.valvesNormal,
             CardioRx.bivNormal, CardioRx.cxrOrphan,
+            CardioRx.lhcBranchOf, CardioRx.cxrNegmark, CardioRx.effusionWord, CardioRx.listMark, CardioRx.blockLabel, CardioRx.blockLine,
+            CardioRx.anyLabel, CardioRx.notDoneLabel, CardioRx.dateAlone, CardioRx.onRepeat, CardioRx.saysValue,
         ]
         out += Array(CardioRx.restVocab.values)
         out += CardioRx.echoKnown + CardioRx.lhcKnown + CardioRx.rhcKnown + CardioRx.pftKnown
