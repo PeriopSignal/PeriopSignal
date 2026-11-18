@@ -1,129 +1,93 @@
-Analysis of sampling PeriopSignal (pid 39504) every 1 millisecond
-Process:         PeriopSignal [39504]
-Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/8875D9EB-C709-43F9-B23F-AA43A4B92F09/PeriopSignal.app/PeriopSignal
-Load Address:    0x10a8b4000
+Analysis of sampling PeriopSignal (pid 39795) every 1 millisecond
+Process:         PeriopSignal [39795]
+Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/63E6576E-5F3C-4B38-B704-F11DFCFA8A2F/PeriopSignal.app/PeriopSignal
+Load Address:    0x10e401000
 Identifier:      PeriopSignal
 Version:         ???
 Code Type:       X86-64
 Platform:        iOS Simulator
-Parent Process:  launchd_sim [33758]
+Parent Process:  launchd_sim [35184]
 Target Type:     live task
 
-Date/Time:       2026-11-18 05:32:07.004 +0000
-Launch Time:     2026-11-18 05:31:29.605 +0000
+Date/Time:       2026-11-18 05:29:55.916 +0000
+Launch Time:     2026-11-18 05:29:04.109 +0000
 OS Version:      macOS 15.7.9 (24G830)
 Report Version:  7
 Analysis Tool:   /usr/bin/sample
 
-Physical footprint:         85.2M
-Physical footprint (peak):  88.6M
+Physical footprint:         75.3M
+Physical footprint (peak):  79.1M
 Idle exit:                  untracked
 ----
 
 Call graph:
-    1253 Thread_108712   DispatchQueue_1: com.apple.main-thread  (serial)
-    + 1253 start  (in dyld) + 3056  [0x10af14530]
-    +   1253 start_sim  (in dyld_sim) + 10  [0x10a9fc3dc]
-    +     1253 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x112186349]  PeriopSignalApp.swift:0
-    +       1253 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x11217c3e3]  /<compiler-generated>:0
-    +         1253 static App.main()  (in SwiftUI) + 137  [0x7ffb04dd8259]
-    +           1253 runApp<A>(_:)  (in SwiftUI) + 166  [0x7ffb05050ab6]
-    +             1253 closure #1 in KitRendererCommon(_:)  (in SwiftUI) + 183  [0x7ffb05050d77]
-    +               1253 UIApplicationMain  (in UIKitCore) + 123  [0x7ff809311f29]
-    +                 1253 -[UIApplication _run]  (in UIKitCore) + 842  [0x7ff80930cf4a]
-    +                   1253 GSEventRunModal  (in GraphicsServices) + 94  [0x7ff816b8d918]
-    +                     1253 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
-    +                       1253 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
-    +                         1253 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
-    +                           1253 mach_msg  (in libsystem_kernel.dylib) + 19  [0x10a934e3b]
-    +                             1253 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10a93bbc3]
-    +                               1253 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x10a9436bc]
-    +                                 1253 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x10a934b4a]
-    1253 Thread_108783: com.apple.uikit.eventfetch-thread
-    + 1253 thread_start  (in libsystem_pthread.dylib) + 15  [0x10a8be857]
-    +   1253 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x10a8c2e05]
-    +     1253 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
-    +       1253 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
-    +         1253 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
-    +           1253 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
-    +             1253 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
-    +               1253 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
-    +                 1253 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
-    +                   1253 mach_msg  (in libsystem_kernel.dylib) + 19  [0x10a934e3b]
-    +                     1253 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10a93bbc3]
-    +                       1253 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x10a9436bc]
-    +                         1253 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x10a934b4a]
-    1253 Thread_110463
-    + 1253 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10a8be843]
-    +   1253 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10a8bf8ba]
-    +     1253 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10a936286]
-    1253 Thread_112076: com.apple.UIKit.inProcessAnimationManager
-    + 1253 thread_start  (in libsystem_pthread.dylib) + 15  [0x10a8be857]
-    +   1253 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x10a8c2e05]
-    +     1253 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
-    +       1253 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192209  [0x7ff807da0209]
-    +         1253 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x577ce5  [0x7ff808185ce5]
-    +           1253 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x572f3f  [0x7ff808180f3f]
-    +             1253 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 98  [0x7ff802693ff0]
-    +               1253 _dispatch_sema4_wait  (in libdispatch.dylib) + 16  [0x7ff802693b82]
-    +                 1253 semaphore_wait_trap  (in libsystem_kernel.dylib) + 10  [0x10a934ac6]
-    1252 Thread_110697
-    + 1252 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10a8be843]
-    +   1252 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10a8bf8ba]
-    +     1252 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10a936286]
-    1252 Thread_112085
-    + 1252 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10a8be843]
-    +   1252 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10a8bf8ba]
-    +     1252 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10a936286]
-    1251 Thread_108774
-    + 1251 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10a8be843]
-    +   1251 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10a8bf8ba]
-    +     1251 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10a936286]
-    2 Thread_108774   DispatchQueue_319: CA DispatchGroup  (serial)
-    + 2 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10a8be843]
-    +   2 _pthread_wqthread  (in libsystem_pthread.dylib) + 298  [0x10a8bf861]
-    +     2 _dispatch_workloop_worker_thread  (in libdispatch.dylib) + 814  [0x7ff8026a6606]
-    +       2 _dispatch_root_queue_drain_deferred_wlh  (in libdispatch.dylib) + 290  [0x7ff8026a6ee6]
-    +         2 _dispatch_lane_invoke  (in libdispatch.dylib) + 413  [0x7ff80269baa6]
-    +           2 _dispatch_lane_serial_drain  (in libdispatch.dylib) + 1170  [0x7ff80269afb7]
-    +             2 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
-    +               2 async_collect_callback(void*)  (in QuartzCore) + 38  [0x7ff81003ee5e]
-    +                 2 CABackingStoreCollect  (in QuartzCore) + 30  [0x7ff81003e8fd]
-    +                   2 CABackingStoreCollect_(double, bool)  (in QuartzCore) + 594  [0x7ff81003eba5]
-    +                     1 CABackingStoreDeleteBuffer(CABackingStoreBuffer*)  (in QuartzCore) + 53  [0x7ff81003bc7d]
-    +                     ! 1 CA::Render::Shmem::~Shmem()  (in QuartzCore) + 14  [0x7ff81005218e]
-    +                     !   1 CA::Render::Shmem::~Shmem()  (in QuartzCore) + 80  [0x7ff81005259e]
-    +                     !     1 mach_vm_deallocate  (in libsystem_kernel.dylib) + 67  [0x10a93612b]
-    +                     !       1 _kernelrpc_mach_vm_deallocate_trap  (in libsystem_kernel.dylib) + 10  [0x10a9349be]
-    +                     1 CABackingStoreDeleteBuffer(CABackingStoreBuffer*)  (in QuartzCore) + 146  [0x7ff81003bcda]
-    +                       1 CFRelease  (in CoreFoundation) + 27  [0x7ff80293e214]
-    1 Thread_110697   DispatchQueue_2: com.apple.libdispatch-manager  (serial)
-      1 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10a8be843]
-        1 _pthread_wqthread  (in libsystem_pthread.dylib) + 362  [0x10a8bf8a1]
-          1 _dispatch_kevent_worker_thread  (in libdispatch.dylib) + 693  [0x7ff8026a6192]
-            1 _dispatch_event_loop_drain_timers  (in libdispatch.dylib) + 502  [0x7ff8026b3816]
-              1 _dispatch_event_loop_drain_timers.cold.2  (in libdispatch.dylib) + 39  [0x7ff8026c9759]
-                1 _dispatch_event_loop_poke  (in libdispatch.dylib) + 483  [0x7ff8026b50d0]
-                  1 _dispatch_kq_poll  (in libdispatch.dylib) + 163  [0x7ff8026b5a4e]
-                    1 kevent_id  (in libsystem_kernel.dylib) + 10  [0x10a9362ce]
+    1340 Thread_108141   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 1340 start  (in dyld) + 3056  [0x1131f8530]
+    +   1340 start_sim  (in dyld_sim) + 10  [0x10e5493dc]
+    +     1340 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x11a51dc39]  PeriopSignalApp.swift:0
+    +       1340 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x11a513cd3]  /<compiler-generated>:0
+    +         1340 static App.main()  (in SwiftUI) + 137  [0x7ffb04dd8259]
+    +           1340 runApp<A>(_:)  (in SwiftUI) + 166  [0x7ffb05050ab6]
+    +             1340 closure #1 in KitRendererCommon(_:)  (in SwiftUI) + 183  [0x7ffb05050d77]
+    +               1340 UIApplicationMain  (in UIKitCore) + 123  [0x7ff809311f29]
+    +                 1340 -[UIApplication _run]  (in UIKitCore) + 842  [0x7ff80930cf4a]
+    +                   1340 GSEventRunModal  (in GraphicsServices) + 94  [0x7ff816b8d918]
+    +                     1340 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+    +                       1340 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+    +                         1340 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+    +                           1340 mach_msg  (in libsystem_kernel.dylib) + 19  [0x10e481e3b]
+    +                             1340 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10e488bc3]
+    +                               1340 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x10e4906bc]
+    +                                 1340 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x10e481b4a]
+    1340 Thread_108240: com.apple.uikit.eventfetch-thread
+    + 1340 thread_start  (in libsystem_pthread.dylib) + 15  [0x10e40b857]
+    +   1340 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x10e40fe05]
+    +     1340 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+    +       1340 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
+    +         1340 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
+    +           1340 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
+    +             1340 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+    +               1340 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+    +                 1340 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+    +                   1340 mach_msg  (in libsystem_kernel.dylib) + 19  [0x10e481e3b]
+    +                     1340 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10e488bc3]
+    +                       1340 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x10e4906bc]
+    +                         1340 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x10e481b4a]
+    1340 Thread_108242
+    + 1340 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10e40b843]
+    +   1340 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10e40c8ba]
+    +     1340 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10e483286]
+    1340 Thread_110547: com.apple.UIKit.inProcessAnimationManager
+    + 1340 thread_start  (in libsystem_pthread.dylib) + 15  [0x10e40b857]
+    +   1340 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x10e40fe05]
+    +     1340 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+    +       1340 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192209  [0x7ff807da0209]
+    +         1340 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x577ce5  [0x7ff808185ce5]
+    +           1340 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x572f3f  [0x7ff808180f3f]
+    +             1340 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 98  [0x7ff802693ff0]
+    +               1340 _dispatch_sema4_wait  (in libdispatch.dylib) + 16  [0x7ff802693b82]
+    +                 1340 semaphore_wait_trap  (in libsystem_kernel.dylib) + 10  [0x10e481ac6]
+    1340 Thread_110557
+      1340 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10e40b843]
+        1340 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10e40c8ba]
+          1340 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10e483286]
 
 Total number in stack (recursive counted multiple, when >=5):
-        6       start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10a8be843]
 
 Sort by top of stack, same collapsed (when >= 5):
-        __workq_kernreturn  (in libsystem_kernel.dylib)        5008
-        mach_msg2_trap  (in libsystem_kernel.dylib)        2506
-        semaphore_wait_trap  (in libsystem_kernel.dylib)        1253
+        __workq_kernreturn  (in libsystem_kernel.dylib)        2680
+        mach_msg2_trap  (in libsystem_kernel.dylib)        2680
+        semaphore_wait_trap  (in libsystem_kernel.dylib)        1340
 
 Binary Images:
-       0x10a8b4000 -        0x10a8b7dfb +org.periopsignal.app (1.12.0 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/8875D9EB-C709-43F9-B23F-AA43A4B92F09/PeriopSignal.app/PeriopSignal
-       0x10a8bd000 -        0x10a8c8fd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
-       0x10a91b000 -        0x10a92493f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
-       0x10a934000 -        0x10a970b1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
-       0x10a9fb000 -        0x10aa5d1b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
-       0x10abe0000 -        0x10abec03f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
-       0x10af0e000 -        0x10afa86c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
-       0x110612000 -        0x112eac4a7 +PeriopSignal.debug.dylib (0) <704C71ED-5D03-3C18-89C1-CD593EFDF4C2> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/8875D9EB-C709-43F9-B23F-AA43A4B92F09/PeriopSignal.app/PeriopSignal.debug.dylib
+       0x10e401000 -        0x10e404dfb +org.periopsignal.app (1.12.0 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/63E6576E-5F3C-4B38-B704-F11DFCFA8A2F/PeriopSignal.app/PeriopSignal
+       0x10e40a000 -        0x10e415fd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
+       0x10e468000 -        0x10e47193f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
+       0x10e481000 -        0x10e4bdb1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
+       0x10e548000 -        0x10e5aa1b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
+       0x10e8a2000 -        0x10e8ae03f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
+       0x1131f2000 -        0x11328c6c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
+       0x11895c000 -        0x11b240cbf +PeriopSignal.debug.dylib (0) <4A6D95DC-A6DC-3478-9650-DECA57B4A54B> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/63E6576E-5F3C-4B38-B704-F11DFCFA8A2F/PeriopSignal.app/PeriopSignal.debug.dylib
     0x7ff802539000 -     0x7ff8025741a0 +libobjc.A.dylib (951.1) <B6C5F541-EB9A-30FA-8B48-5A06501D5867> /Volumes/*/libobjc.A.dylib
     0x7ff802575000 -     0x7ff8025a3903 +libdyld.dylib (1335) <D605623A-F7E5-3FCA-9A89-D78CFB0DF709> /Volumes/*/libdyld.dylib
     0x7ff8025a4000 -     0x7ff8025c168d +libsystem_trace.dylib (1815.62.1) <AB003E68-00D3-3735-AB7F-DFC9213DC12D> /Volumes/*/libsystem_trace.dylib
@@ -851,7 +815,6 @@ Binary Images:
     0x7ffb1fd02000 -     0x7ffb1fd7b38d  com.apple.CoreML.MLAssetIO (1.0 - 3505.4.1) <D25BA44F-1E69-3D42-BC93-5F1468CDA92E> /Volumes/*/MLAssetIO.framework/MLAssetIO
     0x7ffb1fd7c000 -     0x7ffb1fdd6c6f  com.apple.mlcompiler.runtime (3404.3.1 - 3404.3.1) <DF0FF09D-CCD3-3679-BC38-294638EFA55C> /Volumes/*/MLCompilerRuntime.framework/MLCompilerRuntime
     0x7ffb1fdd7000 -     0x7ffb1fdf1123  com.apple.mlcompiler.services (3404.3.1 - 3404.3.1) <F5C90754-6CCE-35B3-8D24-D932A9EA3CA9> /Volumes/*/MLCompilerServices.framework/MLCompilerServices
-    0x7ffc01550000 -     0x7ffc0158aa8f  com.apple.MTLSimDriver (370.64.2 - 370.64.2) <FBD4B934-7FA4-3EC9-ACDD-933AB08F5A19> /Volumes/*/MTLSimDriver.framework/MTLSimDriver
     0x7ffc01591000 -     0x7ffc0160769a  com.apple.mxi (1.0 - 1) <671D51B1-4A26-3BDA-8B8D-9BA6A78942D3> /Volumes/*/MXI.framework/MXI
     0x7ffc016a0000 -     0x7ffc016c75fe  com.apple.MailKit (1.0 - 3864.300.41.2.1) <F06EE6E8-12BD-375E-8CA7-213BD734EF40> /Volumes/*/MailKit.framework/MailKit
     0x7ffc01a6d000 -     0x7ffc01a84b85  com.apple.backgroundassets.managed (1.0 - 1.2.1) <8B27DE8E-14C9-38D7-9331-2E439035EB0D> /Volumes/*/ManagedBackgroundAssets.framework/ManagedBackgroundAssets
@@ -865,7 +828,6 @@ Binary Images:
     0x7ffc02938000 -     0x7ffc0293a64e  com.apple.MediaAnalysisGeneration (1.0 - 1) <3257CEDB-89EC-3995-A06B-4773FD71809C> /Volumes/*/MediaAnalysisGeneration.framework/MediaAnalysisGeneration
     0x7ffc0293b000 -     0x7ffc0293e921  com.apple.MediaAnalysisPhotosServices (1.0 - 1) <E1AF1452-5373-3AD4-8377-63948C656AD4> /Volumes/*/MediaAnalysisPhotosServices.framework/MediaAnalysisPhotosServices
     0x7ffc0293f000 -     0x7ffc0299e606  com.apple.MediaAnalysisServices (1.0 - 1) <71120162-FEBC-3A21-A997-2F8FFADFDEC2> /Volumes/*/MediaAnalysisServices.framework/MediaAnalysisServices
-    0x7ffc03299000 -     0x7ffc032c63b9  com.apple.gpusw.MetalSerializer (1.0 - 1) <D610DD32-31CD-38F5-B227-9A30619556A6> /Volumes/*/MetalSerializer.framework/MetalSerializer
     0x7ffc032d6000 -     0x7ffc0381ee57  com.apple.mobilesafari.framework (26.2 - 8623.1.14.10.9) <DFD70813-D71C-3F0C-B7C9-5F8341F7A608> /Volumes/*/MobileSafari.framework/MobileSafari
     0x7ffc041c1000 -     0x7ffc04533306  com.apple.ModelCatalog.ModelCatalog (1.0 - 218.25) <AA137DF4-9E73-3072-9671-37DB27FF6CDA> /Volumes/*/ModelCatalog.framework/ModelCatalog
     0x7ffc045a0000 -     0x7ffc046f43f6  com.apple.ModelManagerServices (1.0 - 1) <4D0D55B1-724D-3DA0-BB21-2A4758D4B738> /Volumes/*/ModelManagerServices.framework/ModelManagerServices
