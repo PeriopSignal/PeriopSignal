@@ -214,7 +214,7 @@ struct PatientView: View {
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
             .sheet(isPresented: $showNote) {
-                PatientNoteSheet { n, before in
+                PatientNoteSheet(cardio: true) { n, before in
                     withAnimation(.snappy) {
                         received = nil
                         noteResult = NoteResult(count: n, before: before, after: patient.record)

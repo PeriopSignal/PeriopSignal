@@ -1050,7 +1050,7 @@ extension PatientDevice {
 
 extension PatientLHC {
     private static let nonObstructiveRx = NoteRx(#"\b(?:non[- ]?obstructive|no obstructive)\b"#)
-    private static let noCADRx = NoteRx(#"\b(?:(?:angiographically |grossly )?normal coronar(?:y|ies)(?: arter(?:y|ies))?|clean coronar(?:y|ies)|no (?:cad|coronary (?:artery )?disease))\b"#)
+    private static let noCADRx = NoteRx(#"\b(?:(?:angiographically |grossly )?normal coronar(?:y|ies)(?: arter(?:y|ies))?|clean coronar(?:y|ies)|(?:clean|normal) cors|no (?:cad|coronary (?:artery )?disease))\b"#)
     /// A coronary cath: "LHC" or "left heart cath" (coronary by themselves), "cath" (not a PA, arterial or central catheter),
     /// or a coronary angiogram, which is not a CT or MR one. A mesenteric, leg or cerebral angiogram is none of these.
     private static let lhcRx = NoteRx(#"\b(?:lhc|left heart cath(?:eterization|eterisation)?)\b"#)

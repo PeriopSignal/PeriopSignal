@@ -61,6 +61,21 @@ enum PatientEditor: Hashable {
         }
     }
 
+    /// The study this page is the page of (1.12 follow-up, Ben, Nov 18): what is typed in its bar is that study's, with no cue.
+    var cardioStudy: CardioStudy? {
+        guard case .workup(let id) = self else { return nil }
+        switch id {
+        case "echo": return .echo
+        case "lhc": return .lhc
+        case "rhc": return .rhc
+        case "pft": return .pft
+        case "cxr": return .cxr
+        case "carotid": return .carotid
+        case "radial": return .radial
+        default: return nil
+        }
+    }
+
     /// The bar's example: the place's, and on Previous Intrathoracic Surgery operations that opened the chest.
     var quickAddPlaceholder: String {
         self == .workup("intrathoracic") ? QuickAdd.intrathoracicPlaceholder : QuickAdd.placeholder(quickAddPlace)
@@ -106,7 +121,7 @@ struct PatientEditorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Type-to-fill on every page (1.8.1): the same bar as the tabs', compact, filling the whole record.
-                    QuickAddBar(place: editor.quickAddPlace, placeholder: editor.quickAddPlaceholder)
+                    QuickAddBar(place: editor.quickAddPlace, placeholder: editor.quickAddPlaceholder, study: editor.cardioStudy)
                     switch editor {
                     case .details: details
                     case .procedure: procedureEditor
