@@ -162,6 +162,9 @@ extension CardioText {
             case "lvSize": return textStatus(e.lvSize?.rawValue, v) { $0 }
             case "rvSize": return textStatus(e.rvSize?.rawValue, v) { $0 }
             case "aorta":
+                // An aorta already described in words is what "aorta intact" replaces: the chip says so, and apply clears it.
+                let words: String = e.aorta.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !words.isEmpty { return .replaces(words) }
                 guard let o = e.aortaIntact else { return .new }
                 return o ? .recorded : .replaces("aorta abnormal")
             default: return .new
@@ -189,7 +192,14 @@ extension CardioText {
             case "fev1Pct": return numberStatus(x.fev1Pct, v) { NumText.short($0) + "%" }
             case "fvc": return numberStatus(x.fvc, v) { NumText.short($0) + " L" }
             case "fvcPct": return numberStatus(x.fvcPct, v) { NumText.short($0) + "%" }
-            case "ratio": return numberStatus(x.ratioTyped, v) { NumText.short($0) }
+            case "ratio":
+                // 55 and 0.55 are one ratio (the model reads either form): the same value typed the other way is recorded.
+                if let old = x.ratioTyped, let new = Double(v) {
+                    let a: Double = old > 1 ? old / 100 : old
+                    let b: Double = new > 1 ? new / 100 : new
+                    if abs(a - b) < 0.0005 { return .recorded }
+                }
+                return numberStatus(x.ratioTyped, v) { NumText.short($0) }
             case "tlcPct": return numberStatus(x.tlcPct, v) { NumText.short($0) + "%" }
             case "dlcoPct": return numberStatus(x.dlcoPct, v) { NumText.short($0) + "%" }
             case "pattern": return textStatus(x.pattern, v) { id in PatientPFT.patterns.first { $0.id == id }?.label.lowercased() ?? id }
@@ -241,17 +251,28 @@ extension CardioText {
         default:
             let old = x.findings.trimmingCharacters(in: .whitespacesAndNewlines)
             if old.isEmpty { return .new }
-            return old.localizedCaseInsensitiveContains(v) ? .recorded : .new
+            // The run's findings come joined by "; ": recorded only when every one of them is already in the line.
+            for part in v.components(separatedBy: "; ") {
+                let n: String = part.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !n.isEmpty && !old.localizedCaseInsensitiveContains(n) { return .new }
+            }
+            return .recorded
         }
     }
 
     // MARK: Apply
 
+    /// The findings line with the new findings added: each one (they come joined by "; ") only when the line does not hold it yet.
     private static func joined(_ old: String, _ new: String) -> String {
-        let n = new.trimmingCharacters(in: .whitespacesAndNewlines)
-        let o = old.trimmingCharacters(in: .whitespacesAndNewlines)
-        if n.isEmpty || o.localizedCaseInsensitiveContains(n) { return old }
-        return o.isEmpty ? n : o + "; " + n
+        var out: String = old.trimmingCharacters(in: .whitespacesAndNewlines)
+        var added = false
+        for part in new.components(separatedBy: "; ") {
+            let n: String = part.trimmingCharacters(in: .whitespacesAndNewlines)
+            if n.isEmpty || out.localizedCaseInsensitiveContains(n) { continue }
+            out = out.isEmpty ? n : out + "; " + n
+            added = true
+        }
+        return added ? out : old
     }
 
     private static func merged(_ old: PatientMonthYear, _ new: String) -> PatientMonthYear {
@@ -286,7 +307,9 @@ extension CardioText {
             case "rv": r.echoFindings.rv = EchoGrade(rawValue: v)
             case "lvSize": r.echoFindings.lvSize = EchoSize(rawValue: v)
             case "rvSize": r.echoFindings.rvSize = EchoSize(rawValue: v)
-            case "aorta": r.echoFindings.aortaIntact = true
+            case "aorta":
+                r.echoFindings.aortaIntact = true
+                r.echoFindings.aorta = ""
             default: break
             }
         case .lhc:
@@ -324,9 +347,18 @@ extension CardioText {
                 let side: PatientChestXray.Side? = parts.count == 2 ? PatientChestXray.Side(rawValue: parts[0]) : nil
                 let size: PatientChestXray.Size? = parts.count == 2 ? PatientChestXray.Size(rawValue: parts[1]) : nil
                 let sameKind = r.chestXray.result == .effusion
+                // A different side or size replaces the effusion as a whole (the chip says "replaces"): the old size never
+                // moves to the new side. The same effusion told with more detail only adds the detail.
+                let sideClash: Bool = side != nil && r.chestXray.side != nil && r.chestXray.side != side
+                let sizeClash: Bool = size != nil && r.chestXray.size != nil && r.chestXray.size != size
                 r.chestXray.choose(.effusion)
-                if let s = side { r.chestXray.side = s } else if !sameKind { r.chestXray.side = nil }
-                if let z = size { r.chestXray.size = z } else if !sameKind { r.chestXray.size = nil }
+                if !sameKind || sideClash || sizeClash {
+                    r.chestXray.side = side
+                    r.chestXray.size = size
+                } else {
+                    if let s = side { r.chestXray.side = s }
+                    if let z = size { r.chestXray.size = z }
+                }
             default: r.chestXray.findings = joined(r.chestXray.findings, v)
             }
         case .carotid:
