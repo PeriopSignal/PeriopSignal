@@ -114,10 +114,11 @@ enum CardioText {
             poison.append(study + "." + field)
         }
 
+        /// Every word and number of the piece is understood: a finding, a known term or filler. A number nothing read is not
+        /// filler ("LAD 70%-80%", "PSV 130-230", "FEV1 1.8/62%" read nothing).
         var pure: Bool {
             if rejected { return false }
-            var t = CardioText.blanked(work, CardioRx.fillerWords)
-            t = CardioText.blanked(t, CardioRx.numbers)
+            let t: String = CardioText.blanked(work, CardioRx.fillerWords)
             return CardioRx.punctOnly.first(t) != nil
         }
     }
@@ -138,6 +139,9 @@ enum CardioText {
         var extra: [CF] = []
         var masks: [NSRange] = []
         var weak: Bool
+        /// The run tells of a change, an earlier study or a doubt ("EF was 55%, now 35%", "effusion resolved", "probably clear"):
+        /// nothing of it is read.
+        var vetoed = false
 
         init(_ study: String, _ cue: CCue?, weak: Bool = false) {
             self.study = study
@@ -817,6 +821,49 @@ enum CardioText {
             }
             p.take(a, b, CF(study: "cxr", field: "result", value: "normal"))
         }
+        cxrAsTyped(p)
+    }
+
+    /// A piece that is not wholly understood (a qualifier, a second side, a size with its unit, "clear except ...") is not a
+    /// structured result: the whole piece goes to the findings line exactly as typed, when it speaks of the film at all.
+    private static func cxrAsTyped(_ p: CParse) {
+        var hasFree = false
+        var structured = 0
+        var freeValue = ""
+        var freeCount = 0
+        for f in p.findings {
+            if f.field == "findings" {
+                hasFree = true
+                freeCount += 1
+                freeValue = f.value
+            } else {
+                structured += 1
+            }
+        }
+        let pure: Bool = p.pure
+        if pure && !hasFree && CardioRx.runVeto.first(p.text) == nil { return }
+        let strip = CharacterSet(charactersIn: " -–.?/:()")
+        let words: [String] = p.text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+        let s: String = words.joined(separator: " ").trimmingCharacters(in: strip)
+        if pure && structured == 0 && freeCount == 1 && freeValue == s { return }
+        let ns = p.text as NSString
+        let edge = CharacterSet(charactersIn: " \t-–.?/:()")
+        var lead = 0
+        var tail = ns.length
+        while lead < tail, let u = UnicodeScalar(ns.character(at: lead)), edge.contains(u) { lead += 1 }
+        while tail > lead, let u = UnicodeScalar(ns.character(at: tail - 1)), edge.contains(u) { tail -= 1 }
+        p.findings = []
+        p.consumed = []
+        p.work = p.text
+        p.rejected = false
+        var ok: Bool = CardioRx.letterRx.first(s) != nil && s.count <= 60
+        if ok && (CardioRx.cxrNegStart.first(s) != nil || CardioRx.cxrExam.first(s) != nil || CardioRx.cxrWo.first(s) != nil) { ok = false }
+        if ok && CardioRx.cxrVocab.first(s) == nil && CardioRx.cxrWords.first(s) == nil { ok = false }
+        if ok && tail > lead {
+            p.take(lead, tail, CF(study: "cxr", field: "findings", value: s))
+        } else {
+            p.rejected = true
+        }
     }
 
     private static func replaceWithBars(_ s: String, _ a: Int, _ b: Int) -> String {
@@ -1145,8 +1192,17 @@ enum CardioText {
         while i < b {
             let c = ns.character(at: i)
             if c == 44 || c == 59 {
-                out.append((s, i))
-                s = i + 1
+                // "1,5 L": a decimal comma stays inside its number (and the number is then not read: see CParse.pure).
+                var decimal = false
+                if c == 44 && i > 0 && i < b - 1 {
+                    let x = ns.character(at: i - 1)
+                    let y = ns.character(at: i + 1)
+                    decimal = x >= 48 && x <= 57 && y >= 48 && y <= 57
+                }
+                if !decimal {
+                    out.append((s, i))
+                    s = i + 1
+                }
             }
             i += 1
         }
@@ -1182,8 +1238,25 @@ enum CardioText {
                 let pc = cues.filter { $0.a >= pa && $0.a < pb }
                 if pc.isEmpty {
                     if let act = active {
-                        let p = runParse(act.study, sub(text, pa, pb), pa)
-                        if p.pure { act.parses.append(p) } else { active = nil }
+                        let pieceText: String = sub(text, pa, pb)
+                        let p = runParse(act.study, pieceText, pa)
+                        let veto: NSTextCheckingResult? = CardioRx.runVeto.first(pieceText)
+                        if p.pure && veto == nil {
+                            act.parses.append(p)
+                        } else {
+                            // The piece that ends the run takes the whole run with it when it qualifies what was read: it opens
+                            // with a word of change or doubt ("resolved on repeat", "now 35%"), speaks of one beside a number or a
+                            // grade, or gives a second value for a field the run already read ("2026 EF 30%", "LAD 50% post PCI").
+                            if let vm = veto {
+                                let wordsBefore: Int = CardioRx.wordRx.all(sub(pieceText, 0, vm.range.location)).count
+                                if CardioRx.vetoBears.first(pieceText) != nil || wordsBefore < 3 { act.vetoed = true }
+                            }
+                            var have = Set<String>()
+                            for q in act.parses { for f in q.findings { have.insert(f.key) } }
+                            for f in act.extra { have.insert(f.key) }
+                            for f in p.findings where have.contains(f.key) { act.vetoed = true }
+                            active = nil
+                        }
                     }
                     continue
                 }
@@ -1226,12 +1299,19 @@ enum CardioText {
                     }
                     // The study's own date: right after the cue, else right before it.
                     var body = after
+                    // A date right after the cue is the study's, whether or not it is kept (a date in the future, or a study that
+                    // holds no date): its digits are never a finding's.
+                    let dm0: NSTextCheckingResult? = CardioRx.dateAfter.first(after)
+                    if let dmx = dm0 {
+                        let g0 = dmx.range(at: 1)
+                        body = blank(after, g0.location, end(g0))
+                    }
                     if hasDate.contains(cue.study) {
                         var date: PatientMonthYear? = nil
                         var da = 0
                         var db = 0
                         var dbase = 0
-                        if let dm = CardioRx.dateAfter.first(after) {
+                        if let dm = dm0 {
                             let g = dm.range(at: 1)
                             date = studyDateRaw((after as NSString).substring(with: g), now)
                             da = g.location
@@ -1264,14 +1344,24 @@ enum CardioText {
                         f.a = cue.a
                         f.b = cue.a + n
                         run.extra.append(f)
-                    } else if cue.study == "pft", let am = CardioRx.pftNormalAfter.first(after) {
+                    } else if cue.study == "pft", let am = CardioRx.pftNormalAfter.first(body) {
                         let g = am.range(at: 1)
                         if !overlaps(g.location, end(g), p.consumed) {
                             p.take(g.location, end(g), CF(study: "pft", field: "pattern", value: "normal"))
                         }
                     }
-                    run.parses.append(p)
-                    active = p.pure ? run : nil
+                    // Strict: a piece is read only when every word of it is understood. An impure cue piece reads nothing, and
+                    // neither does the rest of its run.
+                    if CardioRx.runVeto.first(after) != nil {
+                        run.vetoed = true
+                        active = nil
+                    } else if p.pure {
+                        run.parses.append(p)
+                        active = run
+                    } else {
+                        run.extra = []
+                        active = nil
+                    }
                 }
             }
         }
@@ -1287,11 +1377,12 @@ enum CardioText {
 
     private static func assemble(_ text: String, _ runs: [CRun], _ ndMasks: [NSRange]) -> (findings: [CF], masks: [NSRange]) {
         var poison = Set<String>()
-        for r in runs {
+        for r in runs where !r.vetoed {
             for p in r.parses { for z in p.poison { poison.insert(z) } }
         }
         var keptRuns: [(run: CRun, fs: [CF])] = []
         for r in runs {
+            if r.vetoed { continue }
             var fs: [CF] = []
             for p in r.parses { fs += p.findings }
             fs += r.extra
@@ -1313,8 +1404,8 @@ enum CardioText {
         // The echo's study word.
         for ki in 0..<keptRuns.count {
             let r = keptRuns[ki].run
-            if r.study == "echo", let cue = r.cue, cue.token == "TTE" || cue.token == "TEE" {
-                var f = CF(study: "echo", field: "study", value: cue.token)
+            if r.study == "echo", let cue = r.cue, cue.token.uppercased() == "TTE" || cue.token.uppercased() == "TEE" {
+                var f = CF(study: "echo", field: "study", value: cue.token.uppercased())
                 f.a = cue.a
                 f.b = cue.b
                 keptRuns[ki].fs.append(f)
@@ -1341,6 +1432,8 @@ enum CardioText {
         var abnormal = false
         for k in keptRuns { for f in k.fs where f.study == "cxr" && (f.field == "effusion" || f.field == "findings") { abnormal = true } }
         if abnormal { drop.insert("cxr.result") }
+        // A severity is the pattern's: without its pattern it is not read ("obstructive w/ mild restriction").
+        if drop.contains("pft.pattern") || byKey["pft.pattern"] == nil { drop.insert("pft.severity") }
         var out: [CF] = []
         var seen = Set<String>()
         for k in keptRuns {
@@ -1478,6 +1571,7 @@ enum CardioText {
             CardioRx.punctOnly, CardioRx.qOrCmpBefore, CardioRx.radCalc, CardioRx.radDiam, CardioRx.radHarvest, CardioRx.radUlnar, CardioRx.rhcCo,
             CardioRx.rhcPa, CardioRx.rhcPam, CardioRx.rhcPasp, CardioRx.rhcPcwp, CardioRx.rhcRa, CardioRx.sentBreak, CardioRx.sideCombine,
             CardioRx.sideGap, CardioRx.sideToken, CardioRx.vAfter, CardioRx.vBefore, CardioRx.vNegated, CardioRx.vPulm, CardioRx.vWritten, CardioRx.wordRx,
+            CardioRx.cxrExam, CardioRx.cxrWo, CardioRx.cxrWords, CardioRx.runVeto, CardioRx.vetoBears,
         ]
         out += CardioRx.echoKnown + CardioRx.lhcKnown + CardioRx.rhcKnown + CardioRx.pftKnown
         for s in CardioRx.echoShapes { out.append(s.1) }
