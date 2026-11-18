@@ -7,7 +7,7 @@ import Foundation
 
 enum CardioRx {
     static let aorta = NoteRx(#"\b(?:aorta\s+(?:intact|nl|normal|wnl)|(?:normal|nl|intact)\s+aorta)\b"#)
-    static let arteryWords = NoteRx(#"\b(?:ica|icas|carotid|internal\s+carotid|radial|radials|artery|arteries)\b"#)
+    static let arteryWords = NoteRx(#"\b(?:ica|icas|carotid|internal\s+carotid|radial|radials|artery|arteries|stenosis)\b"#)
     static let beforeOk = NoteRx(#"^[\s:;\-–(]*(?:(?:testing|tests|workup|work-up|cardiac\s+workup|cardiac\s+testing|cardiac|studies|data|imaging|preop|pre-op|preoperative|recent|most\s+recent|formal|outside|osh|2d|resting|complete|his|her|the|a|an|had|has|got|and|also|with|w/)\b[\s:;\-–(]*)*(?:(?:(?<![\d/.\-])(?:(?:0?[1-9]|1[0-2])/(?:(?:19|20)\d\d|\d\d)(?![\d/.\-])|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(?:19|20)\d\d(?![\d/])|(?:19|20)\d\d(?![\d/%.\-])))[\s:;\-–)]*)?(?:(?:on|from)\s+)?$"#)
     static let boundMark = NoteRx(#"\d\s*%?\s*\+|\d\s*%?[-–](?=\s*(?:$|[,;.)]))"#)
     static let carBareNormal = NoteRx(#"^\s*[:\-–]?\s*(?:normal|nl|wnl|no\s+(?:significant\s+)?stenosis)\b"#)
@@ -25,6 +25,8 @@ enum CardioRx {
     static let cuePft = NoteRx(#"\b(?:(normal|nl|wnl)\s+)?(?:pfts?|spirometry|pulmonary\s+function\s+test(?:s|ing)?)\b"#)
     static let cueRadial = NoteRx(#"\bradial\s+(?:artery\s+)?(?:us|u/s|ultrasound|duplex)\b"#)
     static let cueRhc = NoteRx(#"\b(?:rhc|right\s+heart\s+cath(?:eterization|eterisation)?|swan\s+numbers)\b"#)
+    static let cxrDenial = NoteRx(#"^(?:no|without|w/o|neg(?:ative)?\s+for|absence\s+of|free\s+of)\s+[a-z][a-z\s/\-]{1,40}$"#)
+    static let cxrDenialBut = NoteRx(#"\b(?:but|except|however|although|though|other\s+than|aside|now|new|prior|previous\w*|resolv\w*)\b"#)
     static let cxrEff1 = NoteRx(#"(?<![A-Za-z])(?:(small|sm|moderate|mod|large|lg)\s+)?(?:(left|l|right|r|bilateral|bilat|b/l|both)(?:[- ]?sided)?\s+)?(?:pleural\s+)?(eff(?:usions?)?)\b"#)
     static let cxrEff2 = NoteRx(#"(?<![A-Za-z])(?:(left|l|right|r|bilateral|bilat|b/l|both)(?:[- ]?sided)?\s+)?(?:(small|sm|moderate|mod|large|lg)\s+)?(?:pleural\s+)?(eff(?:usions?)?)\b"#)
     static let cxrExam = NoteRx(#"\b(?:auscultation|ctab?|breath\s+sounds|bs\b|percussion|wheez\w*|rales|rhonchi|crackles)"#)
@@ -32,7 +34,8 @@ enum CardioRx {
     static let cxrNormal = NoteRx(#"\b(?:normal|nl|clear(?!\s+(?:to|on|bilat\w*|lungs?|bs|breath\w*|b/l))|wnl|nad|nacpd|unremarkable|neg(?:ative)?(?!\s+for)|no\s+acute\s+(?:cardiopulmonary\s+)?(?:process|disease|findings?|abnormalit(?:y|ies)))\b"#)
     static let cxrOther = NoteRx(#"\b(?:ekg|ecg|labs?|cbc|bmp|cmp|ua|stress|echo|tte|tee|cath|pfts?|troponin|bnp|known|hx|history)\b"#)
     static let cxrSegment = NoteRx(#"[^|,;:()]+"#)
-    static let cxrVocab = NoteRx(#"\b(?:infiltrates?|infiltration|opacit\w+|consolidation|atelectasis|cardiomegaly|cardiac\s+silhouette|edema|congestion|hyperinflat\w+|pneumothorax|ptx|nodules?|masse?s?|lesions?|scarring|fibrosis|cephalization|kerley|pleural\s+thickening|hilar|mediastin\w+|sternal\s+wires?|pna|pneumonia|effusions?|haziness|hazy|blunting|hemidiaphragm|widened|rll|rul|rml|lll|lul|bibasilar|basilar)\b"#)
+    static let cxrSkip = NoteRx(#"\b(?:to|for|no|not|without|r/o|rule\s+out|prn|if|exam|eval\w*|assess\w*|failure|ca|cancer|copd|asthma|chf|screening|sounds?|rate|rrr|murmur|sat|smoker|transplant|pericardial)\b"#)
+    static let cxrVocab = NoteRx(#"\b(?:eff(?:usions?)?|low\s+(?:lung\s+)?volumes?|enlarg\w*|widen\w*|blunt\w*|cp\s+angles?|costophrenic|trache\w*\s+deviat\w*|interstitial|markings|emphysem\w*|bullae|honeycomb\w*|ground\s+glass|reticular|granuloma\w*|cavit\w*|collapse|hemidiaphragm|hilar\s+\w+|fracture\w*|tumou?rs?|infiltrates?|infiltration|opacit\w+|consolidation|atelectasis|cardiomegaly|cardiac\s+silhouette|edema|congestion|hyperinflat\w+|pneumothorax|ptx|nodules?|masse?s?|lesions?|scarring|fibrosis|cephalization|kerley|pleural\s+thickening|hilar|mediastin\w+|sternal\s+wires?|pna|pneumonia|effusions?|haziness|hazy|blunting|hemidiaphragm|widened|rll|rul|rml|lll|lul|bibasilar|basilar)\b"#)
     static let cxrWo = NoteRx(#"^w/o\b"#)
     static let cxrWords = NoteRx(#"\b(?:eff(?:usions?)?|clear|lungs?|heart|volumes?|hila\w*|mediastin\w+|costophrenic|diaphragm\w*|base|bases|lobe|rll|rml|rul|lll|lul|lingula\w*|pna|pneumonia)\b"#)
     static let dateAfter = NoteRx(#"^[\s:(\-–]*(?:(?:on|from|in|dated|done)\s+)?((?<![\d/.\-])(?:(?:0?[1-9]|1[0-2])/(?:(?:19|20)\d\d|\d\d)(?![\d/.\-])|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(?:19|20)\d\d(?![\d/])|(?:19|20)\d\d(?![\d/%.\-])))\)?"#)
@@ -40,12 +43,16 @@ enum CardioRx {
     static let echoKnown: [NoteRx] = [
         NoteRx(#"\b(?:rvsp|pasp|rap)\s*(?:of\s+|:\s*|=\s*)?\d+(?:\.\d+)?(?:\s*mmhg)?"#),
         NoteRx(#"\b(?:la|left\s+atri(?:um|al))\s+(?:size\s+)?(?:(?:is\s+)?(?:mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?)\s+)?(?:nl|normal|dilated|dil|enlarged)\b"#),
+        NoteRx(#"\b(?:global|regional|diffuse|inferior|anterior|lateral|septal|apical|basal|posterior|inferolateral|anteroseptal|anterolateral|inferoseptal)\s+(?:wall\s+)?(?:hypokines\w+|akines\w+|dyskines\w+|wma)\b"#),
         NoteRx(#"\b(?:wall\s+motion\s+(?:abnormalit\w+|nl|normal)|rwma|wma|no\s+rwma|no\s+wma|hypokines\w+|akines\w+)\b"#),
         NoteRx(#"\b(?:diastolic\s+(?:dysfunction|dysfxn|function|fxn)(?:\s+grade\s+(?:i{1,3}|iv|[1-4]))?|grade\s+(?:i{1,3}|iv|[1-4])\s+(?:dd|diastolic(?:\s+dysfunction)?)|dd)\b"#),
         NoteRx(#"\b(?:(?:mean|peak|max)\s+)?gradient\s*(?:of\s+|:\s*|=\s*)?\d+(?:\.\d+)?(?:\s*mmhg)?|\b(?:mean|peak)\s+(?:grad|gradient)\s*\d+"#),
         NoteRx(#"\b(?:ava|mva|valve\s+area)\s*(?:of\s+|:\s*|=\s*)?\d+(?:\.\d+)?(?:\s*cm2?)?"#),
         NoteRx(#"\b(?:lvh|rvh|concentric\s+lvh|lv\s+hypertrophy)\b"#),
         NoteRx(#"\btapse\s*(?:of\s+|:\s*|=\s*)?\d+(?:\.\d+)?(?:\s*(?:mm|cm))?"#),
+        NoteRx(#"\bg[1-4]\s*dd\b"#),
+        NoteRx(#"\bno\s+(?:pericardial\s+)?effusion\b|\bno\s+(?:thrombus|vegetations?|shunt|pfo|asd|wma|rwma)\b"#),
+        NoteRx(#"\b(?:la|lvidd?|lvids?|ivs|lvot)\s*(?:of\s+|:\s*|=\s*)?\d+(?:\.\d+)?\s*(?:cm|mm)\b"#),
     ]
     static let effBadBefore = NoteRx(#"(?:pericardial|trace|tiny|massive|loculated|mild|minimal|(?:small|sm|mod|moderate)\s*(?:-|–|/|to)\s*(?:mod|moderate|large|lg)?)\s*$"#)
     static let efHistory = NoteRx(#"\b(?:ef|lvef|ejection fraction)\s*(?:of|is|was|:|=|~|<|>|≤|≥)?\s*(\d{1,2})\s*(?:-|–|to)?\s*(\d{1,2})?\s*%"#)
@@ -54,7 +61,7 @@ enum CardioRx {
     static let gradeBefore = NoteRx(#"(?:mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|slightly|borderline)\s*[-–/]?\s*$"#)
     static let gradeStart = NoteRx(#"^(?:mild|mod|sev)"#)
     static let hedgeAfter = NoteRx(#"^\s*(?:\?|\(\s*\?\s*\)|(?:vs\.?|versus|->|→|compared|from|prior|previously|unchanged|same|was)\b|\(\s*(?:prior|previous|previously|was|vs\.?)\b)"#)
-    static let leadIn = NoteRx(#"\s*\b(?:on|by|per|in|from|at)\s+(?:the\s+)?(?:(?:last|recent|prior|pre-?op(?:erative)?|repeat)\s+)?$"#)
+    static let leadIn = NoteRx(#"\s*\b(?:on|by|per|in|from|at)\s+(?:the\s+)?$"#)
     static let letterRx = NoteRx(#"[A-Za-z]"#)
     static let lhcDom = NoteRx(#"\b(?:(right|r)[- ]?dom(?:inant|inance)?|(left|l)[- ]?dom(?:inant|inance)?|(co)[- ]?dominan(?:t|ce))\b"#)
     static let lhcKnown: [NoteRx] = [
@@ -63,16 +70,20 @@ enum CardioRx {
         NoteRx(#"\b(?:lvedp|edp)\s*(?:of\s+|:\s*|=\s*)?\d+(?:\.\d+)?(?:\s*mmhg)?"#),
         NoteRx(#"\b(?:lv\s*)?(?:lvef|ef|ejection\s+fraction)\b\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?[~≈]?\s*\d{1,2}(?:\.\d)?(?:\s*(?:-|–|to)\s*\d{1,2}(?:\.\d)?)?\s*%?"#),
         NoteRx(#"\b(?:lv\s*gram|ventriculogram)\b"#),
+        NoteRx(#"\b(lmca|lm|left\s+main(?:\s+coronary)?|lad|left\s+anterior\s+descending|lcx|cx|circ|circumflex|rca|right\s+coronary(?:\s+artery)?|pda)\s+(?:is\s+)?(?:nl|normal|wnl|patent|clean|ok)\b|\b(?:nl|normal|patent|clean)\s+(lmca|lm|left\s+main(?:\s+coronary)?|lad|left\s+anterior\s+descending|lcx|cx|circ|circumflex|rca|right\s+coronary(?:\s+artery)?|pda)\b"#),
     ]
     static let lhcOccA = NoteRx(#"\b(?:cto|(?:(?:totally|completely|chronically)\s+)?occluded|(?:total\s+)?occlusion\s+of(?:\s+the)?)\s+(?:(?:(prox(?:imal)?|mid|dist(?:al)?)\s+|(p|m|d)\s?-?(?=(?:lmca|lm|lad|lcx|cx|rca|pda)\b)))?(lmca|lm|left\s+main(?:\s+coronary)?|lad|left\s+anterior\s+descending|lcx|cx|circ|circumflex|rca|right\s+coronary(?:\s+artery)?|pda)\b"#)
     static let lhcOccB = NoteRx(#"\b(?:(?:(prox(?:imal)?|mid|dist(?:al)?)\s+|(p|m|d)\s?-?(?=(?:lmca|lm|lad|lcx|cx|rca|pda)\b)))?(lmca|lm|left\s+main(?:\s+coronary)?|lad|left\s+anterior\s+descending|lcx|cx|circ|circumflex|rca|right\s+coronary(?:\s+artery)?|pda)\s+(?:is\s+)?(?:cto|(?:(?:totally|completely|chronically)\s+)?occluded|(?:total\s+)?occlusion)\b"#)
-    static let lhcPctAfter = NoteRx(#"\b(?:(?:(prox(?:imal)?|mid|dist(?:al)?)\s+|(p|m|d)\s?-?(?=(?:lmca|lm|lad|lcx|cx|rca|pda)\b)))?(lmca|lm|left\s+main(?:\s+coronary)?|lad|left\s+anterior\s+descending|lcx|cx|circ|circumflex|rca|right\s+coronary(?:\s+artery)?|pda)\b(?:\s+(?:stenosis|lesion|disease|stenotic))?\s*(?:[:=\-–]\s*|(?:of|is|was|at)\s+)?(\d{1,3})\s*(%)?(?!\d)(?!\s*(?:[-–/]\s*\d|to\s+\d|mm\b|cm\b|vessel|stents?|x\b|×|\.\d))"#)
+    static let lhcPctAfter = NoteRx(#"\b(?:(?:(prox(?:imal)?|mid|dist(?:al)?)\s+|(p|m|d)\s?-?(?=(?:lmca|lm|lad|lcx|cx|rca|pda)\b)))?(lmca|lm|left\s+main(?:\s+coronary)?|lad|left\s+anterior\s+descending|lcx|cx|circ|circumflex|rca|right\s+coronary(?:\s+artery)?|pda)\b(?:\s+(?:stenosis|lesion|disease|stenotic))?\s*(?:[:=\-–]\s*|(?:of|is|was|at)\s+)?(\d{1,3})\s*(%)?(?!\d)(?!\s*(?:[-–/]\s*\d|to\s+\d|mm|cm\b|vessel|stents?|x\b|×|\.\d))"#)
     static let lhcPctBefore = NoteRx(#"(?<![\d.])(\d{1,3})\s*%\s*(?:stenosis\s+)?(?:(?:of|in)\s+)?(?:the\s+)?(?:(?:(prox(?:imal)?|mid|dist(?:al)?)\s+|(p|m|d)\s?-?(?=(?:lmca|lm|lad|lcx|cx|rca|pda)\b)))?(lmca|lm|left\s+main(?:\s+coronary)?|lad|left\s+anterior\s+descending|lcx|cx|circ|circumflex|rca|right\s+coronary(?:\s+artery)?|pda)\b(?:\s+(?:stenosis|lesion))?"#)
     static let maskGap = NoteRx(#"^[\s:\-–()=]*$"#)
     static let negatedBefore = NoteRx(#"\b(?:no|not|without|w/o|denies|denied|never|absent|neg(?:ative)?\s+for|ruled\s+out|r/o|rule\s+out|possible|probable|likely|suspect(?:ed)?|borderline|questionable|\?)\W+(?:\w+\W+){0,2}$"#)
+    static let nextOpening = NoteRx(#"^[\s,;.]*([^,;.\n]*)"#)
     static let notDoneAfter = NoteRx(#"^\s*[:\-–]?\s*(?:(?:is|was|has\s+been|to\s+be|still|not\s+yet)\s+)*(?:pending|ordered|scheduled|sched|planned|recommended|not\s+(?:done|performed|yet|completed|available|obtained|on\s+file)|never\s+(?:done|had|performed)|awaiting|declined|refused|deferred|to\s+be\s+done|cancel\w*|needed|unable\s+to\s+(?:complete|tolerate|perform|do|obtain)|to\s+be\s+(?:done|scheduled|ordered|obtained)|tomorrow|later|in\s+(?:the\s+)?(?:am|morning)|next\s+week|on\s+(?:mon|tue|wed|thu|fri|sat|sun)\w*)\b"#)
     static let notDoneBefore = NoteRx(#"\b(?:no|not|never|without|denies|w/o|pending|ordered|scheduled|sched|planned|plan|plans|planning|will|would|check|checking|await|possible|possibly|if|unless|recommend\w*|needs?|needed|consider\w*|should\s+(?:have|get|undergo)|awaiting|declined|refused|deferred|unable\s+to\s+(?:do|complete|perform|tolerate|get|obtain)|to\s+(?:have|get|undergo|obtain|do)|will\s+(?:have|get|need|undergo)|get|getting|obtain|request\w*|order(?:ing)?|due(?:\s+for)?)\s+(?:(?:an?|the|for|to\s+have|had|prior|previous|recent|any|formal|record\s+of|repeat|outpatient|preop\w*|further|new|updated|stat|urgent|bedside|limited|complete|prelim\w*|cardiac|coronary|diagnostic|portable)\s+)*$"#)
     static let numbers = NoteRx(#"\d+(?:\.\d+)?"#)
+    static let otherPerson = NoteRx(#"\b(?:fhx|fh|fam(?:ily)?\s+h(?:x|istory)|family|mother|father|brother|sister|son|daughter|wife|husband|spouse|mom|dad|donor|sibling|parent|twin|uncle|aunt|grand\w+)\b"#)
+    static let otherTopic = NoteRx(#"^\s*(?:labs?|ekg|ecg|cbc|bmp|cmp|ua|coags?|inr|ptt|k|na|cr|bun|hgb|hb|hct|plt|wbc|a1c|hba1c|glucose|bg|bnp|trop\w*|tsh|bp|hr|spo2|sats?|rr|temp|wt|ht|bmi|vitals?|mets|mallampati|mp|asa|airway|npo|allergies|nkda|meds?|on|takes|home|htn|hld|dm\d?|t2dm|iddm|cad|chf|hfref|hfpef|ckd|esrd|copd|osa|gerd|afib|af|pvd|cva|tia|obesity|smoker|etoh|stress|nuclear|mpi|ett)\b"#)
     static let ownForm = NoteRx(#"\b(?:sev|triv)\b"#)
     static let pairAfter = NoteRx(#"^\s*(?:and|&|/|\+)\s*(?:rv|lv)\b"#)
     static let pairBefore = NoteRx(#"\b(?:rv|lv)\s*(?:and|&|/|\+)\s*$"#)
@@ -84,9 +95,9 @@ enum CardioRx {
     ]
     static let pftNormalAfter = NoteRx(#"^\s*[:\-–]?\s*(normal|nl|wnl)\b(?!\s+(?:dlco|tlc|fev\s?1|fvc|ratio|lung|diffusion|spirometry))"#)
     static let pftPattern = NoteRx(#"\b(?:(mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?)\s+)?(obstructive|obstruction|obs|restrictive|restriction|mixed|nonspecific|non-specific)(?:\s+(?:pattern|defect|disease|ventilatory\s+defect|lung\s+disease))?(?:\s+(mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?)\b)?"#)
-    static let pftRatio = NoteRx(#"\bfev\s?1\s*/\s*fvc\b\s*(?:ratio\s*)?(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d*\.?\d+)\s*(%)?(?![\d/])|\bratio\b\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d*\.?\d+)\s*(%)?(?![\d/])"#)
+    static let pftRatio = NoteRx(#"\bfev\s?1\s*/\s*fvc\b\s*(?:ratio\s*)?(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d*\.?\d+)\s*(%)?(?![\d/])|(?<!a-a )(?<!a–a )(?<!aa )\bratio\b\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d*\.?\d+)\s*(%)?(?![\d/])"#)
     static let pftTlc = NoteRx(#"\btlc\b\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d{1,3}(?:\.\d)?)\s*%(?:\s*pred(?:icted)?)?(?!\s*(?:[-–]\s*\d|to\s+\d))"#)
-    static let pftVol = NoteRx(#"\b(fev\s?1|fvc)\b(?!\s*/)\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d*\.?\d+)\s*(l\b|liters?\b|litres?\b|%)?(?:\s*(?:pred(?:icted)?)\b)?(?:\s*\(?\s*(\d*\.?\d+)\s*(%|l\b)\s*(?:pred(?:icted)?)?\s*\)?)?(?![\d/])(?!\s*(?:[-–]\s*\d|to\s+\d))"#)
+    static let pftVol = NoteRx(#"\b(fev\s?1|fvc)\b(?!\s*/)\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d*\.?\d+)\s*(l\b(?!\s*pred)|liters?\b(?!\s*pred)|litres?\b(?!\s*pred)|%)?(?:\s*(?:pred(?:icted)?)\b)?(?:\s*\(?\s*(\d*\.?\d+)\s*(%|l\b)\s*(?:pred(?:icted)?)?\s*\)?)?(?![\d/])(?!\s*(?:[-–]\s*\d|to\s+\d))"#)
     static let plannedBefore = NoteRx(#"\b(?:for|undergoing)\s+(?:(?:an?|the|elective|urgent|emergent|diagnostic|repeat|outpatient|cardiac|coronary)\s+)*$"#)
     static let punctOnly = NoteRx(#"^[\s:\-–—=()/%.]*$"#)
     static let qOrCmpBefore = NoteRx(#"(?:\?|[<>≤≥])\s*$"#)
@@ -100,18 +111,18 @@ enum CardioRx {
         NoteRx(#"\b(?:fick|td|thermodilution|thermo)\b"#),
         NoteRx(#"\b(?:ci|cardiac\s+index|pvr|svr|svo2|tpg|dpg|mixed\s+venous)\b\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?\d*(?:\.\d+)?(?:\s*(?:wu|woods?\s+units?|dyn\w*|%|l/min/m2))?"#),
     ]
-    static let rhcPa = NoteRx(#"\b(?:pa|pap)\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d{1,3})\s*/\s*(\d{1,3})(?:\s*(?:/|\(\s*(?:mean\s*(?:of\s+)?)?|,?\s*(?:with\s+(?:a\s+)?)?mean\s*(?:of\s+)?|\bm\b\s*)\s*(\d{1,3})(?:\s*mm\s*hg)?\)?)?(?:\s*mm\s*hg)?(?![\d/%])"#)
+    static let rhcPa = NoteRx(#"\b(?:pa|pap)\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d{1,3})\s*/\s*(\d{1,3})(?:\s*mm\s*hg)?(?:\s*(?:/|\(\s*(?:mean\s*(?:of\s+)?)?|,?\s*(?:with\s+(?:a\s+)?)?mean\s*(?:of\s+)?|\bm\b\s*)\s*(\d{1,3})(?:\s*mm\s*hg)?\)?)?(?:\s*mm\s*hg)?(?![\d/%])"#)
     static let rhcPam = NoteRx(#"\b(?:mpap|pa\s+mean|mean\s+pa(?:p)?|pam)\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d{1,3})(?:\s*mm\s*hg)?(?![\d/%.])(?!\s*(?:[-–]\s*\d|to\s+\d))"#)
     static let rhcPasp = NoteRx(#"\b(pasp|padp)\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d{1,3})(?:\s*mm\s*hg)?(?![\d/%.])(?!\s*(?:[-–]\s*\d|to\s+\d))"#)
     static let rhcPcwp = NoteRx(#"\b(?:pcwp|pawp|pcw|wedge)\s*(?:pressure\s*)?(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d{1,2}(?:\.\d)?)(?:\s*mm\s*hg)?(?![\d/%.])(?!\s*(?:[-–]\s*\d|to\s+\d))"#)
     static let rhcRa = NoteRx(#"\b(?:ra|rap|ra\s+pressure|right\s+atrial(?:\s+pressure)?)\s*(?:of\s+|is\s+|was\s+|:\s*|=\s*)?(\d{1,2}(?:\.\d)?)(?:\s*mm\s*hg)?(?![\d/%.])(?!\s*%)(?!\s*(?:[-–]\s*\d|to\s+\d))"#)
-    static let runVeto = NoteRx(#"\b(?:now|currently|was|were|used\s+to|no\s+longer|anymore|actually|i\s+mean|sorry|correction|corrected|recover\w*|normali[sz]\w*|better|cleared|gone|drained|tapped|tap|s/p|status\s+post|post|pre|after|before|residual|cannot\s+be\s+(?:excluded|ruled)|not\s+excluded|verif\w*|confirm\w*|tbd|pending|awaiting|recheck|f/u|follow-?up|unverified|unconfirmed|unreliable|unsure|uncertain|maybe|perhaps|doubtful|dubious|inaccurate|poor|damped|reportedly|allegedly|roughly|at\s+least|at\s+most|up\s+to|down\s+to|pci|des|bms|stent\w*|poba|ptca|angioplast\w*|grafts?|svg|lima|rima|cabg|tavr|savr|avr|mvr|tvr|teer|mitraclip|cea|prior|previous(?:ly)?|formerly|old|earlier|baseline|improv\w+|worse\w*|worsen\w+|resolv\w+|increas\w+|decreas(?:e|es|ing)\b|progress\w+|interval|unchanged|stable|since|compared|comparison|vs\.?|versus|h/o|history\s+of|repeat|then|later|previously|up\s+from|down\s+from|probabl[ey]|possibl[ey]|appears?|apparent(?:ly)?|likely|suspect\w*|questionable|equivocal|cannot\s+(?:exclude|rule)|can't\s+(?:exclude|rule)|may\s+(?:be|have|represent)|question\w*|limited|suboptimal|poor\s+(?:windows?|quality)|technically\s+difficult|estimated\s+by|not\s+(?:well\s+)?(?:seen|visuali[sz]ed|assessed|measured|reported))\b|->|→|=>|\?"#)
+    static let runVeto = NoteRx(#"\b(?:prev|last\s+(?:year|yr|month|week|time|visit)|ago|not\s+sure|i\s+think|i\s+believe|per\s+(?:pt|patient|wife|husband|family|report|chart|records?)|unavailable|no\s+report|no\s+images|change[ds]?|similar|same|shrink\w*|shrank|grow\w*|grew|bigger|dropped|rose|fell|climbed|became|went|returned|back\s+to|revasculari[sz]\w*|recanali[sz]\w*|balloon\w*|opened|treated|placed|invalid|reproducib\w*|now|currently|was|were|used\s+to|no\s+longer|anymore|actually|i\s+mean|sorry|correction|corrected|recover\w*|normali[sz]\w*|better|cleared|gone|drained|tapped|tap|s/p|status\s+post|post|pre|after|before|residual|cannot\s+be\s+(?:excluded|ruled)|not\s+excluded|verif\w*|confirm\w*|tbd|pending|awaiting|recheck|f/u|follow-?up|unverified|unconfirmed|unreliable|unsure|uncertain|maybe|perhaps|doubtful|dubious|inaccurate|poor|damped|reportedly|allegedly|roughly|at\s+least|at\s+most|up\s+to|down\s+to|pci|des|bms|stent\w*|poba|ptca|angioplast\w*|grafts?|svg|lima|rima|cabg|tavr|savr|avr|mvr|tvr|teer|mitraclip|cea|prior|previous(?:ly)?|formerly|old|earlier|baseline|improv\w+|worse\w*|worsen\w+|resolv\w+|increas\w+|decreas(?:e|es|ing)\b|progress\w+|interval|unchanged|stable|since|compared|comparison|vs\.?|versus|h/o|history\s+of|repeat|then|later|previously|up\s+from|down\s+from|probabl[ey]|possibl[ey]|appears?|apparent(?:ly)?|likely|suspect\w*|questionable|equivocal|cannot\s+(?:exclude|rule)|can't\s+(?:exclude|rule)|may\s+(?:be|have|represent)|question\w*|limited|suboptimal|poor\s+(?:windows?|quality)|technically\s+difficult|estimated\s+by|not\s+(?:well\s+)?(?:seen|visuali[sz]ed|assessed|measured|reported))\b|->|→|=>|\?"#)
     static let sentBreak = NoteRx(#"\n|\.(?=\s|$)"#)
     static let sideCombine = NoteRx(#"^\s*(?:and|&|/|\+)\s*$"#)
     static let sideGap = NoteRx(#"^[\s:=\-–,(]*(?:(?:is|has|of|with|flow|ica|stenosis|doppler|velocity|velocities|measures)\s+)*$"#)
     static let sideToken = NoteRx(#"(?<![A-Za-z])(?:(bilaterally|bilateral|bilat|b/l|both)|(rica|right|r)|(lica|left|l))(?![A-Za-z])(?:\s+(?:ica|internal\s+carotid|carotid|radial(?:\s+artery)?))?"#)
     static let startsWithValue = NoteRx(#"^\s*[\d<>≤≥~≈]"#)
-    static let vetoBears = NoteRx(#"\d|\b(?:normal|nl|wnl|mild\w*|mod\w*|sev\w*|clear|dilated|reduced|occluded)\b"#)
+    static let vetoBears = NoteRx(#"\d|\b(?:normal|nl|wnl|mild\w*|mod\w*|sev\w*|clear|dilated|reduced|occluded|small|large|trace|trivial|critical|abnormal|positive|negative|neg)\b"#)
     static let vAfter = NoteRx(#"(?<![A-Za-z])((?-i:AS|AR|AI|MS|MR|TS|TR|TI))(?:\s+(?:is|was)\s+|\s*[:\-–]\s*|\s+)((?:trace|triv(?:ial)?|mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|critical))(?:(?:\s*[-–/]\s*|\s+to\s+|-to-)((?:trace|triv(?:ial)?|mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|critical)))?\b(?!\s*(?:valve\s+)?(?:(?-i:[AMTP][SRI])\b|aortic|mitral|tricuspid|pulmonic|pulmonary))"#)
     static let vBefore = NoteRx(#"\b((?:trace|triv(?:ial)?|mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|critical))(?:(?:\s*[-–/]\s*|\s+to\s+|-to-)((?:trace|triv(?:ial)?|mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|critical)))?\s+((?-i:AS|AR|AI|MS|MR|TS|TR|TI))(?:/((?-i:AR|AI)))?\b(?!\s*(?:interval|prolong\w*|segment))"#)
     static let vNegated = NoteRx(#"\b(?:no|without|neg(?:ative)?\s+for)\s+(?:significant\s+|sig\s+|evidence\s+of\s+)?(?:(?-i:AS|AR|AI|MS|MR|TS|TR|TI|PS|PR|PI)\b|aortic|mitral|tricuspid|pulmonic)(?:\s+(?:stenosis|regurgitation|insufficiency|regurg))?"#)
@@ -119,13 +130,13 @@ enum CardioRx {
     static let vWritten = NoteRx(#"(?:\b((?:trace|triv(?:ial)?|mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|critical))(?:(?:\s*[-–/]\s*|\s+to\s+|-to-)((?:trace|triv(?:ial)?|mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|critical)))?\s+)?\b(aortic|mitral|tricuspid)\s+(?:valve\s+)?(stenosis|regurgitation|insufficiency|regurg)\b(?:(?:\s+(?:is|was)\s+|\s*[:\-–]\s*|\s+)((?:trace|triv(?:ial)?|mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|critical))(?:(?:\s*[-–/]\s*|\s+to\s+|-to-)((?:trace|triv(?:ial)?|mild(?:ly)?|mod(?:erate(?:ly)?)?|sev(?:ere(?:ly)?)?|critical)))?\b(?!\s*(?:valve\s+)?(?:(?-i:[AMTP][SRI])\b|aortic|mitral|tricuspid|pulmonic|pulmonary)))?"#)
     static let wordRx = NoteRx(#"[A-Za-z]+"#)
     static let restVocab: [String: NoteRx] = [
-        "echo": NoteRx(#"\b(?:ef|lvef|lv|rv|la|valv\w*|aort\w*|root|regurg\w*|stenosis|wall\s+motion|wma|rwma|dilat\w*|hypokin\w*|akin\w*|prosthe\w*|vegetation|thrombus|tamponade|pericardial|sam|gradient)\b|(?-i:\b(?:AS|AR|AI|MS|MR|TR|PS|PR)\b)"#),
-        "lhc": NoteRx(#"\b(?:lad|lcx|cx|circ\w*|rca|lm|lmca|pda|om\d?|diag\w*|ramus|coronar\w*|occlu\w*|stenosis|lesions?|vessel)\b"#),
+        "echo": NoteRx(#"\b(?:ef|lvef|lv|rv|la|valv\w*|aort\w*|root|regurg\w*|stenosis|wall\s+motion|wma|rwma|dilat\w*|hypokin\w*|akin\w*|prosthe\w*|vegetation|thrombus|tamponade|pericardial|sam|gradient|dissection|aneurysm\w*|ascending|sinus(?:es)?|flap|ejection\s+fraction|effusion|hypertrophy|lvh|diastolic|systolic)\b|(?-i:\b(?:AS|AR|AI|MS|MR|TR|PS|PR)\b)"#),
+        "lhc": NoteRx(#"\b(?:lad|lcx|cx|circ\w*|rca|lm|lmca|pda|om\d?|diag\w*|ramus|coronar\w*|occlu\w*|stenosis|lesions?|vessel|left\s+main|left\s+anterior|right\s+coronary|dominan\w*|dom|bypass|cad)\b"#),
         "rhc": NoteRx(#"\b(?:ra|rap|pa|pap|pcwp|wedge|pawp|pcw|co|ci|pvr|svr|mpap|pasp|padp)\b\s*(?:of\s+|:\s*|=\s*)?\d|\b(?:tracing|waveform|wedge)\b"#),
-        "pft": NoteRx(#"\b(?:fev\s?1|fvc|dlco|tlc|ratio|obstruct\w*|restrict\w*|effort|cooperat\w*|bronchodilator)\b"#),
-        "cxr": NoteRx(#"\b(?:eff(?:usions?)?|infiltrat\w*|opacit\w*|consolidation|atelectasis|cardiomegaly|edema|congestion|pneumothorax|ptx|nodules?|mass(?:es)?|lungs?|lobes?|volumes?|hyperinfl\w*|pna|pneumonia)\b"#),
-        "carotid": NoteRx(#"\b(?:ica|icas|carotids?|vertebrals?|stenosis|occlu\w*|plaque|psv|edv|endarterectomy)\b"#),
-        "radial": NoteRx(#"\b(?:radials?|ulnar|calcif\w*|harvest|allen)\b"#),
+        "pft": NoteRx(#"\b(?:fev\s?1|fvc|dlco|tlc|ratio|obstruct\w*|restrict\w*|effort|cooperat\w*|bronchodilator|air\s+trapping|hyperinflat\w*|bd|diffusi\w*|spirometr\w*)\b"#),
+        "cxr": NoteRx(#"\b(?:eff(?:usions?)?|infiltrat\w*|opacit\w*|consolidation|atelectasis|cardiomegaly|edema|congestion|pneumothorax|ptx|nodules?|mass(?:es)?|volumes?|hyperinfl\w*|pna|pneumonia|enlarg\w*|mediastin\w*|hemidiaphragm|kerley|collapse|fluid|tumou?rs?|cp\s+angles?|costophrenic|blunt\w*|trache\w*|interstitial|markings|emphysem\w*|bullae|honeycomb\w*|ground\s+glass|reticular|granuloma\w*|cavit\w*|hilar?|hilum|fracture\w*|widen\w*)\b"#),
+        "carotid": NoteRx(#"\b(?:ica|icas|carotids?|vertebrals?|stenosis|occlu\w*|plaque|psv|edv|endarterectomy|bruits?)\b|\b(?:left|right|l|r|bilat\w*)\b\s*(?:side\s*)?[<>]?\s*\d"#),
+        "radial": NoteRx(#"\b(?:radials?|ulnar|calcif\w*|harvest|allen|flow|occlu\w*|thromb\w*|patent|patency)\b"#),
     ]
     static let echoShapes: [(String, NoteRx)] = [
         ("nsize", NoteRx(#"\b(lvsf|rvsf|lv|rv|left\s+ventric(?:le|ular)|right\s+ventric(?:le|ular))\s+(?:normal(?:ly)?|nl|wnl|preserved|intact)\s+size\b"#)),
