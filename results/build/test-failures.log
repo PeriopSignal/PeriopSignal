@@ -1,0 +1,3 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:168: error: -[PeriopSignalTests.L112Tests testForTEEAndForCardioversionAreAsBefore] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(PeriopSignal.PatientNoteChange.procedure("TEE"))")
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:170: error: -[PeriopSignalTests.L112Tests testForTEEAndForCardioversionAreAsBefore] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(PeriopSignal.PatientNoteChange.procedure("TEE"))")
+Test Case '-[PeriopSignalTests.L112Tests testForTEEAndForCardioversionAreAsBefore]' failed (39.509 seconds).
