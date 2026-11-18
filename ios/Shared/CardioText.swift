@@ -388,15 +388,16 @@ enum CardioText {
         // Negated lesions ("no MR") and pulmonic ones are understood, never stored.
         for m in CardioRx.vNegated.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
             p.known(m.range.location, end(m.range))
-            // "no MR, mod MR": the lesion denied here is not read from elsewhere in the study.
+            // "no MR, mod MR": the lesion denied here is not read from elsewhere in the study. (The words are read from the
+            // piece's own text: the working copy has just been blanked.)
             var valve: String? = nil
             var lesions: [String] = ["stenosis", "regurgitation"]
-            if let letters = grp(m, 1, p.work), let first = letters.first {
+            if let letters = grp(m, 1, t), let first = letters.first {
                 if first == "A" { valve = "aortic" } else if first == "M" { valve = "mitral" } else if first == "T" { valve = "tricuspid" }
                 lesions = letters.hasSuffix("S") ? ["stenosis"] : ["regurgitation"]
-            } else if let written = grp(m, 2, p.work)?.lowercased(), written != "pulmonic" {
+            } else if let written = grp(m, 2, t)?.lowercased(), written != "pulmonic" {
                 valve = written
-                if let word = grp(m, 3, p.work)?.lowercased() { lesions = word == "stenosis" ? ["stenosis"] : ["regurgitation"] }
+                if let word = grp(m, 3, t)?.lowercased() { lesions = word == "stenosis" ? ["stenosis"] : ["regurgitation"] }
             }
             if let v = valve {
                 for les in lesions { p.poisoned("echo", "valve." + v + "." + les) }
