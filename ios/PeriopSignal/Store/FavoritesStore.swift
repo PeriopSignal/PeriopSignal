@@ -35,7 +35,8 @@ final class FavoritesStore {
 
     /// Tools that were merged into another keep their place in the list under the new key. (The Apfel score, once
     /// folded into PONV, is a calculator of its own again under Preoperative & General.)
-    static let renamed: [String: String] = ["quickref:ponv-consensus": "ponv"]
+    /// The surgical prophylaxis card, now a calculator (1.12, Nov 16).
+    static let renamed: [String: String] = ["quickref:ponv-consensus": "ponv", "quickref:ashp-surgical-prophylaxis": "prophylaxis"]
 
     static func migrate(_ list: [String]) -> [String] {
         var out: [String] = []

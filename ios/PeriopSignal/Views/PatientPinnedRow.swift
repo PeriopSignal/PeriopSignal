@@ -217,6 +217,13 @@ struct PatientRouteCaption: ViewModifier {
     var route: RefRoute
 
     @ViewBuilder func body(content: Content) -> some View {
-        if route == .caseTimers { content.patientCaseCaption("Case Timers") } else { content }
+        if route == .caseTimers {
+            content.patientCaseCaption("Case Timers")
+        } else if route == .prophylaxis {
+            // 1.12 (Nov 16): the prophylaxis calculator opened from the case names the case, as Case Timers does.
+            content.patientCaseCaption("Antibiotic Prophylaxis")
+        } else {
+            content
+        }
     }
 }

@@ -1061,7 +1061,48 @@ jobs:
           shot 1187-abxdose-vanc-weight-needed-light-375 24 -ps.tab patient -ps.patient demo-112-abxdose-vanc -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.scroll antibiotic -ps.timers.abx.dose vancomycin -ps.patient.width 375 -ps.forceAppearance light
           shot 1188-abxdose-large-text-light-375 24 -ps.tab patient -ps.patient demo-112-abxdose-custom -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.scroll antibiotic -ps.textScale 1.5 -ps.patient.width 375 -ps.forceAppearance light
           shot 1189-abxdose-handoff-dark 20 -ps.tab patient -ps.patient demo-112-abxdose-custom -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          # ---- 1.12 helper S shots (1200-1239): add your shot lines directly under this line ----
           #
+          shot 1200-proph-folder-row-light 12 -ps.ref folder:preoperative -ps.forceAppearance light
+          shot 1201-proph-blank-light 14 -ps.ref prophylaxis -ps.forceAppearance light
+          shot 1202-proph-orthopedic-open-light 14 -ps.ref prophylaxis -ps.proph.group orthopedic -ps.forceAppearance light
+          shot 1203-proph-cabg-90-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1204-proph-cabg-125-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 125 -ps.forceAppearance light
+          shot 1205-proph-cabg-allergy-mrsa-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.allergy 1 -ps.proph.mrsa 1 -ps.forceAppearance light
+          shot 1206-proph-colorectal-allergy-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure colorectal -ps.proph.allergy 1 -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1207-proph-urologic-prosthesis-light 14 -ps.ref prophylaxis -ps.proph.group urologic -ps.proph.procedure prosthesis -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1208-proph-biliary-question-light 14 -ps.ref prophylaxis -ps.proph.group biliary -ps.proph.procedure lap -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1209-proph-biliary-low-light 14 -ps.ref prophylaxis -ps.proph.group biliary -ps.proph.procedure lap -ps.proph.variant low -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1210-proph-biliary-high-light 14 -ps.ref prophylaxis -ps.proph.group biliary -ps.proph.procedure lap -ps.proph.variant high -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1211-proph-gastro-not-high-light 14 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure no-entry -ps.proph.variant not-high -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1212-proph-liver-transplant-light 14 -ps.ref prophylaxis -ps.proph.group transplant -ps.proph.procedure liver -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1213-proph-ophthalmic-light 14 -ps.ref prophylaxis -ps.proph.group ophthalmic -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1214-proph-info-about-light 14 -ps.ref prophylaxis -ps.proph.info about -ps.forceAppearance light
+          shot 1215-proph-info-allergy-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.info allergy -ps.forceAppearance light
+          shot 1216-proph-info-mrsa-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.info mrsa -ps.forceAppearance light
+          shot 1217-proph-info-result-star-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.allergy 1 -ps.proph.info result -ps.forceAppearance light
+          shot 1218-proph-info-result-classes-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure colorectal -ps.proph.allergy 1 -ps.proph.weight 90 -ps.proph.info result -ps.forceAppearance light
+          shot 1219-proph-info-question-light 14 -ps.ref prophylaxis -ps.proph.group biliary -ps.proph.procedure lap -ps.proph.info question -ps.forceAppearance light
+          shot 1220-proph-info-group-light 14 -ps.ref prophylaxis -ps.proph.group vascular -ps.proph.weight 90 -ps.proph.info group -ps.forceAppearance light
+          shot 1221-proph-no-weight-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.forceAppearance light
+          shot 1222-proph-case-prefilled-light 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.forceAppearance light
+          shot 1223-proph-case-confirm-light 22 -ps.tab patient -ps.patient demo-112-proph-plain -ps.patient.open prophylaxis -ps.proph.confirm cefazolin -ps.forceAppearance light
+          shot 1224-proph-case-started-light 22 -ps.tab patient -ps.patient demo-112-proph-plain -ps.patient.open prophylaxis -ps.proph.start cefazolin -ps.forceAppearance light
+          shot 1225-proph-case-running-light 22 -ps.tab patient -ps.patient demo-112-proph-running -ps.patient.open prophylaxis -ps.forceAppearance light
+          shot 1226-proph-case-child-light 22 -ps.tab patient -ps.patient demo-112-proph-child -ps.patient.open prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.variant uncomplicated -ps.forceAppearance light
+          shot 1227-proph-case-group-only-light 22 -ps.tab patient -ps.patient demo-112-proph-avr -ps.patient.open prophylaxis -ps.forceAppearance light
+          shot 1228-proph-large-text-cabg-allergy-light 16 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.allergy 1 -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1229-proph-cabg-light-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1230-proph-cabg-dark-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1231-proph-colorectal-allergy-light-375 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure colorectal -ps.proph.allergy 1 -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1232-proph-colorectal-allergy-dark-375 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure colorectal -ps.proph.allergy 1 -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1233-proph-full-table-light 16 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.table 1 -ps.forceAppearance light
+          shot 1234-proph-case-prefilled-dark 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.forceAppearance dark
+          shot 1235-proph-cabg-90-dark 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.forceAppearance dark
+          shot 1236-proph-ophthalmic-allergy-light 14 -ps.ref prophylaxis -ps.proph.group ophthalmic -ps.proph.allergy 1 -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1237-proph-appendectomy-question-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1238-proph-appendectomy-complicated-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.variant complicated -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1239-proph-weight-outside-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.allergy 1 -ps.proph.weight 9 -ps.forceAppearance light
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light
           shot 891-d112-preop-meds-dark 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance dark

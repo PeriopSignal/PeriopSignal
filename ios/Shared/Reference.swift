@@ -36,6 +36,8 @@ struct ReferenceBundle: Codable {
     var mtp: MtpData?
     var mcs: McsData?
     var tee: TeeData?
+    /// 1.12 (Ben, Nov 16): the surgical prophylaxis guideline as choices for the calculator (SurgicalProphylaxis.swift).
+    var prophylaxis: ProphylaxisData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -55,6 +57,7 @@ struct ReferenceBundle: Codable {
         if b.mtp == nil { b.mtp = other.mtp }
         if b.mcs == nil { b.mcs = other.mcs }
         if b.tee == nil { b.tee = other.tee }
+        if b.prophylaxis == nil { b.prophylaxis = other.prophylaxis }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }

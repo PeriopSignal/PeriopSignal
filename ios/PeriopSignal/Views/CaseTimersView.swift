@@ -442,6 +442,8 @@ struct CaseTimersView: View {
     @ViewBuilder private func refDestination(_ route: RefRoute) -> some View {
         if case .quickref(let id) = route, let ref = refs.quickref(id) {
             QuickRefView(ref: ref, onOpen: { openLink($0) })
+        } else if route == .prophylaxis, refs.prophylaxis != nil {
+            SurgicalProphylaxisView(caseBound: true, inCaseTimers: true, onOpen: { openLink($0) })
         } else {
             ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
         }
@@ -914,8 +916,19 @@ struct CaseTimersView: View {
                 }
                 // 1.12: the card of recommended agents by surgery, one tap away.
                 Hairline()
-                NavigationLink(value: RefRoute.quickref(IntraopAntibiotic.referenceID)) {
-                    ReferenceLinkLabel(title: IntraopAntibiotic.referenceLink)
+                // 1.12 (Nov 16): the card is a calculator now, bound to this case (its "Full guideline table" opens the card).
+                Group {
+                    if refs.prophylaxis != nil {
+                        NavigationLink {
+                            SurgicalProphylaxisView(caseBound: true, inCaseTimers: true, onOpen: { openLink($0) })
+                        } label: {
+                            ReferenceLinkLabel(title: IntraopAntibiotic.referenceLink)
+                        }
+                    } else {
+                        NavigationLink(value: RefRoute.quickref(IntraopAntibiotic.referenceID)) {
+                            ReferenceLinkLabel(title: IntraopAntibiotic.referenceLink)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
                 .accessibilityHint("Opens the surgical prophylaxis reference")
