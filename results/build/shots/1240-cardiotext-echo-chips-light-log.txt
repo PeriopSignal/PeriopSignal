@@ -1,19 +1,1 @@
 Timestamp               Ty Process[PID:TID]
-2026-11-18 07:31:55.548 Df PeriopSignal[42115:1c4b0] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
-2026-11-18 07:31:55.549 Sd PeriopSignal[42115:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
-UAUserActivityManager supportsActivityContinuation=YES isEnabled=YES serverPid=0 PROJECT:UserActivity-551
-2026-11-18 07:31:55.551 Df PeriopSignal[42115:1ba36] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
-2026-11-18 07:31:55.554 Df PeriopSignal[42115:1ba36] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
-2026-11-18 07:31:55.555 Df PeriopSignal[42115:1ba36] [com.apple.KeyboardArbiter:Client] RX sceneBecameFocused:(null)
-2026-11-18 07:31:55.556 Df PeriopSignal[42115:1c2da] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
-2026-11-18 07:31:55.556 Df PeriopSignal[42115:1ba36] [com.apple.KeyboardArbiter:Client] failedConnection
-2026-11-18 07:31:55.556 Df PeriopSignal[42115:1ba36] [com.apple.xpc:connection] [0x10384fc00] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
-2026-11-18 07:31:55.557 Df PeriopSignal[42115:1ba36] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
-2026-11-18 07:31:55.610 Df PeriopSignal[42115:1ba36] [com.apple.network:activity] <nw_activity 50:1 [755C5DD3-7E7E-4C9F-A518-52DF315A2E73] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 69986ms
-2026-11-18 07:31:55.610 Df PeriopSignal[42115:1ba36] [com.apple.network:activity] <nw_activity 50:2 [793614C2-DFA3-417D-B85A-7D3988C75C87] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 69985ms
-2026-11-18 07:31:55.610 Df PeriopSignal[42115:1ba36] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [755C5DD3-7E7E-4C9F-A518-52DF315A2E73] (global parent) (reporting strategy default) complete (reason success)>
-2026-11-18 07:31:55.610 Df PeriopSignal[42115:1ba36] [com.apple.network:activity] Unset the global parent activity
-2026-11-18 07:32:06.033 Df PeriopSignal[42115:1ba36] [com.apple.KeyboardArbiter:Client] startConnection
-2026-11-18 07:32:06.034 Df PeriopSignal[42115:1ba36] [com.apple.xpc:connection] [0x103b961e0] activating connection: mach=true listener=false peer=false name=com.apple.UIKit.KeyboardManagement.hosted
-2026-11-18 07:32:06.043 Df PeriopSignal[42115:1ba36] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
-2026-11-18 07:32:06.271 Df PeriopSignal[42115:1ba36] [com.apple.KeyboardArbiter:Client] RX sceneBecameFocused:(null)
