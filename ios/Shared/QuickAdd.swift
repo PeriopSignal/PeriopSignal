@@ -328,7 +328,7 @@ enum QuickAdd {
     /// are not read.
     static func read(_ line: String, record: PatientRecord, tab: QuickAddTab, now: Date = Date(),
                      abbreviations user: [String: String] = [:], choices: [String: String] = [:],
-                     surgicalHistory: Bool = false, handoff: Bool = false, patientLine: Bool = true) -> QuickAddReading {
+                     surgicalHistory: Bool = false, handoff: Bool = false, patientLine: Bool = true, cardioPage: CardioStudy? = nil) -> QuickAddReading {
         let one = line.components(separatedBy: .newlines).joined(separator: " ")
         var s = QuickScan(one)
         var reading = QuickAddReading()
@@ -369,6 +369,9 @@ enum QuickAdd {
             if tab == .preop { readECG(&s, c, &out) }
             readCardiacAnswers(&s, c, &out)
             readStressTest(&s, c, &out)
+            // 1.12 follow-up (Ben, Nov 18): the cardiopulmonary tests, read behind their own cue (or on their own page): where the
+            // case is told, these words are the intraoperative exam or events.
+            if tab == .preop && !handoff { readCardio(&s, c, &out, page: cardioPage) }
         }
         readFishbone(&s, c, &out)
         readGas(&s, c, &out)
@@ -472,6 +475,7 @@ enum QuickAdd {
         out += fluidAfter + fluidBefore + [dripMark, lmaRx]
         out += [forIntro, introWord, notPlannedBefore, durationFirst]
         out += patterns111
+        out += CardioText.allPatterns
         return out
     }
 
@@ -546,7 +550,9 @@ enum QuickAdd {
              // 1.11: the preoperative ECG, stress test and cardiac answers.
              .ecg, .stressTest, .cardiacAnswer,
              // 1.12 (note 7): the preoperative echo's valve finding.
-             .echoValve:
+             .echoValve,
+             // 1.12 follow-up (Ben, Nov 18): the cardiopulmonary tests.
+             .cardio:
             return true
         default:
             return false
@@ -2743,6 +2749,22 @@ enum QuickAdd {
         }
     }
 
+    // MARK: The cardiopulmonary tests (1.12 follow-up, Ben, Nov 18)
+
+    /// "TTE 6/26 EF 35%, mod MR, RV nl", "LHC: LAD 90%, RCA 40%", "RHC: PCWP 18", "PFT FEV1 62%", "CXR: small L effusion", "carotid US: R ICA
+    /// 70-99%", "radial US: R radial 2.6 mm": each finding is read only inside its study's run (CardioText), as chips to confirm; what is read
+    /// is masked, so the history reader does not read the same words again.
+    private static func readCardio(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut, page: CardioStudy?) {
+        let reading = CardioText.read(s.text, page: page, now: c.now)
+        // A study that was not done ("no echo", "needs TTE") reads nothing and its words are masked, as the stress test's are.
+        for r in reading.masks {
+            s.mask(r)
+            // What was read for certain is no abbreviation to ask about ("RA 12" in a right heart cath is not room air).
+            s.certain.append(r)
+        }
+        for f in reading.findings { out.add(f) }
+    }
+
     // MARK: The airway at handoff
 
     /// A bare "tube out" is left alone (a chest tube, a drain); "ETT out" and "LMA out" are the airway.
@@ -3455,6 +3477,9 @@ enum QuickAdd {
         // 1.12 (note 7): as the echo's summary says it ("Severe AS", "Trivial TR").
         case .echoValve(let valve, let lesion, let g):
             return ("Echo", g.label + " " + valve.prefix(1).uppercased() + (lesion == "stenosis" ? "S" : "R"))
+        // 1.12 follow-up (Ben, Nov 18): the study and what it says ("Echo · EF 35%", "LHC · LAD 90%").
+        case .cardio(let c):
+            return (c.study.destination, CardioText.valueText(c))
         default:
             var label = f.label
             for p in labelPrefixes where label.hasPrefix(p) { label = String(label.dropFirst(p.count)) }

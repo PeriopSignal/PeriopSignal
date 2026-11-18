@@ -112,6 +112,9 @@ enum PatientNoteChange: Hashable {
     // with the ACT reminder left as it is (IntraopHeparin).
     case antibioticReminder(IntraopAntibioticDose)
     case heparinDose(IntraopHeparinDose)
+    // 1.12 follow-up (Ben, Nov 18): one field of a cardiopulmonary test read from a line (the echo, the left and right heart cath, the
+    // PFTs, the chest X-ray, the carotid and radial artery ultrasounds), read only inside its study's run (CardioText).
+    case cardio(CardioFinding)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -1003,8 +1006,12 @@ enum PatientNote {
     /// "68m" is judged on it: blanking would make a mid-line "20m post transfusion" open the line, and take away the "for"
     /// after "pt is a 68m". `lowerPatient`: false where the patient is not what is being typed (every bar but the Preoperative
     /// tab's own, and a long paste opened from one of them: "40m in, norepi 0.05" there is forty minutes).
+    ///
+    /// `cardio` (1.12 follow-up, Ben, Nov 18): read the cardiopulmonary tests (CardioText) too, behind their own cues, or on a study's own
+    /// page (`cardioPage`): the pasted-note sheet from the Preoperative tab or an editor page. The quick-add bar reads them itself.
     static func read(_ text: String, now: Date = Date(), abbreviations user: [String: String] = [:], choices: [String: String] = [:],
-                     askRoomAir: Bool = true, typed: String? = nil, lowerPatient: Bool = true) -> PatientNoteReading {
+                     askRoomAir: Bool = true, typed: String? = nil, lowerPatient: Bool = true, cardio: Bool = false,
+                     cardioPage: CardioStudy? = nil) -> PatientNoteReading {
         var found: [String: PatientNoteFinding] = [:]
         var order: [String] = []
         var other: [String] = []
@@ -1064,6 +1071,15 @@ enum PatientNote {
         var blanked = text as NSString
         for r in QuickAdd.identifierRanges(text, now: now) where r.location + r.length <= blanked.length {
             blanked = blanked.replacingCharacters(in: r, with: String(repeating: " ", count: r.length)) as NSString
+        }
+
+        // The cardiopulmonary tests, read behind their own cue before anything else reads their words (CardioText).
+        if cardio {
+            let tests = CardioText.read(blanked as String, page: cardioPage, now: now)
+            for r in tests.masks where r.location >= 0 && r.location + r.length <= blanked.length {
+                blanked = blanked.replacingCharacters(in: r, with: String(repeating: " ", count: r.length)) as NSString
+            }
+            for f in tests.findings { put(f) }
         }
 
         let allergyBlock = allergyBlockClauses(blanked as String)
@@ -4027,6 +4043,8 @@ enum PatientNote {
             return IntraopAntibiotic.reminderStatus(d, in: r)
         case .heparinDose(let d):
             return IntraopHeparin.status(d, in: r)
+        case .cardio(let c):
+            return CardioText.status(c, in: r)
         }
     }
 
@@ -4283,6 +4301,8 @@ enum PatientNote {
                 IntraopAntibiotic.applyReminder(d, to: &r)
             case .heparinDose(let d):
                 IntraopHeparin.apply(d, to: &r)
+            case .cardio(let c):
+                CardioText.apply(c, to: &r)
             }
         }
         // Ids a finding added that the History details hold (an aneurysm, severe valve disease) go to their place.

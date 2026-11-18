@@ -1,0 +1,1481 @@
+import Foundation
+
+// MARK: - Cardiopulmonary test findings typed into the text bars (1.12 follow-up, Ben, Nov 18)
+//
+// "add ability to fill cardiopulmonary testing findings into text bars (allow abbreviations)". A line such as "TTE 6/26 EF 35%,
+// mod MR, RV nl" or "LHC: LAD 90%, RCA 40%" is read into the fields of that test (the echo, the left and right heart
+// catheterization, the PFTs and chest X-ray, the carotid and radial artery ultrasounds), as chips to confirm before they are
+// added. Nothing is stored that is not read: no field is added or renamed, the reader only fills the ones the pages hold.
+//
+// The one rule that keeps this safe: a finding is read ONLY inside its study's run. A run starts at the study's cue ("TTE",
+// "LHC", "RHC", "PFTs", "CXR", "carotid US", "radial US"; a cue alone that means a catheter or a probe is no cue) and covers the
+// rest of its comma piece, then the following pieces for as long as each holds only findings of that study and filler; it ends
+// at the first piece that is something else, at a full stop or a new line, or at another study's cue. On a study's own page the
+// page is the cue. Outside a run everything is read exactly as before: an "EF 35%" with no echo cue stays history, "RA" stays
+// room air, "PDA" a duct. A study that was not done ("no echo", "needs TTE", "LHC ordered") reads nothing and its words are
+// masked; a number outside the plausible range, a finding that is denied or hedged, and two findings that disagree for the same
+// field are not read (their words stay). Words in a run that are not understood stay exactly as the bar leaves unread words.
+//
+// The patterns are CardioRx (CardioTextPatterns.swift), generated from the Python model this reader was written and tested in
+// (SP/cardiotext/cardio.py with the tables of tables.py); T112Tests is generated from the same tables.
+
+enum CardioStudy: String, CaseIterable, Hashable {
+    case echo, lhc, rhc, pft, cxr, carotid, radial
+
+    /// Where the chip says the finding goes.
+    var destination: String {
+        switch self {
+        case .echo: return "Echo"
+        case .lhc: return "LHC"
+        case .rhc: return "RHC"
+        case .pft: return "PFT"
+        case .cxr: return "CXR"
+        case .carotid: return "Carotid"
+        case .radial: return "Radial"
+        }
+    }
+}
+
+/// One field of one study read from a line: the study, the field ("lvef", "stenosis.lad", "right.stenosis", "date") and its
+/// value as text ("35", "ge70", "06/2026"). PatientNoteChange.cardio carries it; CardioText applies, compares and words it.
+struct CardioFinding: Hashable {
+    var study: CardioStudy
+    var field: String
+    var value: String
+}
+
+/// What a line gave: findings to confirm and the stretches of the line to mask from the readers that follow.
+struct CardioReading {
+    var findings: [PatientNoteFinding] = []
+    var masks: [NSRange] = []
+}
+
+enum CardioText {
+    // MARK: Internal records
+
+    /// One reading, with where it was read (offsets in UTF-16 units of the line).
+    private struct CF {
+        var study: String
+        var field: String
+        var value: String
+        var a: Int = 0
+        var b: Int = 0
+        /// Left heart cath: the vessel was named with a segment (two segments of one vessel read the higher number).
+        var segment = false
+        /// Echo valve: the history reader reads these words too, so they are left in the line.
+        var keepWords = false
+        /// Echo valve in a form the history reader does not know ("sev AS"): the history's valve (valve, lesion, grade).
+        var history: [String]? = nil
+
+        var key: String { study + "." + field }
+    }
+
+    /// One piece (or part of one) of the line and what it gave.
+    private final class CParse {
+        let text: String
+        let base: Int
+        var work: String
+        var findings: [CF] = []
+        var consumed: [NSRange] = []
+        var poison: [String] = []
+        var aux: [NSRange] = []
+        var rejected = false
+
+        init(_ text: String, _ base: Int) {
+            self.text = text
+            self.base = base
+            self.work = text
+        }
+
+        func take(_ a: Int, _ b: Int, _ f: CF?) {
+            consumed.append(NSRange(location: a, length: b - a))
+            work = CardioText.blank(work, a, b)
+            if var g = f {
+                g.a = base + a
+                g.b = base + b
+                findings.append(g)
+            }
+        }
+
+        /// Recognized but not read (denied, hedged, out of range): the words stay.
+        func skip(_ a: Int, _ b: Int) {
+            consumed.append(NSRange(location: a, length: b - a))
+            work = CardioText.blank(work, a, b)
+            rejected = true
+        }
+
+        /// Understood but not stored (RVSP, CI, "no MR"): the words stay and do not end the run.
+        func known(_ a: Int, _ b: Int) {
+            consumed.append(NSRange(location: a, length: b - a))
+            work = CardioText.blank(work, a, b)
+        }
+
+        func poisoned(_ study: String, _ field: String) {
+            poison.append(study + "." + field)
+        }
+
+        var pure: Bool {
+            if rejected { return false }
+            var t = CardioText.blanked(work, CardioRx.fillerWords)
+            t = CardioText.blanked(t, CardioRx.numbers)
+            return CardioRx.punctOnly.first(t) != nil
+        }
+    }
+
+    private struct CCue {
+        var study: String
+        var strong: Bool
+        var a: Int
+        var b: Int
+        var lead: String?
+        var token: String
+    }
+
+    private final class CRun {
+        let study: String
+        let cue: CCue?
+        var parses: [CParse] = []
+        var extra: [CF] = []
+        var masks: [NSRange] = []
+        var weak: Bool
+
+        init(_ study: String, _ cue: CCue?, weak: Bool = false) {
+            self.study = study
+            self.cue = cue
+            self.weak = weak
+        }
+    }
+
+    // MARK: Small helpers
+
+    private static func sub(_ s: String, _ a: Int, _ b: Int) -> String {
+        let n = s as NSString
+        let lo = max(0, min(a, n.length))
+        let hi = max(lo, min(b, n.length))
+        return n.substring(with: NSRange(location: lo, length: hi - lo))
+    }
+
+    private static func head(_ s: String, _ a: Int) -> String { sub(s, 0, a) }
+
+    private static func tail(_ s: String, _ a: Int) -> String { sub(s, a, (s as NSString).length) }
+
+    fileprivate static func blank(_ s: String, _ a: Int, _ b: Int) -> String {
+        let n = s as NSString
+        guard a >= 0, b <= n.length, b > a else { return s }
+        return n.replacingCharacters(in: NSRange(location: a, length: b - a), with: String(repeating: " ", count: b - a))
+    }
+
+    /// The text with every match of the pattern replaced by as many spaces.
+    fileprivate static func blanked(_ s: String, _ rx: NoteRx) -> String {
+        var out = s
+        for m in rx.all(s).reversed() {
+            out = blank(out, m.range.location, m.range.location + m.range.length)
+        }
+        return out
+    }
+
+    private static func end(_ r: NSRange) -> Int { r.location + r.length }
+
+    private static func grp(_ m: NSTextCheckingResult, _ i: Int, _ s: String) -> String? {
+        guard i < m.numberOfRanges else { return nil }
+        let r = m.range(at: i)
+        guard r.location != NSNotFound else { return nil }
+        return (s as NSString).substring(with: r)
+    }
+
+    private static func overlaps(_ a: Int, _ b: Int, _ list: [NSRange]) -> Bool {
+        for r in list where a < end(r) && r.location < b { return true }
+        return false
+    }
+
+    /// Matches in the text from an offset on, seeing what stands before it (like Python's finditer(string, pos)).
+    private static func matches(_ rx: NoteRx, _ s: String, from: Int) -> [NSTextCheckingResult] {
+        guard let re = rx.re else { return [] }
+        let n = (s as NSString).length
+        guard from <= n else { return [] }
+        return re.matches(in: s, options: [.withTransparentBounds, .withoutAnchoringBounds], range: NSRange(location: from, length: n - from))
+    }
+
+    static func num(_ v: Double) -> String {
+        if v == v.rounded(), Swift.abs(v) < 1_000_000 { return String(Int(v)) }
+        var s = String(format: "%.2f", v)
+        while s.hasSuffix("0") { s.removeLast() }
+        if s.hasSuffix(".") { s.removeLast() }
+        return s
+    }
+
+    private static func negated(_ t: String, _ a: Int) -> Bool {
+        let before = head(t, a)
+        return CardioRx.negatedBefore.first(before) != nil || CardioRx.qOrCmpBefore.first(before) != nil
+    }
+
+    /// Denied or hedged: a negation or doubt before it, or a comparison or a question right after it.
+    private static func doubted(_ t: String, _ a: Int, _ b: Int) -> Bool {
+        if negated(t, a) { return true }
+        return CardioRx.hedgeAfter.first(tail(t, b)) != nil
+    }
+
+    // MARK: Dates
+
+    /// The month (nil for a year alone) and year of a date typed next to a cue, by the app's own PatientMonthYear.parse; nil when
+    /// it is not one, or is in the future or before 1950 (a study that was done is not dated so).
+    private static func studyDate(_ token: String, now: Date) -> PatientMonthYear? {
+        guard let d = PatientMonthYear.parse(token, now: now), let y = d.year else { return nil }
+        let cal = Calendar.current
+        let c = cal.dateComponents([.year, .month], from: now)
+        let ny = c.year ?? 2026
+        let nm = c.month ?? 1
+        if y < 1950 || y > ny { return nil }
+        if y == ny, let m = d.month, m > nm { return nil }
+        return d
+    }
+
+    // MARK: Grades
+
+    private static func gradeOf(_ words: [String?]) -> String? {
+        var best = -1
+        var trivial = false
+        for w in words {
+            guard let word = w else { continue }
+            let l = word.lowercased()
+            if l.hasPrefix("triv") || l == "trace" {
+                trivial = true
+            } else if l.hasPrefix("mild") {
+                best = max(best, 0)
+            } else if l.hasPrefix("mod") {
+                best = max(best, 1)
+            } else if l.hasPrefix("sev") || l == "critical" {
+                best = max(best, 2)
+            }
+        }
+        if best >= 0 { return ["mild", "moderate", "severe"][best] }
+        return trivial ? "trivial" : nil
+    }
+
+    private static func gradeRangeOf(_ text: String) -> String? {
+        var words: [String?] = []
+        for m in CardioRx.wordRx.all(text) { words.append(grp(m, 0, text)) }
+        return gradeOf(words)
+    }
+
+    private static func chamberOf(_ ch: String) -> String {
+        let c = ch.lowercased()
+        return c.hasPrefix("lv") || c.hasPrefix("left") ? "lv" : "rv"
+    }
+
+    // MARK: Echo
+
+    private static func parseEcho(_ p: CParse) {
+        let t = p.text
+        // EF first: its "LV " belongs to it.
+        for m in CardioRx.efRx.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            let lo = Double(grp(m, 1, p.work) ?? "") ?? 0
+            let hiText = grp(m, 2, p.work)
+            let hi: Double? = hiText.flatMap { Double($0) }
+            let pre = head(p.work, a)
+            if CardioRx.cmpBefore.first(pre) != nil || doubted(t, a, b) {
+                p.skip(a, b)
+                continue
+            }
+            var inRange = lo >= 5 && lo <= 85
+            if let h = hi { inRange = inRange && h >= 5 && h <= 85 && lo < h }
+            if !inRange {
+                p.skip(a, b)
+                p.poisoned("echo", "lvef")
+                continue
+            }
+            let value: Double = hi == nil ? lo : (lo + (hi ?? lo)) / 2.0
+            // The history reader reads "EF 35%" itself (PatientNote.efRx wants the %): its words are left to it.
+            let keep = CardioRx.efHistory.first(sub(p.work, a, b)) != nil
+            var f = CF(study: "echo", field: "lvef", value: num(value))
+            f.keepWords = keep
+            p.take(a, b, f)
+        }
+        // Valves.
+        func ownForm(_ s: String) -> Bool { CardioRx.ownForm.first(s) != nil }
+        func valveFinding(_ valve: String, _ lesion: String, _ grade: String, _ own: Bool) -> CF {
+            var f = CF(study: "echo", field: "valve." + valve + "." + lesion, value: grade)
+            if own {
+                if grade == "mild" || grade == "moderate" || grade == "severe" { f.history = [valve, lesion, grade] }
+            } else {
+                f.keepWords = true
+            }
+            return f
+        }
+        func addValve(_ a: Int, _ b: Int, _ valve: String, _ lesion: String, _ words: [String?]) {
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                return
+            }
+            let g = gradeOf(words)
+            if g == "trivial" {
+                if lesion == "regurgitation" {
+                    p.take(a, b, valveFinding(valve, lesion, "trivial", ownForm(sub(t, a, b))))
+                } else {
+                    p.known(a, b)
+                }
+                return
+            }
+            guard let grade = g else {
+                p.skip(a, b)
+                return
+            }
+            p.take(a, b, valveFinding(valve, lesion, grade, ownForm(sub(t, a, b))))
+        }
+        func valveOf(_ letter: Character) -> String {
+            if letter == "A" { return "aortic" }
+            return letter == "M" ? "mitral" : "tricuspid"
+        }
+        for m in CardioRx.vWritten.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            let valve = (grp(m, 3, p.work) ?? "").lowercased()
+            let lesion = (grp(m, 4, p.work) ?? "").lowercased() == "stenosis" ? "stenosis" : "regurgitation"
+            addValve(a, b, valve, lesion, [grp(m, 1, p.work), grp(m, 2, p.work), grp(m, 5, p.work), grp(m, 6, p.work)])
+        }
+        for m in CardioRx.vBefore.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            let letters = grp(m, 3, p.work) ?? ""
+            let second = grp(m, 4, p.work)
+            if let s = second, !((letters == "AR" || letters == "AI") && (s == "AR" || s == "AI")) {
+                p.skip(a, b)
+                continue
+            }
+            guard let first = letters.first else { continue }
+            addValve(a, b, valveOf(first), letters.hasSuffix("S") ? "stenosis" : "regurgitation", [grp(m, 1, p.work), grp(m, 2, p.work)])
+        }
+        for m in CardioRx.vAfter.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            let letters = grp(m, 1, p.work) ?? ""
+            guard let first = letters.first else { continue }
+            addValve(a, b, valveOf(first), letters.hasSuffix("S") ? "stenosis" : "regurgitation", [grp(m, 2, p.work), grp(m, 3, p.work)])
+        }
+        // Negated lesions ("no MR") and pulmonic ones are understood, never stored.
+        for m in CardioRx.vNegated.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            p.known(m.range.location, end(m.range))
+        }
+        for m in CardioRx.vPulm.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            p.known(m.range.location, end(m.range))
+        }
+        // Aorta.
+        for m in CardioRx.aorta.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                continue
+            }
+            p.take(a, b, CF(study: "echo", field: "aorta", value: "intact"))
+        }
+        // Chambers: every shape that fits; overlapping candidates are ambiguous and read neither.
+        var cands: [(kind: String, a: Int, b: Int, m: NSTextCheckingResult)] = []
+        for shape in CardioRx.echoShapes {
+            for m in shape.1.all(p.work) {
+                let a = m.range.location
+                let b = end(m.range)
+                if overlaps(a, b, p.consumed) { continue }
+                cands.append((kind: shape.0, a: a, b: b, m: m))
+            }
+        }
+        var bad = Set<Int>()
+        for i in 0..<cands.count {
+            for j in (i + 1)..<cands.count where cands[i].a < cands[j].b && cands[j].a < cands[i].b {
+                bad.insert(i)
+                bad.insert(j)
+            }
+        }
+        for (i, c) in cands.enumerated() {
+            if bad.contains(i) { continue }
+            if overlaps(c.a, c.b, p.consumed) { continue }
+            var ch: String? = nil
+            var gradeText: String? = nil
+            var gi = 1
+            while gi < c.m.numberOfRanges {
+                if let g = grp(c.m, gi, p.work) {
+                    if CardioRx.chamberFull.first(g) != nil { ch = chamberOf(g) }
+                    if CardioRx.gradeStart.first(g) != nil { gradeText = g }
+                }
+                gi += 1
+            }
+            guard let chamber = ch else { continue }
+            let blocked = doubted(t, c.a, c.b) || CardioRx.pairBefore.first(head(t, c.a)) != nil || CardioRx.pairAfter.first(tail(t, c.b)) != nil
+            let gradeBefore = (c.kind == "nsize" || c.kind == "dilated" || c.kind == "fnormal") && CardioRx.gradeBefore.first(head(t, c.a)) != nil
+            if blocked || gradeBefore {
+                p.skip(c.a, c.b)
+                continue
+            }
+            if c.kind == "nsize" {
+                p.take(c.a, c.b, CF(study: "echo", field: chamber + "Size", value: "normal"))
+            } else if c.kind == "dilated" {
+                p.take(c.a, c.b, CF(study: "echo", field: chamber + "Size", value: "dilated"))
+            } else if c.kind == "fnormal" {
+                p.take(c.a, c.b, CF(study: "echo", field: chamber, value: "normal"))
+            } else {
+                let g: String? = gradeText.flatMap { gradeRangeOf($0) }
+                if let grade = g, grade == "mild" || grade == "moderate" || grade == "severe" {
+                    p.take(c.a, c.b, CF(study: "echo", field: chamber, value: grade))
+                } else {
+                    p.skip(c.a, c.b)
+                }
+            }
+        }
+        for rx in CardioRx.echoKnown {
+            for m in rx.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+                p.known(m.range.location, end(m.range))
+            }
+        }
+    }
+
+    // MARK: Left heart cath
+
+    private static func vesselID(_ v: String) -> String {
+        let l = v.lowercased().components(separatedBy: .whitespaces).filter { !$0.isEmpty }.joined(separator: " ")
+        if l.hasPrefix("left main") { return "lm" }
+        if l.hasPrefix("left anterior") { return "lad" }
+        if l.hasPrefix("right coronary") { return "rca" }
+        switch l {
+        case "lmca", "lm": return "lm"
+        case "lad": return "lad"
+        case "lcx", "cx", "circ", "circumflex": return "lcx"
+        case "rca": return "rca"
+        default: return "pda"
+        }
+    }
+
+    private static func parseLHC(_ p: CParse) {
+        let t = p.text
+        func add(_ vessel: String, _ value: Int, _ seg: Bool, _ a: Int, _ b: Int) {
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                return
+            }
+            if value < 0 || value > 100 {
+                p.skip(a, b)
+                p.poisoned("lhc", "stenosis." + vessel)
+                return
+            }
+            var f = CF(study: "lhc", field: "stenosis." + vessel, value: String(value))
+            f.segment = seg
+            p.take(a, b, f)
+        }
+        for m in CardioRx.lhcOccA.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            add(vesselID(grp(m, 3, p.work) ?? ""), 100, grp(m, 1, p.work) != nil || grp(m, 2, p.work) != nil, m.range.location, end(m.range))
+        }
+        for m in CardioRx.lhcOccB.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            add(vesselID(grp(m, 3, p.work) ?? ""), 100, grp(m, 1, p.work) != nil || grp(m, 2, p.work) != nil, m.range.location, end(m.range))
+        }
+        for m in CardioRx.lhcPctAfter.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            let v = Int(grp(m, 4, p.work) ?? "") ?? -1
+            if grp(m, 5, p.work) == nil && !(v >= 10 && v <= 100) { continue }
+            add(vesselID(grp(m, 3, p.work) ?? ""), v, grp(m, 1, p.work) != nil || grp(m, 2, p.work) != nil, a, b)
+        }
+        for m in CardioRx.lhcPctBefore.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            let v = Int(grp(m, 1, p.work) ?? "") ?? -1
+            add(vesselID(grp(m, 4, p.work) ?? ""), v, grp(m, 2, p.work) != nil || grp(m, 3, p.work) != nil, m.range.location, end(m.range))
+        }
+        for m in CardioRx.lhcDom.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                continue
+            }
+            var d = "codominant"
+            if grp(m, 1, p.work) != nil { d = "right" } else if grp(m, 2, p.work) != nil { d = "left" }
+            p.take(a, b, CF(study: "lhc", field: "dominance", value: d))
+        }
+        // The result in a word is the app's own reading of a cath's result, with a cath word put before the piece.
+        if let r = PatientLHC.readResult("lhc " + p.work) {
+            let a = r.phrase.location - 4
+            var b = end(r.phrase) - 4
+            if let cad = r.cadWords { b = end(cad) - 4 }
+            if a >= 0, !overlaps(a, b, p.consumed) {
+                if doubted(t, a, b) {
+                    p.skip(a, b)
+                } else {
+                    p.take(a, b, CF(study: "lhc", field: "result", value: r.result))
+                }
+            }
+        }
+        for rx in CardioRx.lhcKnown {
+            for m in rx.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+                p.known(m.range.location, end(m.range))
+            }
+        }
+    }
+
+    // MARK: Right heart cath
+
+    private static func parseRHC(_ p: CParse) {
+        let t = p.text
+        func put(_ field: String, _ v: Double, _ lo: Double, _ hi: Double, _ a: Int, _ b: Int) {
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                return
+            }
+            if v < lo || v > hi {
+                p.skip(a, b)
+                p.poisoned("rhc", field)
+                return
+            }
+            p.take(a, b, CF(study: "rhc", field: field, value: num(v)))
+        }
+        for m in CardioRx.rhcPa.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            let s = Int(grp(m, 1, p.work) ?? "") ?? 0
+            let d = Int(grp(m, 2, p.work) ?? "") ?? 0
+            let mean: Int? = grp(m, 3, p.work).flatMap { Int($0) }
+            var ok = s >= 10 && s <= 150 && d >= 0 && d <= 80 && d < s
+            if let mn = mean { ok = ok && mn >= 5 && mn <= 100 && d <= mn && mn <= s }
+            if doubted(t, a, b) || !ok {
+                p.skip(a, b)
+                if !ok {
+                    for fn in ["pasp", "padp", "pam"] { p.poisoned("rhc", fn) }
+                }
+                continue
+            }
+            p.take(a, b, CF(study: "rhc", field: "pasp", value: String(s)))
+            var fd = CF(study: "rhc", field: "padp", value: String(d))
+            fd.a = p.base + a
+            fd.b = p.base + b
+            p.findings.append(fd)
+            if let mn = mean {
+                var fm = CF(study: "rhc", field: "pam", value: String(mn))
+                fm.a = p.base + a
+                fm.b = p.base + b
+                p.findings.append(fm)
+            }
+        }
+        for m in CardioRx.rhcPam.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            put("pam", Double(grp(m, 1, p.work) ?? "") ?? -1, 5, 100, m.range.location, end(m.range))
+        }
+        for m in CardioRx.rhcPasp.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            let v = Double(grp(m, 2, p.work) ?? "") ?? -1
+            if (grp(m, 1, p.work) ?? "").lowercased() == "pasp" {
+                put("pasp", v, 10, 150, m.range.location, end(m.range))
+            } else {
+                put("padp", v, 0, 80, m.range.location, end(m.range))
+            }
+        }
+        for m in CardioRx.rhcPcwp.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            put("pcwp", Double(grp(m, 1, p.work) ?? "") ?? -1, 0, 50, m.range.location, end(m.range))
+        }
+        for m in CardioRx.rhcCo.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            put("co", Double(grp(m, 1, p.work) ?? "") ?? -1, 1, 15, m.range.location, end(m.range))
+        }
+        for m in CardioRx.rhcRa.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            put("ra", Double(grp(m, 1, p.work) ?? "") ?? -1, 0, 40, m.range.location, end(m.range))
+        }
+        for rx in CardioRx.rhcKnown {
+            for m in rx.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+                p.known(m.range.location, end(m.range))
+            }
+        }
+    }
+
+    // MARK: PFTs
+
+    private static func severityOf(_ w: String) -> String {
+        let l = w.lowercased()
+        if l.hasPrefix("mild") { return "mild" }
+        return l.hasPrefix("mod") ? "moderate" : "severe"
+    }
+
+    private static func patternID(_ w: String) -> String {
+        switch w.lowercased() {
+        case "obstructive", "obstruction", "obs": return "obstruction"
+        case "restrictive", "restriction": return "restriction"
+        case "mixed": return "mixed"
+        default: return "nonspecific"
+        }
+    }
+
+    private static func parsePFT(_ p: CParse) {
+        let t = p.text
+        func put(_ field: String, _ v: Double, _ lo: Double, _ hi: Double, _ a: Int, _ b: Int) {
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                return
+            }
+            if v < lo || v > hi {
+                p.skip(a, b)
+                p.poisoned("pft", field)
+                return
+            }
+            p.take(a, b, CF(study: "pft", field: field, value: num(v)))
+        }
+        for m in CardioRx.pftRatio.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            let raw = grp(m, 1, p.work) ?? grp(m, 3, p.work) ?? ""
+            let v = Double(raw) ?? 0
+            let ok = (v > 0 && v <= 1) || (v >= 20 && v <= 100)
+            if doubted(t, a, b) {
+                p.skip(a, b)
+            } else if !ok {
+                p.skip(a, b)
+                p.poisoned("pft", "ratio")
+            } else {
+                p.take(a, b, CF(study: "pft", field: "ratio", value: num(v)))
+            }
+        }
+        for m in CardioRx.pftVol.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            let nameRaw = (grp(m, 1, p.work) ?? "").lowercased().replacingOccurrences(of: " ", with: "")
+            let name = nameRaw == "fev1" ? "fev1" : "fvc"
+            let n1 = Double(grp(m, 2, p.work) ?? "") ?? 0
+            let u1 = (grp(m, 3, p.work) ?? "").lowercased()
+            let n2: Double? = grp(m, 4, p.work).flatMap { Double($0) }
+            let u2 = (grp(m, 5, p.work) ?? "").lowercased()
+            var liters: Double? = nil
+            var pct: Double? = nil
+            if u1.hasPrefix("l") {
+                liters = n1
+            } else if u1 == "%" {
+                pct = n1
+            } else if n1 <= 7 {
+                liters = n1
+            } else {
+                pct = n1
+            }
+            if let second = n2 {
+                if u2 == "%" {
+                    if pct != nil {
+                        p.skip(a, b)
+                        continue
+                    }
+                    pct = second
+                } else {
+                    if liters != nil {
+                        p.skip(a, b)
+                        continue
+                    }
+                    liters = second
+                }
+            }
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                continue
+            }
+            let badLiters = liters != nil && !((liters ?? 0) >= 0.3 && (liters ?? 0) <= 7)
+            let badPct = pct != nil && !((pct ?? 0) >= 5 && (pct ?? 0) <= 160)
+            if badLiters || badPct {
+                p.skip(a, b)
+                if badLiters { p.poisoned("pft", name) }
+                if badPct { p.poisoned("pft", name + "Pct") }
+                continue
+            }
+            var first = true
+            if let l = liters {
+                p.take(a, b, CF(study: "pft", field: name, value: num(l)))
+                first = false
+            }
+            if let c = pct {
+                var f = CF(study: "pft", field: name + "Pct", value: num(c))
+                if first {
+                    p.take(a, b, f)
+                } else {
+                    f.a = p.base + a
+                    f.b = p.base + b
+                    p.findings.append(f)
+                }
+            }
+        }
+        for m in CardioRx.pftTlc.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            put("tlcPct", Double(grp(m, 1, p.work) ?? "") ?? -1, 5, 160, m.range.location, end(m.range))
+        }
+        for m in CardioRx.pftDlco.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+            put("dlcoPct", Double(grp(m, 1, p.work) ?? "") ?? -1, 5, 160, m.range.location, end(m.range))
+        }
+        for m in CardioRx.pftPattern.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                continue
+            }
+            let before = grp(m, 1, p.work)
+            let after = grp(m, 3, p.work)
+            if before != nil && after != nil {
+                p.skip(a, b)
+                continue
+            }
+            p.take(a, b, CF(study: "pft", field: "pattern", value: patternID(grp(m, 2, p.work) ?? "")))
+            if let sev = before ?? after {
+                var f = CF(study: "pft", field: "severity", value: severityOf(sev))
+                f.a = p.base + a
+                f.b = p.base + b
+                p.findings.append(f)
+            }
+        }
+        for rx in CardioRx.pftKnown {
+            for m in rx.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+                p.known(m.range.location, end(m.range))
+            }
+        }
+    }
+
+    // MARK: Chest X-ray
+
+    private static func sideID(_ w: String) -> String {
+        switch w.lowercased() {
+        case "left", "l": return "left"
+        case "right", "r": return "right"
+        case "": return "-"
+        default: return "bilateral"
+        }
+    }
+
+    private static func sizeID(_ w: String) -> String {
+        switch w.lowercased() {
+        case "small", "sm": return "small"
+        case "moderate", "mod": return "moderate"
+        case "large", "lg": return "large"
+        default: return "-"
+        }
+    }
+
+    private struct EffCandidate {
+        let first: Bool
+        let m: NSTextCheckingResult
+    }
+
+    private static func parseCXR(_ p: CParse) {
+        let t = p.text
+        var cands: [EffCandidate] = []
+        for m in CardioRx.cxrEff1.all(p.work) { cands.append(EffCandidate(first: true, m: m)) }
+        for m in CardioRx.cxrEff2.all(p.work) { cands.append(EffCandidate(first: false, m: m)) }
+        cands.sort { (x: EffCandidate, y: EffCandidate) -> Bool in
+            if x.m.range.location != y.m.range.location { return x.m.range.location < y.m.range.location }
+            return x.m.range.length > y.m.range.length
+        }
+        var taken: [NSRange] = []
+        for c in cands {
+            let a = c.m.range.location
+            let b = end(c.m.range)
+            if overlaps(a, b, taken) || overlaps(a, b, p.consumed) { continue }
+            taken.append(c.m.range)
+            let g1 = grp(c.m, 1, p.work) ?? ""
+            let g2 = grp(c.m, 2, p.work) ?? ""
+            let size = c.first ? g1 : g2
+            let side = c.first ? g2 : g1
+            if CardioRx.effBadBefore.first(head(t, a)) != nil || doubted(t, a, b) {
+                p.skip(a, b)
+                continue
+            }
+            p.take(a, b, CF(study: "cxr", field: "effusion", value: sideID(side) + "," + sizeID(size)))
+        }
+        // What is left, when it names a radiographic finding and says nothing normal or denied, goes to the findings line as typed.
+        var marked = p.work
+        for m in CardioRx.fillerWords.all(p.work).reversed() {
+            marked = replaceWithBars(marked, m.range.location, end(m.range))
+        }
+        let trimSet = CharacterSet(charactersIn: " -–.?/")
+        let markedNS = marked as NSString
+        for m in CardioRx.cxrSegment.all(marked) {
+            var a = m.range.location
+            var b = end(m.range)
+            while a < b, let u = UnicodeScalar(markedNS.character(at: a)), trimSet.contains(u) { a += 1 }
+            while b > a, let u = UnicodeScalar(markedNS.character(at: b - 1)), trimSet.contains(u) { b -= 1 }
+            if b <= a { continue }
+            let words = markedNS.substring(with: NSRange(location: a, length: b - a)).components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+            let s = words.joined(separator: " ")
+            if CardioRx.letterRx.first(s) == nil { continue }
+            if CardioRx.cxrVocab.first(s) == nil || s.count > 60 || CardioRx.cxrNormal.first(s) != nil || CardioRx.cxrNegStart.first(s) != nil { continue }
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                continue
+            }
+            p.take(a, b, CF(study: "cxr", field: "findings", value: s))
+        }
+        for m in CardioRx.cxrNormal.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            if doubted(t, a, b) {
+                p.skip(a, b)
+                continue
+            }
+            p.take(a, b, CF(study: "cxr", field: "result", value: "normal"))
+        }
+    }
+
+    private static func replaceWithBars(_ s: String, _ a: Int, _ b: Int) -> String {
+        let n = s as NSString
+        guard a >= 0, b <= n.length, b > a else { return s }
+        return n.replacingCharacters(in: NSRange(location: a, length: b - a), with: String(repeating: "|", count: b - a))
+    }
+
+    // MARK: Carotid and radial: per side, in the order written
+
+    private static func sidesOf(_ m: NSTextCheckingResult, _ s: String) -> [String] {
+        if grp(m, 1, s) != nil { return ["right", "left"] }
+        if grp(m, 2, s) != nil { return ["right"] }
+        if grp(m, 3, s) != nil { return ["left"] }
+        return []
+    }
+
+    /// The category id of a stenosis match (groups 1...6 of carSten); nil when it is not one the field holds.
+    private static func stenID(_ m: NSTextCheckingResult, _ s: String) -> String? {
+        if let word = grp(m, 6, s) {
+            let w = word.lowercased()
+            if w.hasPrefix("near") || w.hasPrefix("string") { return "near" }
+            if w.hasPrefix("occlu") { return "occluded" }
+            return "normal"
+        }
+        func cat(_ n: Int) -> String? {
+            if n > 100 { return nil }
+            if n < 50 { return "lt50" }
+            if n < 70 { return "50-69" }
+            if n < 100 { return "ge70" }
+            return "occluded"
+        }
+        if let cmp = grp(m, 1, s) {
+            let n = Int(grp(m, 2, s) ?? "") ?? -1
+            if cmp == "<" && n >= 0 && n <= 50 { return "lt50" }
+            if (cmp == ">" || cmp == "≥") && n >= 70 && n <= 99 { return "ge70" }
+            return nil
+        }
+        if let lo = grp(m, 3, s), let hi = grp(m, 4, s) {
+            let a = Int(lo) ?? 0
+            let b = Int(hi) ?? 0
+            if a >= b { return nil }
+            let ca = cat(a)
+            let cb = cat(b)
+            return ca == cb ? ca : nil
+        }
+        if let pct = grp(m, 5, s) { return cat(Int(pct) ?? 0) }
+        return nil
+    }
+
+    private struct SideEvent {
+        let pos: Int
+        let neg: Int
+        let kind: String
+        let m: NSTextCheckingResult
+    }
+
+    private static func walkSides(_ p: CParse, _ study: String, _ specs: [(String, NoteRx)], _ handle: (String, NSTextCheckingResult, String) -> (String, String)?) {
+        let t = p.text
+        let snapshot = p.work
+        var ev: [SideEvent] = []
+        for spec in specs {
+            for m in spec.1.all(p.work) where !overlaps(m.range.location, end(m.range), p.consumed) {
+                ev.append(SideEvent(pos: m.range.location, neg: -m.range.length, kind: spec.0, m: m))
+            }
+        }
+        ev.sort { (x: SideEvent, y: SideEvent) -> Bool in
+            if x.pos != y.pos { return x.pos < y.pos }
+            return x.neg < y.neg
+        }
+        var cur: (sides: [String], span: NSRange)? = nil
+        var usedSides: [NSRange] = []
+        var lastEnd = -1
+        var ctxEnd = -1
+        var pending: [(a: Int, b: Int, field: String, value: String)] = []
+        for e in ev {
+            let a = e.m.range.location
+            let b = end(e.m.range)
+            if a < lastEnd { continue }
+            if e.kind == "side" {
+                var sidesNow = sidesOf(e.m, snapshot)
+                // "R and L 60%": the sides told together.
+                if let c = cur, ctxEnd == end(c.span), CardioRx.sideCombine.first(sub(t, end(c.span), a)) != nil {
+                    sidesNow = ["right", "left"].filter { sidesNow.contains($0) || c.sides.contains($0) }
+                    usedSides.append(c.span)
+                }
+                cur = (sides: sidesNow, span: e.m.range)
+                ctxEnd = b
+                lastEnd = b
+                continue
+            }
+            guard let res = handle(e.kind, e.m, snapshot) else {
+                p.skip(a, b)
+                lastEnd = b
+                continue
+            }
+            guard let c = cur else {
+                pending.append((a: a, b: b, field: res.0, value: res.1))
+                lastEnd = b
+                continue
+            }
+            if CardioRx.sideGap.first(sub(t, ctxEnd, a)) == nil {
+                p.skip(a, b)
+                lastEnd = b
+                continue
+            }
+            ctxEnd = b
+            usedSides.append(c.span)
+            let single = res.0 == "psv" || res.0 == "edv" || res.0 == "diameter"
+            if single && c.sides.count > 1 {
+                p.skip(a, b)
+                lastEnd = b
+                continue
+            }
+            var first = true
+            for s in c.sides {
+                var f = CF(study: study, field: s + "." + res.0, value: res.1)
+                if first {
+                    p.take(a, b, f)
+                    first = false
+                } else {
+                    f.a = p.base + a
+                    f.b = p.base + b
+                    p.findings.append(f)
+                }
+            }
+            lastEnd = b
+        }
+        // A finding told before its side ("70% L ICA"): only when a side follows with nothing between but a word or two.
+        for item in pending {
+            let nxt = matches(CardioRx.sideToken, p.work, from: item.b).filter { !overlaps($0.range.location, end($0.range), p.consumed) }
+            guard let sm = nxt.first else {
+                p.skip(item.a, item.b)
+                continue
+            }
+            let gap = sub(t, item.b, sm.range.location)
+            let single = item.field == "psv" || item.field == "edv" || item.field == "diameter"
+            if CardioRx.pendingGap.first(gap) == nil || single {
+                p.skip(item.a, item.b)
+                continue
+            }
+            usedSides.append(sm.range)
+            var first = true
+            for s in sidesOf(sm, snapshot) {
+                var f = CF(study: study, field: s + "." + item.field, value: item.value)
+                if first {
+                    p.take(item.a, item.b, f)
+                    first = false
+                } else {
+                    f.a = p.base + item.a
+                    f.b = p.base + item.b
+                    p.findings.append(f)
+                }
+            }
+        }
+        for r in usedSides where !overlaps(r.location, end(r), p.consumed) {
+            p.consumed.append(r)
+            p.aux.append(r)
+            p.work = blank(p.work, r.location, end(r))
+        }
+    }
+
+    private static func parseCarotid(_ p: CParse, adjacentNormal: Bool) {
+        let t = p.text
+        if adjacentNormal, let m = CardioRx.carBareNormal.first(p.work) {
+            let word = (p.work as NSString).substring(with: m.range)
+            var lead = 0
+            for ch in word {
+                if ch == " " || ch == ":" || ch == "-" || ch == "–" { lead += 1 } else { break }
+            }
+            let a = m.range.location + lead
+            let b = end(m.range)
+            if !doubted(t, a, b) {
+                var i = 0
+                for s in ["right", "left"] {
+                    var f = CF(study: "carotid", field: s + ".stenosis", value: "normal")
+                    if i == 0 {
+                        p.take(a, b, f)
+                    } else {
+                        f.a = p.base + a
+                        f.b = p.base + b
+                        p.findings.append(f)
+                    }
+                    i += 1
+                }
+            }
+        }
+        let specs: [(String, NoteRx)] = [("side", CardioRx.sideToken), ("sten", CardioRx.carSten), ("vert", CardioRx.carVert), ("vel", CardioRx.carVel)]
+        walkSides(p, "carotid", specs) { (kind: String, m: NSTextCheckingResult, w: String) -> (String, String)? in
+            let a = m.range.location
+            let b = end(m.range)
+            if kind == "sten" {
+                guard let sid = stenID(m, w) else { return nil }
+                let isNo = (grp(m, 6, w) ?? "").lowercased().hasPrefix("no")
+                if doubted(t, a, b) && !isNo { return nil }
+                return ("stenosis", sid)
+            }
+            if kind == "vert" {
+                let word = (grp(m, 1, w) ?? grp(m, 2, w) ?? "").lowercased()
+                if doubted(t, a, b) { return nil }
+                var value = "partial"
+                if word == "antegrade" { value = "antegrade" } else if word == "retrograde" || word == "reversed" { value = "reversed" } else if word == "absent" { value = "absent" }
+                return ("vertebral", value)
+            }
+            let name = (grp(m, 1, w) ?? "").lowercased()
+            let v = Int(grp(m, 2, w) ?? "") ?? -1
+            let lo = name == "psv" ? 20 : 0
+            let hi = name == "psv" ? 700 : 300
+            if v < lo || v > hi {
+                p.poisoned("carotid", "right." + name)
+                p.poisoned("carotid", "left." + name)
+                return nil
+            }
+            return (name, String(v))
+        }
+        for w in CardioRx.arteryWords.all(p.work) where !p.findings.isEmpty {
+            p.consumed.append(w.range)
+            p.aux.append(w.range)
+            p.work = blank(p.work, w.range.location, end(w.range))
+        }
+    }
+
+    private static func parseRadial(_ p: CParse) {
+        let t = p.text
+        for m in CardioRx.radHarvest.all(p.work) {
+            let a = m.range.location
+            let b = end(m.range)
+            if overlaps(a, b, p.consumed) { continue }
+            if let side = grp(m, 1, p.work) {
+                p.take(a, b, CF(study: "radial", field: "harvest", value: side.lowercased()))
+            } else {
+                p.take(a, b, CF(study: "radial", field: "harvest", value: "none"))
+            }
+        }
+        let specs: [(String, NoteRx)] = [("side", CardioRx.sideToken), ("diam", CardioRx.radDiam), ("calc", CardioRx.radCalc), ("ulnar", CardioRx.radUlnar)]
+        walkSides(p, "radial", specs) { (kind: String, m: NSTextCheckingResult, w: String) -> (String, String)? in
+            let a = m.range.location
+            let b = end(m.range)
+            if kind == "diam" {
+                let v = Double(grp(m, 1, w) ?? "") ?? -1
+                if v < 1 || v > 6 {
+                    p.poisoned("radial", "right.diameter")
+                    p.poisoned("radial", "left.diameter")
+                    return nil
+                }
+                if doubted(t, a, b) { return nil }
+                return ("diameter", num(v))
+            }
+            if kind == "calc" {
+                let word = (grp(m, 1, w) ?? "").lowercased()
+                let value = word.hasPrefix("no") ? "false" : "true"
+                if value == "true" && doubted(t, a, b) { return nil }
+                return ("calcified", value)
+            }
+            if doubted(t, a, b) { return nil }
+            return ("ulnar", (grp(m, 1, w) ?? grp(m, 2, w) ?? "").lowercased())
+        }
+        for w in CardioRx.arteryWords.all(p.work) where !p.findings.isEmpty {
+            p.consumed.append(w.range)
+            p.aux.append(w.range)
+            p.work = blank(p.work, w.range.location, end(w.range))
+        }
+    }
+
+    // MARK: Runs
+
+    private static func runParse(_ study: String, _ s: String, _ base: Int, adjacent: Bool = false) -> CParse {
+        let p = CParse(s, base)
+        switch study {
+        case "echo": parseEcho(p)
+        case "lhc": parseLHC(p)
+        case "rhc": parseRHC(p)
+        case "pft": parsePFT(p)
+        case "cxr": parseCXR(p)
+        case "carotid": parseCarotid(p, adjacentNormal: adjacent)
+        default: parseRadial(p)
+        }
+        return p
+    }
+
+    private static let hasDate: Set<String> = ["echo", "lhc", "rhc", "pft", "carotid", "radial"]
+
+    private static func resolveCues(_ text: String) -> [CCue] {
+        let list: [(String, Bool, NoteRx)] = [
+            ("echo", true, CardioRx.cueEcho), ("lhc", true, CardioRx.cueLhc), ("lhc", false, CardioRx.cueCath), ("rhc", true, CardioRx.cueRhc),
+            ("pft", true, CardioRx.cuePft), ("cxr", true, CardioRx.cueCxr), ("carotid", true, CardioRx.cueCarotid),
+            ("carotid", false, CardioRx.cueCarotids), ("radial", true, CardioRx.cueRadial),
+        ]
+        var found: [CCue] = []
+        for item in list {
+            for m in item.2.all(text) {
+                var lead: String? = nil
+                if item.0 == "pft" || item.0 == "cxr" { lead = grp(m, 1, text) }
+                found.append(CCue(study: item.0, strong: item.1, a: m.range.location, b: end(m.range), lead: lead, token: (text as NSString).substring(with: m.range)))
+            }
+        }
+        found.sort { (x: CCue, y: CCue) -> Bool in
+            if x.a != y.a { return x.a < y.a }
+            return (x.b - x.a) > (y.b - y.a)
+        }
+        var out: [CCue] = []
+        for c in found {
+            var clash = false
+            for o in out where c.a < o.b && o.a < c.b { clash = true }
+            if !clash { out.append(c) }
+        }
+        return out
+    }
+
+    private static func sentences(_ text: String) -> [(Int, Int)] {
+        var out: [(Int, Int)] = []
+        var a = 0
+        for m in CardioRx.sentBreak.all(text) {
+            out.append((a, m.range.location))
+            a = end(m.range)
+        }
+        out.append((a, (text as NSString).length))
+        return out
+    }
+
+    private static func pieces(_ text: String, _ a: Int, _ b: Int) -> [(Int, Int)] {
+        var out: [(Int, Int)] = []
+        let ns = text as NSString
+        var s = a
+        var i = a
+        while i < b {
+            let c = ns.character(at: i)
+            if c == 44 || c == 59 {
+                out.append((s, i))
+                s = i + 1
+            }
+            i += 1
+        }
+        out.append((s, b))
+        return out
+    }
+
+    private static let gatingFields: [String: [String]] = ["lhc": ["stenosis.", "dominance", "result"], "carotid": [".stenosis", ".vertebral", ".psv", ".edv"]]
+
+    private static func gating(_ run: CRun, _ fs: [CF]) -> Bool {
+        guard let keys = gatingFields[run.study] else { return true }
+        for f in fs where f.field != "date" {
+            for k in keys where f.field.contains(k) { return true }
+        }
+        return false
+    }
+
+    /// The findings read from the text and the stretches to mask. `page`: the study of the page the line is typed on (no cue needed).
+    private static func readRuns(_ text: String, page: CardioStudy?, now: Date) -> (findings: [CF], masks: [NSRange]) {
+        let cues = resolveCues(text)
+        var runs: [CRun] = []
+        var ndMasks: [NSRange] = []
+        for sentence in sentences(text) {
+            var active: CRun? = nil
+            if let pg = page {
+                let r = CRun(pg.rawValue, nil)
+                runs.append(r)
+                active = r
+            }
+            for piece in pieces(text, sentence.0, sentence.1) {
+                let pa = piece.0
+                let pb = piece.1
+                let pc = cues.filter { $0.a >= pa && $0.a < pb }
+                if pc.isEmpty {
+                    if let act = active {
+                        let p = runParse(act.study, sub(text, pa, pb), pa)
+                        if p.pure { act.parses.append(p) } else { active = nil }
+                    }
+                    continue
+                }
+                for (i, cue) in pc.enumerated() {
+                    let prevEnd = i == 0 ? pa : pc[i - 1].b
+                    let before = sub(text, prevEnd, cue.a)
+                    let afterEnd = i + 1 < pc.count ? pc[i + 1].a : pb
+                    let after = sub(text, cue.b, afterEnd)
+                    var leadParse: (parse: CParse, span: NSRange)? = nil
+                    if i == 0 && !before.trimmingCharacters(in: .whitespaces).isEmpty {
+                        if let lm = CardioRx.leadIn.first(before) {
+                            let lp = runParse(cue.study, sub(before, 0, lm.range.location), prevEnd)
+                            if lp.pure && !lp.findings.isEmpty {
+                                leadParse = (parse: lp, span: NSRange(location: prevEnd + lm.range.location, length: lm.range.length))
+                            }
+                        } else if let act = active {
+                            let p = runParse(act.study, before, prevEnd)
+                            if p.pure { act.parses.append(p) }
+                        }
+                    }
+                    let nb = CardioRx.notDoneBefore.first(before)
+                    let na = CardioRx.notDoneAfter.first(after)
+                    if nb != nil || na != nil {
+                        let from = nb.map { prevEnd + $0.range.location } ?? cue.a
+                        let to = cue.b + (na.map { end($0.range) } ?? 0)
+                        ndMasks.append(NSRange(location: from, length: to - from))
+                        active = nil
+                        continue
+                    }
+                    let run = CRun(cue.study, cue, weak: !cue.strong)
+                    runs.append(run)
+                    if let lp = leadParse {
+                        run.parses.append(lp.parse)
+                        run.masks.append(lp.span)
+                    }
+                    // The study's own date: right after the cue, else right before it.
+                    var body = after
+                    if hasDate.contains(cue.study) {
+                        var date: PatientMonthYear? = nil
+                        var da = 0
+                        var db = 0
+                        var dbase = 0
+                        if let dm = CardioRx.dateAfter.first(after) {
+                            let g = dm.range(at: 1)
+                            date = studyDateRaw((after as NSString).substring(with: g), now)
+                            da = g.location
+                            db = end(g)
+                            dbase = cue.b
+                        }
+                        if date == nil, let dm2 = CardioRx.dateBefore.first(before) {
+                            let g = dm2.range(at: 1)
+                            if let d2 = studyDateRaw((before as NSString).substring(with: g), now) {
+                                date = d2
+                                da = g.location
+                                db = end(g)
+                                dbase = prevEnd
+                            }
+                        }
+                        if let d = date, let ok = studyDate(d.text, now: now) {
+                            var f = CF(study: cue.study, field: "date", value: ok.text)
+                            f.a = dbase + da
+                            f.b = dbase + db
+                            run.extra.append(f)
+                            if dbase == cue.b { body = blank(after, da, db) }
+                        }
+                    }
+                    let adjacent = cue.study == "carotid" && CardioRx.carBareNormal.first(after) != nil
+                    let p = runParse(cue.study, body, cue.b, adjacent: adjacent)
+                    // "normal PFTs", "PFTs nl", "normal CXR".
+                    if let lead = cue.lead, cue.study == "pft" || cue.study == "cxr" {
+                        let n = (lead as NSString).length
+                        var f = CF(study: cue.study, field: cue.study == "pft" ? "pattern" : "result", value: "normal")
+                        f.a = cue.a
+                        f.b = cue.a + n
+                        run.extra.append(f)
+                    } else if cue.study == "pft", let am = CardioRx.pftNormalAfter.first(after) {
+                        let g = am.range(at: 1)
+                        if !overlaps(g.location, end(g), p.consumed) {
+                            p.take(g.location, end(g), CF(study: "pft", field: "pattern", value: "normal"))
+                        }
+                    }
+                    run.parses.append(p)
+                    active = p.pure ? run : nil
+                }
+            }
+        }
+        return assemble(text, runs, ndMasks)
+    }
+
+    /// The date as PatientMonthYear.parse reads it, whether or not it is plausible yet (studyDate judges that).
+    private static func studyDateRaw(_ token: String, _ now: Date) -> PatientMonthYear? {
+        let trimmed = token.trimmingCharacters(in: CharacterSet(charactersIn: " )"))
+        guard let d = PatientMonthYear.parse(trimmed, now: now), d.year != nil else { return nil }
+        return d
+    }
+
+    private static func assemble(_ text: String, _ runs: [CRun], _ ndMasks: [NSRange]) -> (findings: [CF], masks: [NSRange]) {
+        var poison = Set<String>()
+        for r in runs {
+            for p in r.parses { for z in p.poison { poison.insert(z) } }
+        }
+        var keptRuns: [(run: CRun, fs: [CF])] = []
+        for r in runs {
+            var fs: [CF] = []
+            for p in r.parses { fs += p.findings }
+            fs += r.extra
+            if r.weak && !gating(r, fs) { continue }
+            if fs.isEmpty { continue }
+            keptRuns.append((run: r, fs: fs))
+        }
+        // The chest X-ray's free findings of the runs are one line, in the order written.
+        var joinedFree: [String] = []
+        for k in keptRuns { for f in k.fs where f.study == "cxr" && f.field == "findings" { joinedFree.append(f.value) } }
+        if joinedFree.count > 1 {
+            let joined = joinedFree.joined(separator: "; ")
+            for ki in 0..<keptRuns.count {
+                for fi in 0..<keptRuns[ki].fs.count where keptRuns[ki].fs[fi].study == "cxr" && keptRuns[ki].fs[fi].field == "findings" {
+                    keptRuns[ki].fs[fi].value = joined
+                }
+            }
+        }
+        // The echo's study word.
+        for ki in 0..<keptRuns.count {
+            let r = keptRuns[ki].run
+            if r.study == "echo", let cue = r.cue, cue.token == "TTE" || cue.token == "TEE" {
+                var f = CF(study: "echo", field: "study", value: cue.token)
+                f.a = cue.a
+                f.b = cue.b
+                keptRuns[ki].fs.append(f)
+            }
+        }
+        // Conflicts: two values for one field are read as neither.
+        var byKey: [String: [CF]] = [:]
+        for k in keptRuns { for f in k.fs { byKey[f.key, default: []].append(f) } }
+        var drop = Set<String>()
+        for (key, list) in byKey {
+            if poison.contains(key) {
+                drop.insert(key)
+                continue
+            }
+            var values: [String] = []
+            for f in list where !values.contains(f.value) { values.append(f.value) }
+            if values.count > 1 {
+                let allSegments = !list.contains { !$0.segment }
+                if key.hasPrefix("lhc.stenosis.") && allSegments { continue }
+                drop.insert(key)
+            }
+        }
+        // Chest X-ray: an abnormal finding beats "normal"; the normal words stay.
+        var abnormal = false
+        for k in keptRuns { for f in k.fs where f.study == "cxr" && (f.field == "effusion" || f.field == "findings") { abnormal = true } }
+        if abnormal { drop.insert("cxr.result") }
+        var out: [CF] = []
+        var seen = Set<String>()
+        for k in keptRuns {
+            for f in k.fs {
+                if drop.contains(f.key) || seen.contains(f.key) { continue }
+                var g = f
+                if f.study == "lhc" && f.field.hasPrefix("stenosis.") {
+                    var best = -1.0
+                    for x in byKey[f.key] ?? [] { best = max(best, Double(x.value) ?? -1) }
+                    g.value = num(best)
+                }
+                seen.insert(f.key)
+                out.append(g)
+            }
+        }
+        // A study word with nothing else read is not read.
+        if !out.contains(where: { $0.study == "echo" && $0.field != "study" }) {
+            out = out.filter { !($0.study == "echo" && $0.field == "study") }
+        }
+        var masks: [NSRange] = []
+        let keys = Set(out.map { $0.key })
+        for k in keptRuns {
+            let mine = k.fs.filter { keys.contains($0.key) }
+            if mine.isEmpty { continue }
+            var spans: [NSRange] = []
+            if let cue = k.run.cue { spans.append(NSRange(location: cue.a, length: cue.b - cue.a)) }
+            spans += k.run.masks
+            for f in mine where !f.keepWords { spans.append(NSRange(location: f.a, length: f.b - f.a)) }
+            var fillers: [NSRange] = []
+            for p in k.run.parses {
+                if p.findings.contains(where: { keys.contains($0.key) }) {
+                    for x in p.aux { spans.append(NSRange(location: p.base + x.location, length: x.length)) }
+                }
+                for m in CardioRx.fillerWords.all(p.text) {
+                    fillers.append(NSRange(location: p.base + m.range.location, length: m.range.length))
+                }
+            }
+            // Filler next to what is masked goes with it.
+            var changed = true
+            while changed {
+                changed = false
+                for fr in fillers where !spans.contains(fr) {
+                    for s in spans {
+                        var gap: String? = nil
+                        if end(s) <= fr.location {
+                            gap = sub(text, end(s), fr.location)
+                        } else if end(fr) <= s.location {
+                            gap = sub(text, end(fr), s.location)
+                        }
+                        if let g = gap, CardioRx.maskGap.first(g) != nil {
+                            spans.append(fr)
+                            changed = true
+                            break
+                        }
+                    }
+                }
+            }
+            masks += spans
+        }
+        // The history's valve for an echo valve told in a form the history reader does not know.
+        var extra: [CF] = []
+        for f in out where f.study == "echo" && f.field.hasPrefix("valve.") {
+            if let h = f.history, h.count == 3 {
+                var x = CF(study: "history", field: "valve." + h[0] + "." + h[1], value: h[2])
+                x.a = f.a
+                x.b = f.b
+                extra.append(x)
+            }
+        }
+        return (findings: out + extra, masks: masks + ndMasks)
+    }
+
+    // MARK: The public reading
+
+    /// Reads a line (or a note: new lines end a run) for the cardiopulmonary tests. `page`: the page the line is typed on, whose
+    /// study needs no cue there.
+    static func read(_ text: String, page: CardioStudy? = nil, now: Date = Date()) -> CardioReading {
+        let r = readRuns(text, page: page, now: now)
+        var out = CardioReading()
+        out.masks = r.masks
+        for f in r.findings { out.findings.append(finding(f)) }
+        return out
+    }
+
+    private static func finding(_ f: CF) -> PatientNoteFinding {
+        let part = f.field.components(separatedBy: ".")
+        if f.study == "echo", part.count == 3, part[0] == "valve", let g = EchoGrade(rawValue: f.value) {
+            let first = part[1].prefix(1).uppercased()
+            let rest = String(part[1].dropFirst())
+            let name = first + rest + " " + part[2]
+            return PatientNoteFinding(id: "echo:" + part[1] + ":" + part[2], section: PatientNote.Part.assessment, label: "Echo: " + name + ", " + g.rawValue,
+                                      change: .echoValve(part[1], part[2], g))
+        }
+        if f.study == "history", part.count == 3, part[0] == "valve" {
+            let valve = part[1]
+            let lesion = part[2]
+            let id = valve == "aortic" && lesion == "stenosis" ? "problem:as" : (valve == "mitral" && lesion == "regurgitation" ? "problem:mr" : "valve:" + valve + ":" + lesion)
+            let first = valve.prefix(1).uppercased()
+            let rest = String(valve.dropFirst())
+            let name = first + rest + " " + lesion
+            return PatientNoteFinding(id: id, section: PatientNote.Part.history, label: name + ", " + f.value, change: .valve(valve, lesion, f.value))
+        }
+        if f.study == "lhc", f.field == "result" {
+            return PatientNoteFinding(id: "lhc:result", section: PatientNote.Part.assessment,
+                                      label: "Left heart cath: " + (f.value == "no-cad" ? "no CAD" : "non-obstructive"), change: .lhcResult(f.value))
+        }
+        let study = CardioStudy(rawValue: f.study) ?? .echo
+        let c = CardioFinding(study: study, field: f.field, value: f.value)
+        return PatientNoteFinding(id: "cardio:" + f.study + ":" + f.field, section: PatientNote.Part.assessment,
+                                  label: study.destination + ": " + valueText(c), change: .cardio(c))
+    }
+
+    /// The finding as the codes of the tables name it: "echo.lvef=35", "lhc.stenosis.lad=90", "history.valve.aortic.stenosis=severe".
+    static func code(_ f: PatientNoteFinding) -> String? {
+        switch f.change {
+        case .cardio(let c): return c.study.rawValue + "." + c.field + "=" + c.value
+        case .echoValve(let v, let l, let g): return "echo.valve." + v + "." + l + "=" + g.rawValue
+        case .lhcResult(let v): return "lhc.result=" + v
+        case .valve(let v, let l, let g): return "history.valve." + v + "." + l + "=" + (g ?? "")
+        default: return nil
+        }
+    }
+
+    /// Every pattern, for the test that each one compiles.
+    static var allPatterns: [NoteRx] {
+        var out: [NoteRx] = [
+            CardioRx.aorta, CardioRx.arteryWords, CardioRx.carBareNormal, CardioRx.carSten, CardioRx.carVel, CardioRx.carVert, CardioRx.chamberFull,
+            CardioRx.cmpBefore, CardioRx.cueCarotid, CardioRx.cueCarotids, CardioRx.cueCath, CardioRx.cueCxr, CardioRx.cueEcho, CardioRx.cueLhc,
+            CardioRx.cuePft, CardioRx.cueRadial, CardioRx.cueRhc, CardioRx.cxrEff1, CardioRx.cxrEff2, CardioRx.cxrNegStart, CardioRx.cxrNormal,
+            CardioRx.cxrSegment, CardioRx.cxrVocab, CardioRx.dateAfter, CardioRx.dateBefore, CardioRx.effBadBefore, CardioRx.efHistory, CardioRx.efRx,
+            CardioRx.fillerWords, CardioRx.gradeBefore, CardioRx.gradeStart, CardioRx.hedgeAfter, CardioRx.leadIn, CardioRx.letterRx, CardioRx.lhcDom,
+            CardioRx.lhcOccA, CardioRx.lhcOccB, CardioRx.lhcPctAfter, CardioRx.lhcPctBefore, CardioRx.maskGap, CardioRx.negatedBefore,
+            CardioRx.notDoneAfter, CardioRx.notDoneBefore, CardioRx.numbers, CardioRx.ownForm, CardioRx.pairAfter, CardioRx.pairBefore,
+            CardioRx.pendingGap, CardioRx.pftDlco, CardioRx.pftNormalAfter, CardioRx.pftPattern, CardioRx.pftRatio, CardioRx.pftTlc, CardioRx.pftVol,
+            CardioRx.punctOnly, CardioRx.qOrCmpBefore, CardioRx.radCalc, CardioRx.radDiam, CardioRx.radHarvest, CardioRx.radUlnar, CardioRx.rhcCo,
+            CardioRx.rhcPa, CardioRx.rhcPam, CardioRx.rhcPasp, CardioRx.rhcPcwp, CardioRx.rhcRa, CardioRx.sentBreak, CardioRx.sideCombine,
+            CardioRx.sideGap, CardioRx.sideToken, CardioRx.vAfter, CardioRx.vBefore, CardioRx.vNegated, CardioRx.vPulm, CardioRx.vWritten, CardioRx.wordRx,
+        ]
+        out += CardioRx.echoKnown + CardioRx.lhcKnown + CardioRx.rhcKnown + CardioRx.pftKnown
+        for s in CardioRx.echoShapes { out.append(s.1) }
+        return out
+    }
+}
