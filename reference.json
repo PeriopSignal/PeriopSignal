@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-11-16",
-  "revision": 1794847000,
+  "updated": "2026-11-19",
+  "revision": 1795046400,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -17007,7 +17007,7 @@
         "procedures": [
           {
             "id": "cabg",
-            "name": "Coronary artery bypass",
+            "name": "Coronary artery bypass (CABG)",
             "variants": [
               {
                 "id": "only",
@@ -17075,8 +17075,83 @@
             ]
           },
           {
+            "id": "valve-repair",
+            "name": "Valve repair, surgical (aortic, mitral, tricuspid, pulmonary)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Cardiac",
+                  "row": "Coronary artery bypass"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin, cefuroxime",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefuroxime"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's table names coronary artery bypass; its text gives the same recommendation for cardiac procedures, which it says include valve repairs."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true,
+                  "notes": [
+                    "Periop Signal note: the guideline's table names coronary artery bypass; its text gives the same recommendation for cardiac procedures, which it says include valve repairs."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "av-repair",
+              "mv-repair",
+              "tv-repair",
+              "pv-repair"
+            ]
+          },
+          {
             "id": "device",
-            "name": "Cardiac device insertion (e.g., pacemaker)",
+            "name": "Permanent pacemaker, ICD or CRT: implantation or generator replacement",
             "variants": [
               {
                 "id": "only",
@@ -17143,7 +17218,7 @@
           },
           {
             "id": "vad",
-            "name": "Ventricular assist device",
+            "name": "Ventricular assist device (VAD) implantation",
             "variants": [
               {
                 "id": "only",
@@ -17174,6 +17249,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "The guideline says there is limited evidence to make specific recommendations for VADs, and each practice should tailor protocols based on pathogen prevalence and local susceptibility profiles. For replacement of a VAD due to ongoing or recent infection, prophylaxis should incorporate coverage directed at the offending organism or organisms."
                   ]
                 },
                 "allergy": {
@@ -17198,6 +17276,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "The guideline says there is limited evidence to make specific recommendations for VADs, and each practice should tailor protocols based on pathogen prevalence and local susceptibility profiles. For replacement of a VAD due to ongoing or recent infection, prophylaxis should incorporate coverage directed at the offending organism or organisms."
                   ]
                 }
               }
@@ -17206,6 +17287,22 @@
               "lvad",
               "rvad",
               "bivad"
+            ]
+          },
+          {
+            "id": "cath-tee",
+            "name": "Cardiac catheterization or TEE",
+            "variants": [
+              {
+                "id": "only",
+                "label": null,
+                "outside": "The guideline's table has no row for this: its text says that, based on available data and perceived infection risk, antimicrobial prophylaxis is not routinely recommended for cardiac catheterization or transesophageal echocardiogram."
+              }
+            ],
+            "catalog": [
+              "lhc",
+              "rhc",
+              "tee"
             ]
           }
         ]
@@ -17220,7 +17317,7 @@
         "procedures": [
           {
             "id": "open",
-            "name": "Lobectomy, pneumonectomy, lung resection, thoracotomy",
+            "name": "Lung resection or thoracotomy (lobectomy, pneumonectomy)",
             "variants": [
               {
                 "id": "only",
@@ -17292,7 +17389,7 @@
           },
           {
             "id": "vats",
-            "name": "Video-assisted thoracoscopic surgery",
+            "name": "Video-assisted thoracoscopic surgery (VATS)",
             "variants": [
               {
                 "id": "only",
@@ -17358,6 +17455,20 @@
               "pleurodesis",
               "vats-pleural-biopsy"
             ]
+          },
+          {
+            "id": "chest-tube",
+            "name": "Chest tube insertion",
+            "variants": [
+              {
+                "id": "only",
+                "label": null,
+                "outside": "The guideline's table has no row for this: its text says that, based on available data and perceived infection risk, antimicrobial prophylaxis is not routinely recommended for chest tube insertion."
+              }
+            ],
+            "catalog": [
+              "chest-tube"
+            ]
           }
         ]
       },
@@ -17370,8 +17481,269 @@
         "specialties": [],
         "procedures": [
           {
+            "id": "aneurysm",
+            "name": "Open aneurysm repair",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Vascular",
+                  "row": "Vascular procedures"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true,
+                  "notes": [
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "open-aaa",
+              "juxtarenal-aaa",
+              "open-iliac-aneurysm",
+              "popliteal-aneurysm"
+            ]
+          },
+          {
+            "id": "bypass",
+            "name": "Arterial bypass or reconstruction with a vein or prosthetic graft",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Vascular",
+                  "row": "Vascular procedures"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true,
+                  "notes": [
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "aortobifemoral",
+              "axillobifemoral",
+              "fem-fem",
+              "fem-pop",
+              "fem-distal",
+              "iliofemoral-bypass",
+              "obturator-bypass"
+            ]
+          },
+          {
+            "id": "endarterectomy",
+            "name": "Lower-limb endarterectomy (e.g., femoral)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Vascular",
+                  "row": "Vascular procedures"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true,
+                  "notes": [
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "femoral-endarterectomy"
+            ]
+          },
+          {
+            "id": "dialysis-graft",
+            "name": "Dialysis access with a prosthetic graft",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Vascular",
+                  "row": "Vascular procedures"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's text says prophylaxis lowers infection after procedures that establish dialysis access; its recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true,
+                  "notes": [
+                    "Periop Signal note: the guideline's text says prophylaxis lowers infection after procedures that establish dialysis access; its recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "av-graft"
+            ]
+          },
+          {
             "id": "vascular",
-            "name": "Vascular procedures",
+            "name": "Other vascular procedure",
             "variants": [
               {
                 "id": "only",
@@ -17429,21 +17801,9 @@
               }
             ],
             "catalog": [
-              "open-aaa",
-              "juxtarenal-aaa",
               "taaa",
               "open-dtaa",
-              "aortobifemoral",
-              "axillobifemoral",
-              "fem-fem",
-              "fem-pop",
-              "fem-distal",
-              "iliofemoral-bypass",
-              "obturator-bypass",
-              "mesenteric-bypass",
-              "femoral-endarterectomy",
-              "popliteal-aneurysm",
-              "open-iliac-aneurysm"
+              "mesenteric-bypass"
             ]
           }
         ],
@@ -17460,8 +17820,135 @@
         ],
         "procedures": [
           {
-            "id": "entry",
-            "name": "Entry into the lumen of the GI tract (bariatric, pancreaticoduodenectomy)",
+            "id": "bariatric",
+            "name": "Bariatric surgery (gastric bypass, restrictive procedures, biliopancreatic diversion)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Gastroduodenal",
+                  "row": "Entry into the lumen of the gastrointestinal tract (bariatric, pancreaticoduodenectomy)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "The guideline says higher doses of antimicrobials are uniformly recommended in morbidly obese patients undergoing bariatric procedures."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "The guideline says higher doses of antimicrobials are uniformly recommended in morbidly obese patients undergoing bariatric procedures."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "sleeve",
+              "rygb",
+              "duodenal-switch",
+              "oagb"
+            ]
+          },
+          {
+            "id": "gastrectomy",
+            "name": "Gastrectomy, total or partial",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Gastroduodenal",
+                  "row": "Entry into the lumen of the gastrointestinal tract (bariatric, pancreaticoduodenectomy)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's text lists resection for gastric carcinoma and for gastric or duodenal ulcers among the gastroduodenal procedures it considers; this row is its recommendation for procedures that enter the lumen of the intestinal tract."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's text lists resection for gastric carcinoma and for gastric or duodenal ulcers among the gastroduodenal procedures it considers; this row is its recommendation for procedures that enter the lumen of the intestinal tract."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "total-gastrectomy",
+              "partial-gastrectomy",
+              "lap-gastrectomy"
+            ]
+          },
+          {
+            "id": "whipple",
+            "name": "Pancreaticoduodenectomy (Whipple)",
             "variants": [
               {
                 "id": "only",
@@ -17517,21 +18004,135 @@
               }
             ],
             "catalog": [
-              "sleeve",
-              "rygb",
-              "duodenal-switch",
-              "oagb",
-              "bariatric-revision",
               "whipple",
-              "robotic-whipple",
-              "total-gastrectomy",
-              "partial-gastrectomy",
-              "lap-gastrectomy"
+              "robotic-whipple"
+            ]
+          },
+          {
+            "id": "ulcer",
+            "name": "Perforated ulcer repair",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Gastroduodenal",
+                  "row": "Entry into the lumen of the gastrointestinal tract (bariatric, pancreaticoduodenectomy)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's text lists perforated ulcer procedures (i.e., Graham patch repair) among the gastroduodenal procedures it considers; this row is its recommendation for procedures that enter the lumen of the intestinal tract."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's text lists perforated ulcer procedures (i.e., Graham patch repair) among the gastroduodenal procedures it considers; this row is its recommendation for procedures that enter the lumen of the intestinal tract."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "perforated-ulcer"
+            ]
+          },
+          {
+            "id": "entry",
+            "name": "Other gastroduodenal surgery entering the lumen",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Gastroduodenal",
+                  "row": "Entry into the lumen of the gastrointestinal tract (bariatric, pancreaticoduodenectomy)"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin",
+                            "vancomycin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "class:aminoglycoside",
+                            "aztreonam",
+                            "class:fluoroquinolone"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "bariatric-revision"
             ]
           },
           {
             "id": "no-entry",
-            "name": "No entry into the GI tract (antireflux, highly selective vagotomy)",
+            "name": "Antireflux surgery (e.g., Nissen) or highly selective vagotomy",
             "variants": [
               {
                 "id": "high",
@@ -17605,7 +18206,7 @@
         "procedures": [
           {
             "id": "open",
-            "name": "Open procedure",
+            "name": "Open biliary surgery (e.g., open cholecystectomy)",
             "variants": [
               {
                 "id": "only",
@@ -17714,7 +18315,7 @@
           },
           {
             "id": "lap",
-            "name": "Laparoscopic, elective",
+            "name": "Laparoscopic cholecystectomy",
             "variants": [
               {
                 "id": "low",
@@ -17863,7 +18464,7 @@
         "procedures": [
           {
             "id": "appendectomy",
-            "name": "Appendectomy",
+            "name": "Appendectomy, open or laparoscopic",
             "variants": [
               {
                 "id": "uncomplicated",
@@ -17963,7 +18564,7 @@
           },
           {
             "id": "small-intestine",
-            "name": "Small intestine",
+            "name": "Small bowel surgery (resection, bypass, strictureplasty)",
             "variants": [
               {
                 "id": "nonobstructed",
@@ -18082,13 +18683,14 @@
             ],
             "catalog": [
               "small-bowel-resection",
-              "lap-sbr"
+              "lap-sbr",
+              "strictureplasty"
             ],
             "question": "Obstructed?"
           },
           {
             "id": "hernia",
-            "name": "Hernia repair (hernioplasty and herniorrhaphy)",
+            "name": "Hernia repair, with or without mesh (e.g., inguinal, ventral)",
             "variants": [
               {
                 "id": "only",
@@ -18153,7 +18755,7 @@
           },
           {
             "id": "colorectal",
-            "name": "Colorectal",
+            "name": "Colon or rectal surgery (colectomy, rectal resection)",
             "variants": [
               {
                 "id": "only",
@@ -18315,8 +18917,40 @@
         ],
         "procedures": [
           {
+            "id": "thyroid",
+            "name": "Thyroidectomy or lymph node excision",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Head and Neck",
+                  "row": "Clean"
+                },
+                "evidence": "B",
+                "recommended": {
+                  "text": "None",
+                  "kind": "none",
+                  "notes": [
+                    "Periop Signal note: the guideline's text gives thyroidectomy and lymph node excisions as its examples of clean head and neck procedures."
+                  ]
+                },
+                "allergy": {
+                  "text": "None",
+                  "kind": "none",
+                  "notes": [
+                    "Periop Signal note: the guideline's text gives thyroidectomy and lymph node excisions as its examples of clean head and neck procedures."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "thyroidectomy-total",
+              "hemithyroidectomy"
+            ]
+          },
+          {
             "id": "clean",
-            "name": "Clean",
+            "name": "Other clean procedure, no prosthesis",
             "variants": [
               {
                 "id": "only",
@@ -18464,8 +19098,91 @@
             ]
           },
           {
+            "id": "salivary",
+            "name": "Parotidectomy or submandibular gland excision",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Head and Neck",
+                  "row": "Other clean-contaminated procedures, except tonsillectomy and functional endoscopic sinus procedures"
+                },
+                "evidence": "B",
+                "recommended": {
+                  "text": "Cefazolin + metronidazole, cefuroxime + metronidazole, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefuroxime"
+                          ]
+                        },
+                        {
+                          "any": [
+                            "metronidazole"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's text counts parotidectomy and submandibular gland excision among clean-contaminated head and neck procedures. For cancer surgery, use the clean-contaminated cancer surgery row."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true,
+                  "notes": [
+                    "Periop Signal note: the guideline's text counts parotidectomy and submandibular gland excision among clean-contaminated head and neck procedures. For cancer surgery, use the clean-contaminated cancer surgery row."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "parotidectomy",
+              "submandibular-gland"
+            ]
+          },
+          {
             "id": "other-cc",
-            "name": "Other clean-contaminated (not tonsillectomy or functional endoscopic sinus procedures)",
+            "name": "Other clean-contaminated procedure (not tonsillectomy or functional endoscopic sinus surgery)",
             "variants": [
               {
                 "id": "only",
@@ -18535,6 +19252,22 @@
                 }
               }
             ]
+          },
+          {
+            "id": "tonsil-fess",
+            "name": "Tonsillectomy or functional endoscopic sinus surgery",
+            "variants": [
+              {
+                "id": "only",
+                "label": null,
+                "outside": "The guideline's table excludes these: antimicrobial prophylaxis has not been shown to benefit patients undergoing tonsillectomy or functional endoscopic sinus procedures."
+              }
+            ],
+            "catalog": [
+              "tonsillectomy",
+              "tonsillectomy-adenoidectomy",
+              "fess"
+            ]
           }
         ]
       },
@@ -18550,7 +19283,7 @@
         "procedures": [
           {
             "id": "craniotomy",
-            "name": "Elective craniotomy and CSF-shunting procedures",
+            "name": "Elective craniotomy",
             "variants": [
               {
                 "id": "only",
@@ -18609,13 +19342,69 @@
               "acoustic-neuroma",
               "cavernoma",
               "intraventricular-tumor",
-              "epilepsy-surgery",
+              "epilepsy-surgery"
+            ]
+          },
+          {
+            "id": "shunt",
+            "name": "CSF shunt (e.g., ventriculoperitoneal)",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Neurosurgery",
+                  "row": "Elective craniotomy and cerebrospinal fluid-shunting procedures"
+                },
+                "evidence": "A",
+                "recommended": {
+                  "text": "Cefazolin",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true
+                }
+              }
+            ],
+            "catalog": [
               "vp-shunt"
             ]
           },
           {
             "id": "pump",
-            "name": "Implantation of intrathecal pumps",
+            "name": "Intrathecal pump implantation",
             "variants": [
               {
                 "id": "only",
@@ -18735,7 +19524,7 @@
           },
           {
             "id": "hysterectomy",
-            "name": "Hysterectomy (vaginal or abdominal)",
+            "name": "Hysterectomy: vaginal, abdominal or laparoscopic",
             "variants": [
               {
                 "id": "only",
@@ -18829,7 +19618,8 @@
             "catalog": [
               "tah",
               "tvh",
-              "radical-hysterectomy"
+              "radical-hysterectomy",
+              "tlh"
             ]
           }
         ]
@@ -18847,7 +19637,7 @@
         "procedures": [
           {
             "id": "clean",
-            "name": "Clean hand, knee or foot operation, no implanted foreign material",
+            "name": "Clean hand, knee or foot surgery or arthroscopy, no implant",
             "variants": [
               {
                 "id": "only",
@@ -18858,11 +19648,17 @@
                 "evidence": "C",
                 "recommended": {
                   "text": "None",
-                  "kind": "none"
+                  "kind": "none",
+                  "notes": [
+                    "The guideline says: if the potential for implantation of foreign materials is unknown, the procedure should be treated as with implantation."
+                  ]
                 },
                 "allergy": {
                   "text": "None",
-                  "kind": "none"
+                  "kind": "none",
+                  "notes": [
+                    "The guideline says: if the potential for implantation of foreign materials is unknown, the procedure should be treated as with implantation."
+                  ]
                 }
               }
             ],
@@ -18875,7 +19671,7 @@
           },
           {
             "id": "spine",
-            "name": "Spinal procedures, with or without instrumentation",
+            "name": "Spine surgery: fusion, laminectomy, discectomy (with or without instrumentation)",
             "variants": [
               {
                 "id": "only",
@@ -18946,7 +19742,8 @@
               "deformity",
               "revision-lumbar-fusion",
               "lumbar-disc-arthroplasty",
-              "thoracolumbar-fracture"
+              "thoracolumbar-fracture",
+              "cervical-posterior-mis"
             ]
           },
           {
@@ -19087,7 +19884,7 @@
           },
           {
             "id": "joint",
-            "name": "Total joint replacement",
+            "name": "Total joint replacement (hip, knee, shoulder, elbow, ankle)",
             "variants": [
               {
                 "id": "only",
@@ -19227,7 +20024,7 @@
               {
                 "id": "no-risk",
                 "label": "No risk factors",
-                "outside": "The guideline's table has no row for this: its recommendation is for lower tract instrumentation with risk factors for infection."
+                "outside": "The guideline's table has no row for this: its recommendation is for lower tract instrumentation with risk factors for infection, and its text says no antimicrobial prophylaxis is recommended for clean urologic procedures in patients without risk factors for postoperative infections. For transrectal needle biopsy of the prostate, its text says the studies support routine prophylaxis in all patients."
               }
             ],
             "catalog": [
@@ -19298,7 +20095,7 @@
           },
           {
             "id": "prosthesis",
-            "name": "Involving implanted prosthesis",
+            "name": "Implanted prosthesis (e.g., penile prosthesis)",
             "variants": [
               {
                 "id": "only",
@@ -19520,7 +20317,7 @@
         "procedures": [
           {
             "id": "heart",
-            "name": "Heart",
+            "name": "Heart transplant",
             "variants": [
               {
                 "id": "only",
@@ -19578,7 +20375,7 @@
           },
           {
             "id": "lung",
-            "name": "Lung and heart–lung",
+            "name": "Lung or heart–lung transplant",
             "variants": [
               {
                 "id": "only",
@@ -19637,7 +20434,7 @@
           },
           {
             "id": "liver",
-            "name": "Liver",
+            "name": "Liver transplant",
             "variants": [
               {
                 "id": "only",
@@ -19706,7 +20503,7 @@
           },
           {
             "id": "pancreas",
-            "name": "Pancreas and pancreas–kidney",
+            "name": "Pancreas or pancreas–kidney transplant",
             "variants": [
               {
                 "id": "only",
@@ -19764,7 +20561,7 @@
           },
           {
             "id": "kidney",
-            "name": "Kidney",
+            "name": "Kidney transplant",
             "variants": [
               {
                 "id": "only",
@@ -19836,6 +20633,80 @@
         ],
         "procedures": [
           {
+            "id": "breast-cancer",
+            "name": "Breast cancer surgery",
+            "variants": [
+              {
+                "id": "only",
+                "table": {
+                  "section": "Plastic Surgery and Ophthalmic",
+                  "row": "Plastic surgery: clean with risk factors, or clean-contaminated"
+                },
+                "evidence": "C",
+                "recommended": {
+                  "text": "Cefazolin, ampicillin–sulbactam",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "cefazolin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "ampicillin-sulbactam"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures."
+                  ]
+                },
+                "allergy": {
+                  "text": "Clindamycin*, vancomycin*",
+                  "kind": "regimens",
+                  "regimens": [
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "clindamycin"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "slots": [
+                        {
+                          "any": [
+                            "vancomycin"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "star": true,
+                  "notes": [
+                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures."
+                  ]
+                }
+              }
+            ],
+            "catalog": [
+              "lumpectomy",
+              "modified-radical-mastectomy",
+              "alnd"
+            ]
+          },
+          {
             "id": "plastic",
             "name": "Plastic surgery",
             "variants": [
@@ -19900,7 +20771,7 @@
               {
                 "id": "clean",
                 "label": "Clean, no risk factors",
-                "outside": "The guideline's table has no row for this: its recommendation is for clean procedures with risk factors and for clean-contaminated procedures."
+                "outside": "The guideline's table has no row for this: its text says antimicrobial prophylaxis is not recommended for most clean procedures in patients without additional postoperative infection risk factors."
               }
             ],
             "question": "Wound class?"

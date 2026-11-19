@@ -58,7 +58,7 @@ final class S112Tests: XCTestCase {
     func testTheBundledFileDecodesWithTheSection() throws {
         let p = try XCTUnwrap(bundleFile.prophylaxis)
         XCTAssertEqual(p.groups.count, 14)
-        XCTAssertEqual(p.groups.flatMap(\.procedures).count, 39)
+        XCTAssertEqual(p.groups.flatMap(\.procedures).count, 55)
         XCTAssertEqual(p.mrsaAgent, "vancomycin")
         XCTAssertFalse(p.info.about.isEmpty)
         XCTAssertEqual(p.info.noDose, "Dose not in this app")
@@ -178,16 +178,16 @@ final class S112Tests: XCTestCase {
 
     func testAGroupWithOneProcedureSelectsItAtOnceAndANewProcedureForgetsTheAnswer() {
         var i = ProphylaxisInput()
-        i.chooseGroup("vascular", data: d)
-        XCTAssertEqual(i.procedure, "vascular", "one procedure: selected at once")
+        i.chooseGroup("ophthalmic", data: d)
+        XCTAssertEqual(i.procedure, "ophthalmic", "one procedure: selected at once")
         i.chooseGroup("cardiac", data: d)
         XCTAssertNil(i.procedure, "several: the user picks")
         i.chooseProcedure("cabg", data: d)
-        XCTAssertEqual(i.summary(d), "Cardiac · Coronary artery bypass")
+        XCTAssertEqual(i.summary(d), "Cardiac · Coronary artery bypass (CABG)")
         var short = ProphylaxisInput()
         short.chooseGroup("lowergi", data: d)
         short.chooseProcedure("colorectal", data: d)
-        XCTAssertEqual(short.summary(d), "Bowel & Hernia · Colorectal", "the group as its chip says it")
+        XCTAssertEqual(short.summary(d), "Bowel & Hernia · Colon or rectal surgery (colectomy, rectal resection)", "the group as its chip says it")
         var same = ProphylaxisInput()
         same.chooseGroup("ophthalmic", data: d)
         XCTAssertEqual(same.summary(d), "Ophthalmic", "a name is not said twice")
@@ -507,7 +507,7 @@ final class S112Tests: XCTestCase {
         XCTAssertEqual(p.procedureCaption, "From the case: " + r.procedures[0].title)
         var i = ProphylaxisInput()
         i.apply(p, data: d)
-        XCTAssertEqual(i.summary(d), "Cardiac · Coronary artery bypass")
+        XCTAssertEqual(i.summary(d), "Cardiac · Coronary artery bypass (CABG)")
         XCTAssertNil(i.variant)
         // A procedure that asks: the group and procedure are chosen, the question is the user's.
         let nissen = ProphylaxisEngine.prefill(record: caseWith([try planned("nissen")]), data: d)
