@@ -250,7 +250,7 @@ struct PatientArchiveDetail: View {
                 HStack(spacing: 10) {
                     Button { sharing = true } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
                         .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
-                    Button { UIPasteboard.general.string = entry.text; copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
+                    Button { HandoffShare.copyPlain(entry.text); copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
                         .buttonStyle(BigButtonStyle(prominent: false))
                 }
                 EvidenceNote("Share only through channels your institution approves for patient information.", title: "Approved channels only")

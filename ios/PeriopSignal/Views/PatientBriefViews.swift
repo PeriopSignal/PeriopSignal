@@ -330,7 +330,7 @@ struct BriefPanel: View {
         }
         .sensoryFeedback(.success, trigger: copied)
         .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
-            ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
+            ShareSheet(items: sharing ?? [], purgesPatientFiles: true).presentationDetents([.medium, .large])
         }
     }
 }

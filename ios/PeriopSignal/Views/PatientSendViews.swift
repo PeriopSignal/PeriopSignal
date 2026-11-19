@@ -14,7 +14,8 @@ final class PatientShareItem: NSObject, UIActivityItemSource {
     let packet: PatientPacket
     /// The link AirDrop is given, or nil when the switch is off or the link would be too long (AirDrop then sends the file).
     let link: URL?
-    /// The file, written to this phone's tmp folder when the sheet is prepared and removed at the next launch.
+    /// The file, written (protected) to this phone's tmp folder when the sheet is prepared and removed when the sheet is
+    /// dismissed, or at the next launch.
     let fileURL: URL
 
     /// Nil when the file cannot be written. `airDropLink` is the switch in More (on unless the user turned it off).
@@ -22,15 +23,8 @@ final class PatientShareItem: NSObject, UIActivityItemSource {
         self.packet = packet
         link = airDropLink ? PatientLink.url(for: packet) : nil
         guard let data = try? packet.encoded() else { return nil }
-        PatientSendFiles.purge(olderThan: 600)
-        let folder = PatientSendFiles.folder.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let file = folder.appendingPathComponent(PatientPacket.fileName)
-        do {
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            try data.write(to: file, options: [.atomic])
-        } catch {
-            return nil
-        }
+        // Written protected, in a folder of its own, and removed when the share sheet is dismissed (PatientSendFiles).
+        guard let file = PatientSendFiles.write(data, named: PatientPacket.fileName) else { return nil }
         fileURL = file
         super.init()
     }
@@ -97,7 +91,7 @@ struct PatientSendButton: View {
         }
         .buttonStyle(BigButtonStyle(prominent: false))
         .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
-            ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
+            ShareSheet(items: sharing ?? [], purgesPatientFiles: true).presentationDetents([.medium, .large])
         }
         .alert("Couldn't prepare the patient", isPresented: $failed) {
             Button("OK", role: .cancel) {}

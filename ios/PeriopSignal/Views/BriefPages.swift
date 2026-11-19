@@ -246,9 +246,9 @@ enum BriefPages {
     /// The PDF in a file of its own, named for what it is, for the share sheet; nil when there is nothing to draw.
     @MainActor static func pdfFile(_ blocks: [SummaryBlock], _ ctx: Context, now: Date = Date()) -> URL? {
         guard let data = pdf(blocks, ctx, now: now) else { return nil }
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Periop Signal summary.pdf")
-        do { try data.write(to: url, options: .atomic) } catch { return nil }
-        return url
+        // Ben, Nov 19 (after the GPT-6 review): the PDF holds the patient, so it is written like the patient file (its own
+        // protected folder under tmp/PatientSend, removed with the others) and keeps the visible name.
+        return PatientSendFiles.write(data, named: "Periop Signal summary.pdf")
     }
 }
 
