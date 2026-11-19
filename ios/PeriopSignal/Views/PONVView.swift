@@ -100,7 +100,7 @@ struct PONVView: View {
             }
             // The toolbar's Reset clears the factors and the agents; this bar has none of its own.
             ChecklistProgress(done: min(classes.count, need), total: need, tint: toneColor, title: "Classes Chosen", doneWord: PONVPlan.progressWord(target), onReset: nil)
-            // Ben, Nov 19 (after the GPT-6 review): the baseline risk reduction is offered at every risk count, not only from 3 factors.
+            // Ben, Nov 19 (after an outside review): the baseline risk reduction is offered at every risk count, not only from 3 factors.
             VStack(alignment: .leading, spacing: 6) {
                 Text("Reduce the Baseline Risk").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
                 FlowLayout(spacing: 6) {

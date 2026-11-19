@@ -7,7 +7,7 @@ struct NeuraxialTimingView: View {
     var onOpen: (URL) -> Void
     var onOpenTable: () -> Void
 
-    /// Drug, dose tier, kidney row and the elderly toggle. Ben, Nov 19 (after the GPT-6 review): the dose and the kidney
+    /// Drug, dose tier, kidney row and the elderly toggle. Ben, Nov 19 (after an outside review): the dose and the kidney
     /// row start empty, so the tool never shows a time from a step the user skipped (see `NeuraxialSelection`).
     @State private var selection = NeuraxialSelection()
     /// Screenshot runs only: the launch arguments have been applied once.

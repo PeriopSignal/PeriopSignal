@@ -91,7 +91,7 @@ struct InfusionsView: View {
         }
     }
 
-    /// Ben, Nov 19 (after the GPT-6 review): the doses on this screen are adult doses. One quiet line says so beside the weight
+    /// Ben, Nov 19 (after an outside review): the doses on this screen are adult doses. One quiet line says so beside the weight
     /// field, and a child's case does not fill the weight in (the pediatric and ACLS screens use the same isChild test).
     static let adultNoteAdult = "Adult doses"
     static let adultNoteChild = "Adult doses: the case is a child"

@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// The app-switcher cover. Ben, Nov 19 (after the GPT-6 review): when the app is not the active one (the app switcher, a
+/// The app-switcher cover. Ben, Nov 19 (after an outside review): when the app is not the active one (the app switcher, a
 /// call, Control Centre, the home gesture), the screen the system takes a picture of must not show patient details. While
 /// My Patient is the open tab, or a patient screen is open, the app's plain background and its logo are drawn over
 /// everything, sheets included, and removed the moment the app is active again.

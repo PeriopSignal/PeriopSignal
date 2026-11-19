@@ -763,7 +763,7 @@ struct PONVCount: Codable, Hashable {
     var agents: Int
     var agentsHigh: Int?
     var text: String
-    /// Ben, Nov 19 (after the GPT-6 review): a line shown under the headline for this row (the Fifth Consensus says more research
+    /// Ben, Nov 19 (after an outside review): a line shown under the headline for this row (the Fifth Consensus says more research
     /// is needed on a third or fourth antiemetic in high-risk patients). Optional because older bundles do not have it.
     var note: String?
 }
@@ -795,7 +795,7 @@ enum PONVPlan {
         return "\(t.agents)"
     }
 
-    /// Ben, Nov 19 (after the GPT-6 review): the guideline says interventions, not antiemetics, so the headline does too.
+    /// Ben, Nov 19 (after an outside review): the guideline says interventions, not antiemetics, so the headline does too.
     static func headline(_ target: PONVCount?) -> String {
         wanted(target) + " interventions from different classes"
     }

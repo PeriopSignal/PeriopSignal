@@ -48,7 +48,7 @@ enum HandoffShare {
     /// How long copied patient text stays on the pasteboard.
     static let pasteboardLifetime: TimeInterval = 600
 
-    /// Ben, Nov 19 (after the GPT-6 review): patient text copied from the app stays on this phone (no Universal Clipboard to
+    /// Ben, Nov 19 (after an outside review): patient text copied from the app stays on this phone (no Universal Clipboard to
     /// the user's other devices) and is gone from the pasteboard after ten minutes.
     static func patientPasteboardOptions(now: Date = Date()) -> [UIPasteboard.OptionsKey: Any] {
         [.localOnly: true, .expirationDate: now.addingTimeInterval(pasteboardLifetime)]

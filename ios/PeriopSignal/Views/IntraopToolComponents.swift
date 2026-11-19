@@ -45,7 +45,7 @@ struct EvidenceTag: View {
 
     private var tint: Color {
         let t = text.lowercased()
-        // Ben, Nov 19 (after the GPT-6 review): "Verify" (not yet checked against the source) is the caution colour, not the
+        // Ben, Nov 19 (after an outside review): "Verify" (not yet checked against the source) is the caution colour, not the
         // blue of a tap that does something.
         if t.contains("verify") { return PS.accent }
         if t.hasPrefix("g?") { return PS.accent2 }

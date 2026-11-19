@@ -559,7 +559,7 @@ final class S112Tests: XCTestCase {
     }
 
     func testPrefillReadsAPenicillinCephalosporinOrCarbapenemAllergy() throws {
-        // Ben, Nov 19 (after the GPT-6 review): a penicillin-only history with no severe or IgE-type reaction is asked, not answered
+        // Ben, Nov 19 (after an outside review): a penicillin-only history with no severe or IgE-type reaction is asked, not answered
         // (this test pinned "PCN - rash" to Yes before). The cephalosporins and carbapenems, and a penicillin with a severe
         // reaction, are still Yes. The asking rules have their own tests in ProphylaxisAllergy113Tests.
         let pcn = ProphylaxisEngine.prefill(record: allergic("PCN - rash"), data: d)

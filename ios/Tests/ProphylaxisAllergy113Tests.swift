@@ -1,7 +1,7 @@
 import XCTest
 @testable import PeriopSignal
 
-/// 1.13 (Ben, Nov 19, after the GPT-6 review): the β-lactam allergy control of the Surgical Antibiotic Prophylaxis calculator.
+/// 1.13 (Ben, Nov 19, after an outside review): the β-lactam allergy control of the Surgical Antibiotic Prophylaxis calculator.
 /// Any penicillin on a case's allergy list used to prefill "β-lactam allergy: Yes", which swaps the result to clindamycin or
 /// vancomycin. The 2013 guideline says a cephalosporin can be used when the penicillin reaction was not IgE-mediated or
 /// exfoliative, and that the patient should be asked. So a penicillin-only history with no severe or IgE-type reaction on record
@@ -281,7 +281,7 @@ final class ProphylaxisAllergy113Tests: XCTestCase {
         XCTAssertTrue(yes.alternative)
         XCTAssertFalse(yes.allLines.isEmpty)
         XCTAssertFalse(yes.allLines.contains { $0.agent == "cefazolin" }, "the alternative hides cefazolin")
-        XCTAssertEqual(yes.allergyHint, "Penicillin allergy only? The guideline allows a cephalosporin unless the reaction was IgE-mediated or exfoliative.")
+        XCTAssertEqual(yes.allergyHint, "Penicillin allergy only? A cephalosporin may still be allowed.")
         XCTAssertEqual(ProphylaxisEngine.allergyHint, yes.allergyHint)
     }
 

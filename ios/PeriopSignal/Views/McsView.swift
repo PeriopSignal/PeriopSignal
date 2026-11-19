@@ -30,7 +30,7 @@ struct McsView: View {
                         ChoiceChips(options: d.devices.map { (id: $0.id, label: $0.name) }, selected: device) { id in
                             withAnimation(.snappy) { device = id; openQuestions = [] }
                         }
-                        // Ben, Nov 19 (after the GPT-6 review): the section's cautions ("Every number is reference only. Verify all
+                        // Ben, Nov 19 (after an outside review): the section's cautions ("Every number is reference only. Verify all
                         // LVAD rows") are in view under the chips, not folded into "Explanation & Evidence".
                         cautions(d)
                         if let id = device, let dev = d.devices.first(where: { $0.id == id }) {

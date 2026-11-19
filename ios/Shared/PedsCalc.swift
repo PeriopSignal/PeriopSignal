@@ -20,7 +20,7 @@ enum PedsCalc {
 
     // MARK: The typed weight
 
-    /// Ben, Nov 19 (after the GPT-6 review): a typed weight that cannot be a child's gets no dose, size or volume worked out
+    /// Ben, Nov 19 (after an outside review): a typed weight that cannot be a child's gets no dose, size or volume worked out
     /// from it, only "Check the weight". The limits are 0.4 kg and 150 kg, and, when an age is entered, 3 times and one third
     /// of the app's own age-based estimate (`estimatedWeight`).
     static let weightMinKg = 0.4
@@ -159,7 +159,7 @@ enum PedsCalc {
     static func shows(_ v: Double) -> Bool { v.isFinite && Swift.abs(v) < shownLimit }
 
     /// Clinical rounding: 2 decimals under 1, 1 decimal under 10, whole numbers from 10. A number that cannot be
-    /// shown reads "—" (Ben, Nov 19, after the GPT-6 review: an absurd weight must never crash the app).
+    /// shown reads "—" (Ben, Nov 19, after an outside review: an absurd weight must never crash the app).
     static func fmt(_ v: Double) -> String {
         guard shows(v) else { return unreadable }
         let r: Double
@@ -207,7 +207,7 @@ enum InfusionCalc {
             return "\(PedsCalc.fmt(lo)) \(u)"
         }
         // The weight-based line, only when the weight and every number worked out from it can be shown. Otherwise
-        // "Check the weight" (Ben, Nov 19, after the GPT-6 review: an absurd weight must never crash the app).
+        // "Check the weight" (Ben, Nov 19, after an outside review: an absurd weight must never crash the app).
         func at(_ w: Double, _ numbers: [Double?], _ text: () -> String) -> String {
             guard PedsCalc.shows(w), numbers.allSatisfy({ n in n.map { PedsCalc.shows($0) } ?? true }) else { return PedsCalc.checkWeightText }
             return text() + " at \(PedsCalc.fmt(w)) kg"
@@ -268,7 +268,7 @@ enum InfusionCalc {
 
 /// What has been picked so far on "Blocks on anticoagulants", and what is still missing.
 ///
-/// Ben, Nov 19 (after the GPT-6 review): the tool must not show a time the user did not choose. The first dose tier is the
+/// Ben, Nov 19 (after an outside review): the tool must not show a time the user did not choose. The first dose tier is the
 /// shortest interval for the heparins and the longest for the DOACs, and the first kidney row is the best kidney function,
 /// so a user who skipped a step could be shown the shortest interval. A drug with more than one dose tier starts with no tier
 /// chosen, a tier with kidney rows starts with no kidney row chosen, and until each needed choice is made there is no answer.
@@ -358,7 +358,7 @@ enum NeuraxialCalc {
             if rule.isEmpty { rule = "\(fmtHours(h)) after the last dose" }
             if h == 0 { rule = tier.holdText ?? "No hold required" }
         } else {
-            // Ben, Nov 19 (after the GPT-6 review): the "avoid" answer must not hang on one word in the sentence.
+            // Ben, Nov 19 (after an outside review): the "avoid" answer must not hang on one word in the sentence.
             // The tier's own `avoid` flag wins when the data carries it; older data (no flag) falls back to the
             // word "against" in the hold text ("ASRA suggests against ...").
             avoid = tier.avoid ?? (tier.holdText?.lowercased().contains("against") ?? false)

@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 import XCTest
 @testable import PeriopSignal
 
-/// 1.13, Ben, Nov 19 (after the GPT-6 review): the files made to share a patient are written protected and kept out of
+/// 1.13, Ben, Nov 19 (after an outside review): the files made to share a patient are written protected and kept out of
 /// backups, are removed with their folders, the pasteboard holds patient text for ten minutes on this phone only, and the
 /// app-switcher cover is drawn only for a patient on screen. The cover itself and the share sheet's dismissal need a screen;
 /// these tests cover the rules and the files.

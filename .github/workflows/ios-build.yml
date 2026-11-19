@@ -1116,7 +1116,7 @@ jobs:
           shot 1289-proph-orthopedic-open-large-text 16 -ps.ref prophylaxis -ps.proph.group orthopedic -ps.textScale 1.5 -ps.forceAppearance light
           shot 1290-proph-tonsil-fess-light 14 -ps.ref prophylaxis -ps.proph.group headneck -ps.proph.procedure tonsil-fess -ps.proph.weight 90 -ps.forceAppearance light
           shot 1291-proph-plastic-open-light 14 -ps.ref prophylaxis -ps.proph.group plastic -ps.forceAppearance light
-          # Penicillin-only allergy is asked (Ben, Nov 19, after the GPT-6 review): the unanswered state, answered No and Yes, and a cephalosporin allergy that is still Yes.
+          # Penicillin-only allergy is asked (Ben, Nov 19, after an outside review): the unanswered state, answered No and Yes, and a cephalosporin allergy that is still Yes.
           shot 1300-proph-allergy-unanswered-light-375 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.patient.width 375 -ps.forceAppearance light
           shot 1301-proph-allergy-unanswered-dark-375 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.patient.width 375 -ps.forceAppearance dark
           shot 1302-proph-allergy-unanswered-large-text 24 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.textScale 1.5 -ps.forceAppearance light
@@ -1125,6 +1125,20 @@ jobs:
           shot 1305-proph-allergy-yes-hint-dark-375 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.proph.allergy 1 -ps.patient.width 375 -ps.forceAppearance dark
           shot 1306-proph-allergy-yes-hint-large-text 24 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.proph.allergy 1 -ps.textScale 1.5 -ps.forceAppearance light
           shot 1307-proph-case-cephalosporin-allergy-yes-light 22 -ps.tab patient -ps.patient demo-112-proph-ceph -ps.patient.open prophylaxis -ps.forceAppearance light
+          # PONV and the blocks-on-anticoagulants tool after the outside review (Nov 19).
+          shot 1320-ponv-0-factors-light 12 -ps.ref ponv -ps.forceAppearance light
+          shot 1321-ponv-2-factors-light 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker" -ps.ponv.agents "ondansetron" -ps.forceAppearance light
+          shot 1322-ponv-4-factors-light 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker,history,opioids" -ps.ponv.agents "ondansetron,dexamethasone,aprepitant" -ps.forceAppearance light
+          shot 1323-w375-ponv-4-factors-dark 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker,history,opioids" -ps.ponv.agents "ondansetron,dexamethasone,aprepitant" -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1324-w375-large-text-ponv-4-factors-dark 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker,history,opioids" -ps.ponv.agents "ondansetron,dexamethasone,aprepitant" -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance dark
+          shot 1325-apfel-next-step-light 12 -ps.ref score:apfel -ps.score.on "female,nonsmoker,opioids" -ps.forceAppearance light
+          shot 1340-neuraxial-dose-unchosen-light 12 -ps.ref neuraxial -ps.nx.drug rivaroxaban -ps.forceAppearance light
+          shot 1341-neuraxial-kidney-unchosen-light 12 -ps.ref neuraxial -ps.nx.drug rivaroxaban -ps.nx.tier low -ps.forceAppearance light
+          shot 1342-neuraxial-complete-light 12 -ps.ref neuraxial -ps.nx.drug rivaroxaban -ps.nx.tier low -ps.nx.renal 1 -ps.forceAppearance light
+          shot 1343-neuraxial-single-tier-light 12 -ps.ref neuraxial -ps.nx.drug edoxaban -ps.forceAppearance light
+          shot 1344-neuraxial-avoid-light 12 -ps.ref neuraxial -ps.nx.drug dti -ps.forceAppearance light
+          shot 1345-neuraxial-kidney-unchosen-w375-dark 12 -ps.ref neuraxial -ps.nx.drug rivaroxaban -ps.nx.tier low -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1346-neuraxial-dose-unchosen-large-text-light 12 -ps.ref neuraxial -ps.nx.drug rivaroxaban -ps.textScale 1.25 -ps.forceAppearance light
           # ---- 1.12 helper T shots (1240-1279): add your shot lines directly under this line ----
           shot 1240-cardiotext-echo-chips-light 18 -ps.tab patient -ps.patient demo-112-cardiotext-blank -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "TTE 6/26 EF 35%, mod MR, RV nl, LV dilated"
           shot 1241-cardiotext-echo-chips-dark 18 -ps.tab patient -ps.patient demo-112-cardiotext-blank -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "TTE 6/26 EF 35%, mod MR, RV nl, LV dilated"
@@ -1372,7 +1386,7 @@ jobs:
           shot 1073-ref-abx-prophylaxis-dark 14 -ps.ref quickref:ashp-surgical-prophylaxis -ps.forceAppearance dark
           shot 1074-ref-list-light 12 -ps.tab reference -ps.forceAppearance light
           #
-          # 1.13 (Ben, Nov 19, after the GPT-6 review): the pediatric weight check, the newborn tube caution, the adult-dose line on
+          # 1.13 (Ben, Nov 19, after an outside review): the pediatric weight check, the newborn tube caution, the adult-dose line on
           # Medications & Hematology (a child's case and an adult's), and the mechanical support cautions in view.
           shot 1350-peds-weight-implausible-light 14 -ps.ref peds -ps.peds.weight 400 -ps.peds.years 5 -ps.peds.months 0 -ps.forceAppearance light
           shot 1351-peds-weight-20-digits-light 14 -ps.ref peds -ps.peds.weight 99999999999999999999 -ps.peds.years 0 -ps.peds.months 0 -ps.forceAppearance light

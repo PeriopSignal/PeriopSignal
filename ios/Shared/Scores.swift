@@ -214,7 +214,7 @@ enum Scores {
 
     /// Apfel simplified PONV score. Apfel CC et al. Anesthesiology 1999;91:693-700; the prophylaxis in the band texts is the
     /// Fifth Consensus Guidelines' (Gan TJ et al. Anesth Analg 2025), worded as in reference.json ponv.counts so the two cannot
-    /// drift (a test checks it). Ben, Nov 19 (after the GPT-6 review): "Prophylaxis plan" opens the PONV tool, not the static card.
+    /// drift (a test checks it). Ben, Nov 19 (after an outside review): "Prophylaxis plan" opens the PONV tool, not the static card.
     static let apfel = ScoreDefinition(
         id: "apfel", name: "APFEL PONV score", short: "APFEL",
         blurb: "Risk of postoperative nausea and vomiting, with the consensus prophylaxis",

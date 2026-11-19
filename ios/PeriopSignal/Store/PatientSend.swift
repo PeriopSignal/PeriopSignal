@@ -91,7 +91,7 @@ enum PatientSendText {
 }
 
 /// The files made for a send (the patient file, or the summary PDF), kept in this phone's tmp folder, one folder each.
-/// Ben, Nov 19 (after the GPT-6 review): they hold the patient, so they are written like the stored records: complete
+/// Ben, Nov 19 (after an outside review): they hold the patient, so they are written like the stored records: complete
 /// file protection on the file and on its folders, and left out of backups. They are removed when the share sheet is
 /// dismissed (ShareSheet), at the next launch, and any older than ten minutes when another is made.
 enum PatientSendFiles {

@@ -1,7 +1,7 @@
 import XCTest
 @testable import PeriopSignal
 
-/// 1.13 (Ben, Nov 19, after the GPT-6 review): "Blocks on anticoagulants". Every hold interval in reference.json is pinned here
+/// 1.13 (Ben, Nov 19, after an outside review): "Blocks on anticoagulants". Every hold interval in reference.json is pinned here
 /// by hand, so a typing slip in the data fails a test and a deliberate edit has to be made in two places. The tool starts with
 /// no dose and no kidney row chosen and shows a prompt in place of a time until they are, and the "avoid" answer for the
 /// parenteral direct thrombin inhibitors rests on a flag in the data rather than one word in a sentence.

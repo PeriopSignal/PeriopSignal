@@ -313,7 +313,7 @@ struct ProphylaxisInput: Hashable {
     var procedure: String?
     var variant: String?
     var betaLactamAllergy = false
-    /// Ben, Nov 19 (after the GPT-6 review): a penicillin-only allergy with no severe or IgE-type reaction on record is asked, not
+    /// Ben, Nov 19 (after an outside review): a penicillin-only allergy with no severe or IgE-type reaction on record is asked, not
     /// answered for the user. True from applying such a prefill until the user taps No or Yes (`setAllergy`); while true neither
     /// answer is chosen and `betaLactamAllergy` stays false.
     var allergyUnanswered = false
@@ -495,7 +495,7 @@ enum ProphylaxisEngine {
     /// Ends the allergy row's caption while the allergy is not answered: "From the case: Penicillin (rash). Not selected for you: choose."
     static let allergyAskTail = ". Not selected for you: choose."
     /// Above the agents of the alternative for a β-lactam allergy, with the allergy ⓘ beside it.
-    static let allergyHint = "Penicillin allergy only? The guideline allows a cephalosporin unless the reaction was IgE-mediated or exfoliative."
+    static let allergyHint = "Penicillin allergy only? A cephalosporin may still be allowed."
     static let mrsaTitle = "Known MRSA colonization"
     static let mrsaDoseNote = "Single preoperative dose"
     static let mrsaListedLead = "Vancomycin is among the choices above."
@@ -842,7 +842,7 @@ enum ProphylaxisAllergy {
 
     static func betaLactams(_ r: PatientRecord) -> [PatientAllergy] { items(r).filter { isBetaLactam($0) && !isTolerance($0) } }
 
-    // MARK: Ask or answer (Ben, Nov 19, after the GPT-6 review)
+    // MARK: Ask or answer (Ben, Nov 19, after an outside review)
 
     // The 2013 guideline: a cephalosporin "can safely be used in patients with an allergic reaction to penicillins that is not an
     // IgE-mediated reaction (e.g., anaphylaxis, urticaria, bronchospasm) or exfoliative dermatitis (Stevens-Johnson syndrome, toxic

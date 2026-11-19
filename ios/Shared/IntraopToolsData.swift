@@ -268,7 +268,7 @@ struct McsData: Codable, Hashable {
 
     func sources(_ ids: [String]) -> [EvidenceSource] { ids.compactMap { id in sources.first { $0.id == id } } }
 
-    /// The cautions shown in view under the device chips (Ben, Nov 19, after the GPT-6 review): not blank, in the order written.
+    /// The cautions shown in view under the device chips (Ben, Nov 19, after an outside review): not blank, in the order written.
     var cautionLines: [String] {
         cautions.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
