@@ -737,7 +737,7 @@ struct RefDestination: View {
                         ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
                     }
                 case .score(let id):
-                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { openURL($0) }, onOpenRef: { push(RefRoute.quickref($0)) }) }
+                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { openURL($0) }, onOpenRef: { push($0) }) }
                 case .peds:
                     PedsCalculatorView(onOpen: { openURL($0) }, onOpenLocal: { w, y in
                         handoff.pass(weightKg: w, ageYears: y)

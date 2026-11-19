@@ -6,8 +6,9 @@ struct ScoreCalculatorView: View {
     @Environment(PatientStore.self) private var myPatient
     var def: ScoreDefinition
     var onOpen: (URL) -> Void
-    var onOpenRef: (String) -> Void = { _ in }
-    @State private var selection = ScoreSelection()
+    var onOpenRef: (RefRoute) -> Void = { _ in }
+    /// Screenshot runs: -ps.score.on a,b starts a calculator with these toggles on (a release build starts empty).
+    @State private var selection = ScoreSelection(on: Set(LaunchSeed.list("ps.score.on")))
     @State private var copied = false
     /// Where the answers came from when the calculator opened: "saved" (My Patient's saved result) or "record".
     @State private var origin: String?
@@ -131,8 +132,8 @@ struct ScoreCalculatorView: View {
                 }
                 .animation(.snappy, value: score)
             }
-            if let n = def.next {
-                Button { onOpenRef(n.quickref) } label: { Label(n.label, systemImage: "arrow.right.circle") }
+            if let n = def.next, let route = RefRoute(key: n.route) {
+                Button { onOpenRef(route) } label: { Label(n.label, systemImage: "arrow.right.circle") }
                     .buttonStyle(GhostButtonStyle())
                     .padding(.top, 2)
             }
