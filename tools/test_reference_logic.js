@@ -194,6 +194,11 @@ test('neuraxial timing', () => {
   const avoid = R.neuraxialAnswer(dabi, 2, false, last); eq(avoid.avoid, true); eq(avoid.earliest, null);
   const fonda = { holdHours: 36, renal: [{ label: 'Normal', hours: 36, elderlyHours: 42 }] };
   eq(R.neuraxialAnswer(fonda, 0, true, last).hours, 42); eq(R.neuraxialAnswer(fonda, 0, false, last).hours, 36);
+  // The "avoid" flag wins when present; older data (no flag) falls back to the word "against" in the hold text.
+  eq(R.neuraxialAnswer({ holdHours: null, holdText: 'Not on this one', avoid: true }, null, false, last).avoid, true);
+  eq(R.neuraxialAnswer({ holdHours: null, holdText: 'ASRA suggests against it', avoid: false }, null, false, last).avoid, false);
+  eq(R.neuraxialAnswer({ holdHours: null, holdText: 'ASRA suggests against it' }, null, false, last).avoid, true);
+  eq(R.neuraxialAnswer({ holdHours: null, holdText: 'Not specified' }, null, false, last).avoid, false);
   eq(R.fmtHours(168), '7 days'); eq(R.fmtHours(36), '36 h');
   eq(R.countdown(last + (3600 * 26 + 300) * 1000, last), 'in 1 d 2 h');
   eq(R.countdown(last, last + 10000), 'now');
