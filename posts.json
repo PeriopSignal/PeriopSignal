@@ -29,7 +29,7 @@
    "impact": 2,
    "trialName": "",
    "firstAuthor": "Anders",
-   "title": "Prehospital Trauma Compendium: Prehospital Management of Pediatric Traumatic Out-of-Hospital Circulatory Arrest - A Joint Position Statement and Resource Document of NAEMSP, ACS-COT, ACEP, and AAP",
+   "title": "Prehospital Trauma Compendium: Prehospital Management of Pediatric Traumatic Out-of-Hospital Circulatory Arrest – A Joint Position Statement and Resource Document of NAEMSP, ACS-COT, ACEP, and AAP",
    "quiz": {
     "question": "According to the updated joint statement on pediatric traumatic out-of-hospital circulatory arrest, what is recommended for chest decompression by EMS?",
     "options": [
@@ -46,6 +46,24 @@
     "seconds": 186,
     "bytes": 1485740,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Prehospital Trauma Compendium: Prehospital Management of Pediatric Traumatic Out-of-Hospital Circulatory Arrest – A Joint Position Statement and Resource Document of NAEMSP, ACS-COT, ACEP, and AAP",
+    "authors": [
+     "Anders JF",
+     "Harris MI",
+     "Adelgais KM",
+     "Remick KE",
+     "Cicero MX",
+     "Nagler J",
+     "Jaeger L",
+     "Knoles C",
+     "Pappas PA",
+     "Vaughan E"
+    ],
+    "journal": "Pediatrics",
+    "doi": "10.1542/peds.2026-079371",
+    "year": 2026
    }
   },
   {
