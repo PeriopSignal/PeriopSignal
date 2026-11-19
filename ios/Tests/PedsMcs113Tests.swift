@@ -66,6 +66,14 @@ final class PedsMcs113Tests: XCTestCase {
         XCTAssertEqual(InfusionCalc.lines(for: ntg, weightKg: 100).equivalent, "0.05 mcg/kg/min at 100 kg")
     }
 
+    func testLocalAnestheticPercentNeverTraps() {
+        // A weight near zero makes the fraction of the maximum infinite; the whole percent must not trap.
+        for f in [Double.infinity, .nan, 1e300, 1e12] { XCTAssertEqual(LAMixResult.percent(f), 999_999_999, "\(f)") }
+        XCTAssertEqual(LAMixResult.percent(0.5), 50)
+        XCTAssertEqual(LAMixResult.percent(1.234), 123)
+        XCTAssertEqual(LAMixResult(agents: [], combined: .infinity, warnings: []).percentUsed, 999_999_999)
+    }
+
     // MARK: The weight check
 
     private func msg(_ kg: Double?, _ y: Int = 0, _ m: Int = 0) -> String? { PedsCalc.verdict(weightKg: kg, years: y, months: m).message }

@@ -1363,6 +1363,21 @@ jobs:
           shot 1073-ref-abx-prophylaxis-dark 14 -ps.ref quickref:ashp-surgical-prophylaxis -ps.forceAppearance dark
           shot 1074-ref-list-light 12 -ps.tab reference -ps.forceAppearance light
           #
+          # 1.13 (Ben, Nov 19, after the GPT-6 review): the pediatric weight check, the newborn tube caution, the adult-dose line on
+          # Medications & Hematology (a child's case and an adult's), and the mechanical support cautions in view.
+          shot 1350-peds-weight-implausible-light 14 -ps.ref peds -ps.peds.weight 400 -ps.peds.years 5 -ps.peds.months 0 -ps.forceAppearance light
+          shot 1351-peds-weight-20-digits-light 14 -ps.ref peds -ps.peds.weight 99999999999999999999 -ps.peds.years 0 -ps.peds.months 0 -ps.forceAppearance light
+          shot 1352-peds-newborn-airway-light 14 -ps.ref peds -ps.peds.tab 1 -ps.peds.weight 2.5 -ps.peds.years 0 -ps.peds.months 1 -ps.forceAppearance light
+          shot 1353-peds-normal-child-light 14 -ps.ref peds -ps.peds.weight 18 -ps.peds.years 5 -ps.peds.months 0 -ps.forceAppearance light
+          shot 1354-peds-weight-implausible-dark-375 14 -ps.ref peds -ps.peds.weight 400 -ps.peds.years 5 -ps.peds.months 0 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1355-peds-weight-implausible-large-text-dark-375 14 -ps.ref peds -ps.peds.weight 400 -ps.peds.years 5 -ps.peds.months 0 -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 1356-infusions-child-case-light 14 -ps.ref infusions -ps.patient demo-112-proph-child -ps.forceAppearance light
+          shot 1357-infusions-adult-case-light 14 -ps.ref infusions -ps.patient demo-112-proph-plain -ps.forceAppearance light
+          shot 1358-mcs-lvad-caution-light 18 -ps.ref mcs -ps.mcs.device lvad -ps.forceAppearance light
+          shot 1359-mcs-lvad-table-verify-light 18 -ps.ref mcs -ps.mcs.device lvad -ps.mcs.table 1 -ps.forceAppearance light
+          shot 1360-mcs-lvad-dark-375 18 -ps.ref mcs -ps.mcs.device lvad -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1361-mcs-lvad-large-text-dark-375 18 -ps.ref mcs -ps.mcs.device lvad -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
+          #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
