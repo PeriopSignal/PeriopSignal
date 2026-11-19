@@ -858,6 +858,9 @@ struct NeuraxialTier: Codable, Identifiable, Hashable {
     var removalHours: Double?
     var afterRemovalHours: Double?
     var inrRule: Bool?
+    /// True when ASRA's advice for this tier is to avoid the block (parenteral direct thrombin inhibitors). Optional so older
+    /// data without it still decodes; when it is missing, `NeuraxialCalc` falls back to the word "against" in `holdText`.
+    var avoid: Bool? = nil
 }
 
 // MARK: Vasoactive infusions and hematologic agents

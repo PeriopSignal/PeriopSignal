@@ -3526,6 +3526,7 @@
                 "holdHours": null,
                 "restartHours": null,
                 "holdText": "ASRA suggests against neuraxial techniques while on a parenteral direct thrombin inhibitor (effect 1–3 h after an IV dose, aPTT-monitored, no reversal agent)",
+                "avoid": true,
                 "catheter": "Not recommended",
                 "restartText": "Not specified"
               }

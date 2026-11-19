@@ -7,23 +7,21 @@ struct NeuraxialTimingView: View {
     var onOpen: (URL) -> Void
     var onOpenTable: () -> Void
 
-    @State private var drugID: String?
-    @State private var tierID: String?
-    @State private var renalIndex = 0
-    @State private var elderly = false
+    /// Drug, dose tier, kidney row and the elderly toggle. Ben, Nov 19 (after the GPT-6 review): the dose and the kidney
+    /// row start empty, so the tool never shows a time from a step the user skipped (see `NeuraxialSelection`).
+    @State private var selection = NeuraxialSelection()
+    /// Screenshot runs only: the launch arguments have been applied once.
+    @State private var seeded = false
     @State private var lastDose = Date()
     @State private var now = Date()
     @State private var showGeneral = false
 
     private var data: NeuraxialData? { refs.bundle?.neuraxial }
-    private var drug: NeuraxialDrug? { data?.allDrugs.first { $0.id == drugID } }
-    private var tier: NeuraxialTier? {
-        guard let d = drug else { return nil }
-        return d.tiers.first { $0.id == tierID } ?? d.tiers.first
-    }
-    private var answer: NeuraxialCalc.Answer? {
-        tier.map { NeuraxialCalc.answer(tier: $0, renalIndex: renalIndex, elderly: elderly, lastDose: lastDose) }
-    }
+    private var drug: NeuraxialDrug? { data?.allDrugs.first { $0.id == selection.drugID } }
+    private var tier: NeuraxialTier? { selection.tier(in: drug) }
+    private var stage: NeuraxialSelection.Stage { selection.stage(drug: drug) }
+    /// Nil until every needed choice is made.
+    private var answer: NeuraxialCalc.Answer? { selection.answer(drug: drug, lastDose: lastDose) }
 
     var body: some View {
         ToolScroll {
@@ -33,7 +31,7 @@ struct NeuraxialTimingView: View {
                     if d.tiers.count > 1 { tierStep(d) }
                     if let r = tier?.renal, !r.isEmpty { renalStep(r) }
                     lastDoseStep
-                    if let a = answer { result(a) }
+                    if let a = answer { result(a) } else if let p = NeuraxialSelection.prompt(for: stage) { promptCard(p) }
                     if let t = tier { catheterAndRestart(t, d) }
                 }
                 general
@@ -45,8 +43,11 @@ struct NeuraxialTimingView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
+        .modifier(DebugContentWidth())
         .navigationTitle("Blocks on anticoagulants")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear(perform: seedFromLaunch)
+        .onChange(of: data?.allDrugs.count) { _, _ in seedFromLaunch() }
         .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { now = $0 }
     }
 
@@ -88,7 +89,7 @@ struct NeuraxialTimingView: View {
                     let on = tier?.id == t.id
                     Button {
                         Haptics.light()
-                        withAnimation(.snappy) { tierID = t.id; renalIndex = 0 }
+                        withAnimation(.snappy) { selection.selectTier(t) }
                     } label: {
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
                             Image(systemName: on ? "largecircle.fill.circle" : "circle").font(PS.sys(size: 16)).foregroundStyle(on ? PS.accent : PS.fg3)
@@ -108,10 +109,10 @@ struct NeuraxialTimingView: View {
         step(number: drug.map { $0.tiers.count > 1 ? 3 : 2 } ?? 2, title: "Kidney function?") {
             VStack(spacing: 0) {
                 ForEach(Array(rules.enumerated()), id: \.offset) { i, r in
-                    let on = renalIndex == i
+                    let on = selection.renalIndex == i
                     Button {
                         Haptics.light()
-                        withAnimation(.snappy) { renalIndex = i }
+                        withAnimation(.snappy) { selection.selectRenal(i) }
                     } label: {
                         HStack(spacing: 10) {
                             Image(systemName: on ? "largecircle.fill.circle" : "circle").font(PS.sys(size: 16)).foregroundStyle(on ? PS.accent : PS.fg3)
@@ -125,7 +126,7 @@ struct NeuraxialTimingView: View {
                     .buttonStyle(.plain)
                 }
                 if rules.contains(where: { $0.elderlyHours != nil }) {
-                    Toggle(isOn: $elderly) {
+                    Toggle(isOn: $selection.elderly) {
                         Text("Elderly patient").font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg)
                     }
                     .tint(PS.accent)
@@ -190,6 +191,23 @@ struct NeuraxialTimingView: View {
         .animation(.snappy, value: a)
     }
 
+    /// In place of a time while the dose or the kidney function has not been chosen.
+    private func promptCard(_ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Eyebrow(text: "Earliest neuraxial or deep block", color: PS.fg3)
+            Text(text).font(PS.serif(size: 26, weight: .semibold)).foregroundStyle(PS.accent)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .overlay(alignment: .top) {
+            UnevenRoundedRectangle(topLeadingRadius: PS.cardRadius, topTrailingRadius: PS.cardRadius)
+                .fill(PS.fg3.opacity(0.6)).frame(height: 3)
+                .clipShape(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        }
+        .accessibilityElement(children: .combine)
+    }
+
     private func catheterAndRestart(_ t: NeuraxialTier, _ d: NeuraxialDrug) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             if let c = t.catheter {
@@ -251,11 +269,23 @@ struct NeuraxialTimingView: View {
 
     private func select(_ d: NeuraxialDrug) {
         Haptics.light()
-        withAnimation(.snappy) {
-            drugID = d.id
-            tierID = d.tiers.first?.id
-            renalIndex = 0
-        }
+        withAnimation(.snappy) { selection.selectDrug(d) }
+    }
+
+    /// Screenshot runs only (debug builds): -ps.nx.drug <id> [-ps.nx.tier <id>] [-ps.nx.renal <row number from 0>]
+    /// [-ps.nx.elderly 1] pick the steps, the way a user would. Does nothing in a release build.
+    private func seedFromLaunch() {
+        #if DEBUG
+        guard !seeded, let data else { return }
+        let id = LaunchSeed.string("ps.nx.drug")
+        guard !id.isEmpty, let d = data.allDrugs.first(where: { $0.id == id }) else { return }
+        seeded = true
+        selection.selectDrug(d)
+        let tierID = LaunchSeed.string("ps.nx.tier")
+        if let t = d.tiers.first(where: { $0.id == tierID }) { selection.selectTier(t) }
+        if let i = Int(LaunchSeed.string("ps.nx.renal")) { selection.selectRenal(i) }
+        if LaunchSeed.bool("ps.nx.elderly") { selection.elderly = true }
+        #endif
     }
 
     private func step<Content: View>(number: Int, title: String, @ViewBuilder content: () -> Content) -> some View {

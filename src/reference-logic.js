@@ -414,7 +414,8 @@
       if (!rule) rule = R.fmtHours(hours) + ' after the last dose';
       if (hours === 0) rule = tier.holdText || 'No hold required';
     } else {
-      avoid = (tier.holdText || '').toLowerCase().includes('against');
+      // The tier's own `avoid` flag wins when the data carries it; older data falls back to the word "against".
+      avoid = (tier.avoid === true || tier.avoid === false) ? tier.avoid : (tier.holdText || '').toLowerCase().includes('against');
       if (!rule) rule = 'No interval specified';
     }
     return { earliest: hours === null ? null : lastDoseMs + hours * 3600000, hours, rule, avoid };

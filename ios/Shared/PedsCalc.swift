@@ -183,6 +183,71 @@ enum InfusionCalc {
 
 // MARK: - Neuraxial timing arithmetic
 
+/// What has been picked so far on "Blocks on anticoagulants", and what is still missing.
+///
+/// Ben, Nov 19 (after the GPT-6 review): the tool must not show a time the user did not choose. The first dose tier is the
+/// shortest interval for the heparins and the longest for the DOACs, and the first kidney row is the best kidney function,
+/// so a user who skipped a step could be shown the shortest interval. A drug with more than one dose tier starts with no tier
+/// chosen, a tier with kidney rows starts with no kidney row chosen, and until each needed choice is made there is no answer.
+/// A drug with a single tier and no kidney rows needs no choice and answers at once, as before.
+struct NeuraxialSelection: Equatable {
+    var drugID: String?
+    var tierID: String?
+    var renalIndex: Int?
+    var elderly = false
+
+    /// The next thing the user has to choose; `ready` when the answer can be shown.
+    enum Stage: Equatable { case chooseDrug, chooseDose, chooseKidney, ready }
+
+    /// Changing the drug clears the tier, the kidney row and the "Elderly patient" toggle. A drug with one tier has that tier
+    /// chosen for it (there is nothing to choose).
+    mutating func selectDrug(_ drug: NeuraxialDrug) {
+        drugID = drug.id
+        tierID = drug.tiers.count == 1 ? drug.tiers.first?.id : nil
+        renalIndex = nil
+        elderly = false
+    }
+
+    /// A different dose tier has its own kidney rows, so the kidney row is cleared.
+    mutating func selectTier(_ tier: NeuraxialTier) {
+        tierID = tier.id
+        renalIndex = nil
+    }
+
+    mutating func selectRenal(_ index: Int) { renalIndex = index }
+
+    /// The chosen tier; nil until one is chosen (a single-tier drug counts as chosen).
+    func tier(in drug: NeuraxialDrug?) -> NeuraxialTier? {
+        guard let drug else { return nil }
+        if let id = tierID { return drug.tiers.first { $0.id == id } }
+        return drug.tiers.count == 1 ? drug.tiers.first : nil
+    }
+
+    func stage(drug: NeuraxialDrug?) -> Stage {
+        guard let drug else { return .chooseDrug }
+        guard let t = tier(in: drug) else { return .chooseDose }
+        if let rules = t.renal, !rules.isEmpty {
+            guard let i = renalIndex, rules.indices.contains(i) else { return .chooseKidney }
+        }
+        return .ready
+    }
+
+    /// The answer, or nil while a choice is still missing.
+    func answer(drug: NeuraxialDrug?, lastDose: Date) -> NeuraxialCalc.Answer? {
+        guard stage(drug: drug) == .ready, let t = tier(in: drug) else { return nil }
+        return NeuraxialCalc.answer(tier: t, renalIndex: renalIndex, elderly: elderly, lastDose: lastDose)
+    }
+
+    /// What the result card says in place of a time while a choice is missing; nil when nothing is missing or no drug is chosen.
+    static func prompt(for stage: Stage) -> String? {
+        switch stage {
+        case .chooseDose: return "Choose the dose"
+        case .chooseKidney: return "Choose kidney function"
+        case .chooseDrug, .ready: return nil
+        }
+    }
+}
+
 enum NeuraxialCalc {
     struct Answer: Hashable {
         /// Earliest time for the block; nil when it is to be avoided or no interval applies.
@@ -210,7 +275,10 @@ enum NeuraxialCalc {
             if rule.isEmpty { rule = "\(fmtHours(h)) after the last dose" }
             if h == 0 { rule = tier.holdText ?? "No hold required" }
         } else {
-            avoid = tier.holdText?.lowercased().contains("against") ?? false
+            // Ben, Nov 19 (after the GPT-6 review): the "avoid" answer must not hang on one word in the sentence.
+            // The tier's own `avoid` flag wins when the data carries it; older data (no flag) falls back to the
+            // word "against" in the hold text ("ASRA suggests against ...").
+            avoid = tier.avoid ?? (tier.holdText?.lowercased().contains("against") ?? false)
             if rule.isEmpty { rule = "No interval specified" }
         }
         let earliest = hours.map { lastDose.addingTimeInterval($0 * 3600) }

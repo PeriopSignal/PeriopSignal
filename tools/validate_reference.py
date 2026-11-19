@@ -154,6 +154,8 @@ def main(path):
                     for key in ("holdHours", "restartHours", "removalHours", "afterRemovalHours"):
                         if t.get(key) is not None:
                             need(isinstance(t[key], (int, float)) and t[key] >= 0, f"neuraxial {did}/{t.get('id')}: {key} must be a number >= 0")
+                    if t.get("avoid") is not None:
+                        need(isinstance(t["avoid"], bool), f"neuraxial {did}/{t.get('id')}: avoid must be true or false")
                     for r in t.get("renal") or []:
                         need(isinstance(r.get("label"), str), f"neuraxial {did}/{t.get('id')}: renal rule label")
                         if r.get("hours") is None:

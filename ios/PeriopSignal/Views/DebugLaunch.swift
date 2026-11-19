@@ -16,6 +16,9 @@ import WidgetKit
 ///   -ps.screen sharecard    render the share image for the newest landmark post
 ///   -ps.screen gallery      My Patient's style gallery: every chip, link and heading variant on one page (1.11)
 ///   -ps.showWelcome 1       open the welcome screen (topics and alerts)
+///   -ps.nx.drug <id> [-ps.nx.tier <id>] [-ps.nx.renal <n>] [-ps.nx.elderly 1]   Blocks on anticoagulants: pick the drug, the dose
+///                           tier, the kidney row (counted from 0) and the elderly toggle, with -ps.ref neuraxial. With none of them the tool
+///                           starts unchosen, as it does for a user. Add -ps.patient.width 375 to lay it out at that width.
 ///   -ps.forceAppearance light|dark   this launch only (not saved) / -ps.forceLaunchCount N
 enum DebugLaunch {
     static var openPost: String? { UserDefaults.standard.string(forKey: "ps.openPost") }
