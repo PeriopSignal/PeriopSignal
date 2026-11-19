@@ -4593,7 +4593,7 @@
   },
   "ponv": {
     "reviewed": "2026-10-28",
-    "source": "Gan TJ, Jin Z, Ayad S, et al. Fifth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting: Executive Summary. Anesth Analg. 2025. doi:10.1213/ANE.0000000000007816; doses and timing as tabulated in the Fourth consensus (Anesth Analg 2020;131:411–448, Table 4); risk by Apfel CC et al, Anesthesiology 1999;91:693–700",
+    "source": "Gan TJ, Jin Z, Ayad S, et al. Fifth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting: Executive Summary. Anesth Analg. 2025. doi:10.1213/ANE.0000000000007816; doses and timing as tabulated in the Fourth consensus (Anesth Analg 2020;131:411–448, Table 4); risk by Apfel CC et al, Anesthesiology 1999;91:693–700; oral ondansetron dose from the US prescribing information",
     "sourceURL": "https://doi.org/10.1213/ANE.0000000000007816",
     "counts": [
       {
@@ -4607,7 +4607,8 @@
         "maxFactors": 4,
         "agents": 3,
         "agentsHigh": 4,
-        "text": "Three to four interventions from different classes, plus baseline risk reduction"
+        "text": "Three to four interventions from different classes, plus baseline risk reduction",
+        "note": "The Fifth Consensus recommends two interventions for every adult at risk and says more research is required on adding a third or fourth antiemetic in high-risk patients."
       }
     ],
     "riskReduction": [
@@ -4623,9 +4624,10 @@
         "id": "ondansetron",
         "name": "Ondansetron",
         "class": "5-HT₃ antagonist",
-        "dose": "4 mg IV or 8 mg ODT",
-        "timing": "End of surgery",
-        "rescue": true
+        "dose": "4 mg IV, or by mouth 16 mg (US label) or 8 mg ODT (consensus table)",
+        "timing": "IV at the end of surgery; by mouth 1 h before induction",
+        "rescue": true,
+        "rescueDose": "4 mg IV"
       },
       {
         "id": "dexamethasone",

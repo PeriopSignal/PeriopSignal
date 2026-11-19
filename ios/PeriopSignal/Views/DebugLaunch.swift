@@ -6,6 +6,8 @@ import WidgetKit
 ///   -ps.openPost <id>       open a deep dive once the feed has loaded
 ///   -ps.tab saved|more|reference   start on a tab
 ///   -ps.ref <RefRoute.key>  open a tool, quick reference or folder on the Reference tab (score:rcri, quickref:<id>, peds, valves, folder:<id> …)
+///   -ps.score.on a,b        open a score calculator (score:<id>) with these toggles on (ids as in Scores.swift: female,nonsmoker,...)
+///   -ps.ponv.factors a,b / -ps.ponv.agents a,b   the PONV tool with these Apfel factors and agents ticked; -ps.patient.width 375 lays it out at that width
 ///   -ps.presave <id>        bookmark a post before the first frame
 ///   -ps.topics a,b          follow these topics (turns on "For you")
 ///   -ps.favorites.debug a,b  star these Reference tools (RefRoute keys) for this launch

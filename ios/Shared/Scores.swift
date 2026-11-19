@@ -45,7 +45,8 @@ struct ScoreBand: Hashable {
 
 struct ScoreNext: Hashable {
     let label: String
-    let quickref: String
+    /// A Reference route key ("ponv", "quickref:<id>", "score:<id>"): what the button opens.
+    let route: String
 }
 
 struct ScoreDefinition: Identifiable, Hashable {
@@ -65,7 +66,7 @@ struct ScoreDefinition: Identifiable, Hashable {
     let rateSource: RefSource?
     let notes: [String]
     var keywords: [String] = []
-    /// Where the score leads next (a quick reference opened from the result card).
+    /// Where the score leads next (a tool or quick reference opened from the result card).
     var next: ScoreNext? = nil
 
     var maxScore: Int {
@@ -211,8 +212,9 @@ enum Scores {
         notes: ["The 1995 revision replaced the 1970 score's color criterion (pink / pale or dusky / cyanotic) with pulse oximetry."],
         keywords: ["pacu", "recovery", "discharge criteria", "phase i"])
 
-    /// Apfel simplified PONV score. Apfel CC et al. Anesthesiology 1999;91:693-700; prophylaxis per the
-    /// Fourth Consensus Guidelines (Gan TJ et al. Anesth Analg 2020;131:411-48).
+    /// Apfel simplified PONV score. Apfel CC et al. Anesthesiology 1999;91:693-700; the prophylaxis in the band texts is the
+    /// Fifth Consensus Guidelines' (Gan TJ et al. Anesth Analg 2025), worded as in reference.json ponv.counts so the two cannot
+    /// drift (a test checks it). Ben, Nov 19 (after the GPT-6 review): "Prophylaxis plan" opens the PONV tool, not the static card.
     static let apfel = ScoreDefinition(
         id: "apfel", name: "APFEL PONV score", short: "APFEL",
         blurb: "Risk of postoperative nausea and vomiting, with the consensus prophylaxis",
@@ -224,16 +226,16 @@ enum Scores {
             .toggle("opioids", "Postoperative opioids expected"),
         ],
         bands: [
-            ScoreBand(range: 0...0, label: "0 factors · 10%", detail: "Low risk. Fifth consensus (2025): two prophylactic interventions for adults at any risk", tone: .low),
-            ScoreBand(range: 1...1, label: "1 factor · 21%", detail: "Medium risk: two interventions (e.g. dexamethasone + a 5-HT₃ antagonist)", tone: .low),
-            ScoreBand(range: 2...2, label: "2 factors · 39%", detail: "Medium risk: two interventions", tone: .moderate),
-            ScoreBand(range: 3...3, label: "3 factors · 61%", detail: "High risk: three to four interventions from different classes, plus risk reduction (TIVA, opioid-sparing, regional)", tone: .high),
-            ScoreBand(range: 4...4, label: "4 factors · 79%", detail: "High risk: three to four interventions, plus risk reduction", tone: .high),
+            ScoreBand(range: 0...0, label: "0 factors · 10%", detail: "Low risk. Two prophylactic interventions for every adult at risk", tone: .low),
+            ScoreBand(range: 1...1, label: "1 factor · 21%", detail: "Medium risk. Two prophylactic interventions for every adult at risk", tone: .low),
+            ScoreBand(range: 2...2, label: "2 factors · 39%", detail: "Medium risk. Two prophylactic interventions for every adult at risk", tone: .moderate),
+            ScoreBand(range: 3...3, label: "3 factors · 61%", detail: "High risk. Three to four interventions from different classes, plus baseline risk reduction", tone: .high),
+            ScoreBand(range: 4...4, label: "4 factors · 79%", detail: "High risk. Three to four interventions from different classes, plus baseline risk reduction", tone: .high),
         ],
         readout: "Incidence of PONV within 24 h in Apfel's 1999 cohorts (inhalational anesthesia, no prophylaxis). Rescue uses a class not already given; a same-class repeat within 6 h adds nothing.",
         source: RefSource(title: "A simplified risk score for predicting postoperative nausea and vomiting", citation: "Apfel CC, et al. Anesthesiology. 1999;91:693–700.", url: "https://doi.org/10.1097/00000542-199909000-00022", doi: "10.1097/00000542-199909000-00022"),
         rateSource: RefSource(title: "Fifth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting: Executive Summary", citation: "Gan TJ, Jin Z, Ayad S, et al. Anesth Analg. 2025; published online ahead of print.", url: "https://doi.org/10.1213/ANE.0000000000007816", doi: "10.1213/ANE.0000000000007816"),
-        notes: ["See the PONV quick reference for agents, doses and timing.", "The Fifth consensus (2025) supersedes the 2020 Fourth: it counts 0 factors as low, 1–2 as medium and ≥ 3 as high risk, adds IV aprepitant and IV amisulpride, and no longer recommends metoclopramide for prophylaxis."],
+        notes: ["See the PONV tool for agents, doses and timing.", "The Fifth consensus (2025) supersedes the 2020 Fourth: it counts 0 factors as low, 1–2 as medium and ≥ 3 as high risk, adds IV aprepitant and IV amisulpride, and no longer recommends metoclopramide for prophylaxis."],
         keywords: ["ponv", "nausea", "vomiting", "antiemetic", "prophylaxis"],
-        next: ScoreNext(label: "Prophylaxis plan", quickref: "ponv-consensus"))
+        next: ScoreNext(label: "Prophylaxis plan", route: "ponv"))
 }

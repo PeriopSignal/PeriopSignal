@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// PONV in one place: the Apfel factors set how many antiemetics to give (Fifth consensus), the agents
+/// PONV in one place: the Apfel factors set how many interventions to give (Fifth consensus), the agents
 /// are ticked as they are chosen, and the rescue section offers only classes not already given.
 struct PONVView: View {
     @Environment(ReferenceStore.self) private var refs
@@ -34,6 +34,8 @@ struct PONVView: View {
             .padding(.horizontal, 20)
             .padding(.top, 6)
             .padding(.bottom, 30)
+            // Screenshot runs: -ps.patient.width 375 lays the tool out as on that width (the CI simulator is wider).
+            .modifier(DebugContentWidth())
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
@@ -77,11 +79,6 @@ struct PONVView: View {
         let classes = PONVPlan.classes(of: chosen, in: data.agents)
         let need = target?.agents ?? 2
         let toneColor = band.map { tone($0.tone) } ?? PS.fg3
-        let wanted: String = {
-            guard let t = target else { return "2" }
-            if let hi = t.agentsHigh, hi > t.agents { return "\(t.agents)–\(hi)" }
-            return "\(t.agents)"
-        }()
         return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("\(factors)").font(PS.serif(size: 40, weight: .semibold)).foregroundStyle(PS.fg).contentTransition(.numericText())
@@ -93,26 +90,28 @@ struct PONVView: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Image(systemName: "pills.fill").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(toneColor)
                 InfoTitle(caption: target.map { $0.text + " (Fifth consensus)." }, open: $planInfoOpen, captionFont: PS.sys(size: 13), spacing: 4) {
-                    Text("Give \(wanted) antiemetics from different classes")
+                    Text(PONVPlan.headline(target))
                         .font(PS.serif(size: 20, weight: .semibold)).foregroundStyle(PS.fg)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            if let note = target?.note {
+                Text(note).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            }
             // The toolbar's Reset clears the factors and the agents; this bar has none of its own.
-            ChecklistProgress(done: min(classes.count, need), total: need, tint: toneColor, title: "Classes Chosen", doneWord: "chosen", onReset: nil)
-            if factors >= 3 {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Reduce the Baseline Risk").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
-                    FlowLayout(spacing: 6) {
-                        ForEach(data.riskReduction, id: \.self) { r in
-                            Text(r).font(PS.sys(size: 12, weight: .medium)).foregroundStyle(PS.fg2)
-                                .padding(.horizontal, 9).padding(.vertical, 5)
-                                .background(PS.surface2, in: Capsule())
-                        }
+            ChecklistProgress(done: min(classes.count, need), total: need, tint: toneColor, title: "Classes Chosen", doneWord: PONVPlan.progressWord(target), onReset: nil)
+            // Ben, Nov 19 (after the GPT-6 review): the baseline risk reduction is offered at every risk count, not only from 3 factors.
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Reduce the Baseline Risk").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
+                FlowLayout(spacing: 6) {
+                    ForEach(data.riskReduction, id: \.self) { r in
+                        Text(r).font(PS.sys(size: 12, weight: .medium)).foregroundStyle(PS.fg2)
+                            .padding(.horizontal, 9).padding(.vertical, 5)
+                            .background(PS.surface2, in: Capsule())
                     }
                 }
-                .padding(.top, 2)
             }
+            .padding(.top, 2)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
