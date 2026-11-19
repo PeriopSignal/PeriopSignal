@@ -100,6 +100,28 @@ struct WeightField: View {
     }
 }
 
+/// One caution in view, with the warning triangle in the app's caution colour (the pump line on the medications list, the
+/// weight line on the prophylaxis calculator). `strong` is the weight warning's weight of type: semibold, full contrast.
+struct CautionLine: View {
+    var text: String
+    var strong: Bool = false
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(PS.sys(size: strong ? 12 : 11, weight: .semibold))
+                .foregroundStyle(PS.accent)
+                .accessibilityHidden(true)
+            Text(text)
+                .font(PS.sys(size: strong ? 13 : 12.5, weight: strong ? .semibold : .medium))
+                .foregroundStyle(strong ? PS.fg : PS.fg2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
 /// A one-line weight entry for lists where the weight refines rather than unlocks the numbers.
 struct CompactWeightField: View {
     @Binding var text: String

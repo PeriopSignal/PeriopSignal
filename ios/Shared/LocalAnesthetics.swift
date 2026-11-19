@@ -37,7 +37,9 @@ struct LAMixResult: Hashable {
     /// Sum of fractions; ≤ 1 is within limits.
     var combined: Double
     var warnings: [String]
-    var percentUsed: Int { Int((combined * 100).rounded()) }
+    /// Whole percent of the combined maximum; a fraction no whole number can hold (a weight near zero) reads as the largest shown number.
+    var percentUsed: Int { Self.percent(combined) }
+    static func percent(_ fraction: Double) -> Int { PedsCalc.shows(fraction * 100) ? Int((fraction * 100).rounded()) : Int(PedsCalc.shownLimit) - 1 }
 }
 
 enum LAMixCalc {
@@ -81,7 +83,7 @@ enum LAMixCalc {
 
         var warnings: [String] = []
         if combined > 1 {
-            warnings.append("The mixture exceeds the combined maximum (\(Int((combined * 100).rounded()))% of the additive limit).")
+            warnings.append("The mixture exceeds the combined maximum (\(LAMixResult.percent(combined))% of the additive limit).")
         }
         for r in results where r.maxMg == nil && r.mg > 0 {
             if pediatric, let minYears = r.agent.pedsMinYears {

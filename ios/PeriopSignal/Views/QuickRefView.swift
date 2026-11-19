@@ -165,7 +165,10 @@ struct QuickRefView: View {
         guard let w = weight, let size = d.vialSize, size > 0 else { return nil }
         var mg = d.perKg * w
         if let m = d.max { mg = min(mg, m) }
-        let n = Int((mg / size).rounded(.up))
+        // An absurd weight must not reach the whole-number conversion (Int traps on an infinite or enormous Double).
+        let count = (mg / size).rounded(.up)
+        guard PedsCalc.shows(count) else { return nil }
+        let n = Int(count)
         return "\(n) × \(d.vialName ?? "vial")"
     }
 

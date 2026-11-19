@@ -8,8 +8,15 @@
   // ---------- formatting (PedsCalc.fmt and friends) ----------
   /** Round half away from zero, like Swift's .rounded(). */
   function rnd(x) { return x < 0 ? -Math.round(-x) : Math.round(x); }
-  /** Clinical rounding: 2 decimals under 1, 1 decimal under 10, whole numbers from 10. */
+  /** The largest number any line shows (PedsCalc.shownLimit). The app traps on a larger one; the page stays in step. */
+  R.SHOWN_LIMIT = 1e9;
+  R.UNREADABLE = '—';
+  R.CHECK_WEIGHT = 'Check the weight';
+  /** True when a number can be shown: finite and under SHOWN_LIMIT (PedsCalc.shows). */
+  R.shows = (v) => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) < R.SHOWN_LIMIT;
+  /** Clinical rounding: 2 decimals under 1, 1 decimal under 10, whole numbers from 10. A number that cannot be shown reads "—". */
   R.fmt = function (v) {
+    if (!R.shows(v)) return R.UNREADABLE;
     let r;
     if (v < 1) r = rnd(v * 100) / 100;
     else if (v < 10) r = rnd(v * 10) / 10;
@@ -267,11 +274,29 @@
       return ebv * (hs - hm) / hs;
     },
     localAnestheticMax(mgPerKg, w, percent) { const mg = mgPerKg * w; return { mg, mL: mg / (percent * 10) }; },
+    /** PedsCalc.verdict: the typed weight is usable (weightKg) or not (message names why). Implausible: not finite, under 0.4 kg,
+     *  over 150 kg, or, with an age that has an estimate, more than 3 times or under a third of it. */
+    verdict(w, years, months) {
+      if (w === null || w === undefined) return { weightKg: null, message: null };
+      const ageEntered = years * 12 + months >= 1;
+      if (!Number.isFinite(w) || w < 0.4) return { weightKg: null, message: R.CHECK_WEIGHT };
+      if (w > 150) return { weightKg: null, message: ageEntered ? 'Check the weight against the age' : R.CHECK_WEIGHT };
+      const e = R.peds.estimatedWeight(years, months);
+      if (e !== null && (w > 3 * e || w < e / 3)) return { weightKg: null, message: 'Check the weight against the age' };
+      return { weightKg: w, message: null };
+    },
+    /** PedsCalc.newbornAirwayNote: one caution line under 3 kg (tube size and depth are by age only). */
+    newbornAirwayNote(w) {
+      return (w !== null && w !== undefined && Number.isFinite(w) && w < 3)
+        ? 'Under 3 kg: choose tube size and depth by weight from your neonatal chart; the values shown are by age.' : null;
+    },
     /** "12–18 mg" for a per-kg dose at a weight, held within min and max. */
     doseText(low, high, unit, w, min, max) {
+      if (!R.shows(w)) return { text: R.CHECK_WEIGHT, capped: false };
       let lo = low * w, hi = (high ?? low) * w, capped = false;
       if (min !== null && min !== undefined) { if (lo < min) { lo = min; capped = true; } if (hi < min) { hi = min; capped = true; } }
       if (max !== null && max !== undefined) { if (lo > max) { lo = max; capped = true; } if (hi > max) { hi = max; capped = true; } }
+      if (!R.shows(lo) || !R.shows(hi)) return { text: R.CHECK_WEIGHT, capped: false };
       if (Math.abs(hi - lo) < 0.0001) return { text: R.fmt(lo) + ' ' + unit, capped };
       return { text: R.fmt(lo) + '–' + R.fmt(hi) + ' ' + unit, capped };
     },
@@ -297,29 +322,29 @@
     const unit = d.unit || 'mcg', start = d.start, hiv = d.startHigh ?? null;
     const span = (lo, hi, u) => (hi !== null && hi !== undefined && Math.abs(hi - lo) > 0.0001) ? R.fmt(lo) + '–' + R.fmt(hi) + ' ' + u : R.fmt(lo) + ' ' + u;
     const hasW = w !== null && w !== undefined && w > 0;
-    const at = hasW ? ' at ' + R.fmt(w) + ' kg' : '';
+    // The weight-based line, only when the weight and every number worked out from it can be shown (InfusionCalc.lines).
+    const eq = (nums, text) => (R.shows(w) && nums.every((n) => n === null || R.shows(n))) ? text() + ' at ' + R.fmt(w) + ' kg' : R.CHECK_WEIGHT;
+    const hw = (m) => (hiv === null ? null : m(hiv));
     switch (d.form) {
       case 'perKgPerMin': {
         const dose = span(start, hiv, unit + '/kg/min');
         if (!hasW) return { dose, equivalent: null };
-        const s = R.scaled(start * w, hiv === null ? null : hiv * w, unit);
-        return { dose, equivalent: span(s.lo, s.hi, s.unit + '/min') + at };
+        return { dose, equivalent: eq([start * w, hw((x) => x * w)], () => { const s = R.scaled(start * w, hw((x) => x * w), unit); return span(s.lo, s.hi, s.unit + '/min'); }) };
       }
       case 'perMin': {
         const dose = span(start, hiv, unit + '/min');
         if (!hasW) return { dose, equivalent: null };
-        return { dose, equivalent: span(start / w, hiv === null ? null : hiv / w, unit + '/kg/min') + at };
+        return { dose, equivalent: eq([start / w, hw((x) => x / w)], () => span(start / w, hw((x) => x / w), unit + '/kg/min')) };
       }
       case 'perKg': {
         const dose = span(start, hiv, unit + '/kg');
         if (!hasW) return { dose, equivalent: null };
-        return { dose, equivalent: R.total(start * w, hiv === null ? null : hiv * w, unit) + at };
+        return { dose, equivalent: eq([start * w, hw((x) => x * w)], () => R.total(start * w, hw((x) => x * w), unit)) };
       }
       case 'perKgPerHour': {
         const dose = span(start, hiv, unit + '/kg/h');
         if (!hasW) return { dose, equivalent: null };
-        const s = R.scaled(start * w, hiv === null ? null : hiv * w, unit);
-        return { dose, equivalent: span(s.lo, s.hi, s.unit + '/h') + at };
+        return { dose, equivalent: eq([start * w, hw((x) => x * w)], () => { const s = R.scaled(start * w, hw((x) => x * w), unit); return span(s.lo, s.hi, s.unit + '/h'); }) };
       }
       case 'perHour': return { dose: span(start, hiv, unit + '/h'), equivalent: null };
       case 'fixed': return { dose: span(start, hiv, unit), equivalent: null };
