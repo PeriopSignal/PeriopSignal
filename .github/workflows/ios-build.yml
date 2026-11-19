@@ -1103,6 +1103,19 @@ jobs:
           shot 1237-proph-appendectomy-question-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.weight 90 -ps.forceAppearance light
           shot 1238-proph-appendectomy-complicated-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.variant complicated -ps.proph.weight 90 -ps.forceAppearance light
           shot 1239-proph-weight-outside-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.allergy 1 -ps.proph.weight 9 -ps.forceAppearance light
+          # Named operations (Ben, Nov 19): each group lists its operations by name; a row the guideline says needs none says so.
+          shot 1280-proph-cardiac-open-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.forceAppearance light
+          shot 1281-proph-valve-repair-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure valve-repair -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1282-proph-cath-tee-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cath-tee -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1283-proph-vascular-open-light 14 -ps.ref prophylaxis -ps.proph.group vascular -ps.forceAppearance light
+          shot 1284-proph-gastro-open-light 14 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.forceAppearance light
+          shot 1285-proph-headneck-open-light 14 -ps.ref prophylaxis -ps.proph.group headneck -ps.forceAppearance light
+          shot 1286-proph-bariatric-light 14 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure bariatric -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1287-proph-thyroid-none-light 14 -ps.ref prophylaxis -ps.proph.group headneck -ps.proph.procedure thyroid -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1288-proph-cardiac-open-dark-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1289-proph-orthopedic-open-large-text 16 -ps.ref prophylaxis -ps.proph.group orthopedic -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1290-proph-tonsil-fess-light 14 -ps.ref prophylaxis -ps.proph.group headneck -ps.proph.procedure tonsil-fess -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1291-proph-plastic-open-light 14 -ps.ref prophylaxis -ps.proph.group plastic -ps.forceAppearance light
           # ---- 1.12 helper T shots (1240-1279): add your shot lines directly under this line ----
           shot 1240-cardiotext-echo-chips-light 18 -ps.tab patient -ps.patient demo-112-cardiotext-blank -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "TTE 6/26 EF 35%, mod MR, RV nl, LV dilated"
           shot 1241-cardiotext-echo-chips-dark 18 -ps.tab patient -ps.patient demo-112-cardiotext-blank -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "TTE 6/26 EF 35%, mod MR, RV nl, LV dilated"
