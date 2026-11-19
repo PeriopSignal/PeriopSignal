@@ -15994,7 +15994,7 @@
   "mcs": {
     "reviewed": "2026-11-03",
     "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
-    "legend": "Mfr = from the manufacturer only. Per your team = varies by institution. Review = from a review article. Verify = not yet checked against the source. G = guideline.",
+    "legend": "Mfr = from the manufacturer only. Per your team = varies by institution. Review = from a review article. Verify = not yet checked against the source. G = guideline. RCT = from a randomized trial.",
     "devices": [
       {
         "id": "lvad",

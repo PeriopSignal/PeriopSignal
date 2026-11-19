@@ -338,13 +338,19 @@ struct PedsCalculatorView: View {
     @State private var weightText = LaunchSeed.string("ps.peds.weight")
     @State private var years = LaunchSeed.int("ps.peds.years", default: 0)
     @State private var months = LaunchSeed.int("ps.peds.months", default: 0)
-    @State private var tab = 0
+    // Screenshot runs: -ps.peds.tab 0 | 1 | 2 (Drugs, Airway, Fluids & Blood).
+    @State private var tab = LaunchSeed.int("ps.peds.tab", default: 0)
     @State private var hctStart = ""
     @State private var hctMin = ""
     @State private var expanded: String?
     @FocusState private var weightFocused: Bool
 
-    private var weight: Double? { WeightField.value(weightText) }
+    /// The typed weight and whether it can be a child's. An implausible weight (PedsCalc.verdict) is not used anywhere on
+    /// the screen: nothing is worked out from it, and "Check the weight" shows where the numbers would be (Ben, Nov 19).
+    private var verdict: PedsCalc.WeightVerdict { PedsCalc.verdict(text: weightText, years: years, months: months) }
+    private var weight: Double? { verdict.weightKg }
+    /// What stands where a number needs the weight: the check line for an implausible weight, else the usual word.
+    private func needs(_ usual: String) -> String { verdict.message != nil ? PedsCalc.checkWeightText : usual }
     private var estimate: Double? { PedsCalc.estimatedWeight(years: years, months: months) }
     private var ageMonths: Double { Double(years * 12 + months) }
 
@@ -383,6 +389,7 @@ struct PedsCalculatorView: View {
         .scrollContentBackground(.hidden)
         .navigationTitle("Pediatric Doses")
         .navigationBarTitleDisplayMode(.inline)
+        .modifier(DebugContentWidth())
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -413,6 +420,7 @@ struct PedsCalculatorView: View {
                     }
                 }
             }
+            if let m = verdict.message { CautionLine(text: m, strong: true) }
             if weight == nil, let e = estimate {
                 Button {
                     Haptics.light()
@@ -463,7 +471,7 @@ struct PedsCalculatorView: View {
                     }
                     Spacer(minLength: 6)
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(computed?.text ?? "Needs weight")
+                        Text(computed?.text ?? needs("Needs weight"))
                             .font(computed == nil ? PS.sys(size: 12, weight: .semibold) : PS.sys(size: 15, weight: .semibold, design: .monospaced))
                             .foregroundStyle(computed == nil ? PS.accent.opacity(0.8) : PS.fg)
                             .contentTransition(.numericText())
@@ -503,11 +511,13 @@ struct PedsCalculatorView: View {
             ["ETT cuffed", sizes.cuffed + " mm ID"],
             ["Depth, oral", PedsCalc.ettDepthOral(years: years, months: months, uncuffedID: uncuffedValue) + " cm at the lip"],
             ["Depth, nasal", PedsCalc.ettDepthNasal(years: years, months: months) + (PedsCalc.ettDepthNasal(years: years, months: months) == "—" ? "" : " cm at the naris")],
-            ["Laryngeal mask", weight.map { "Size " + PedsCalc.lmaSize(weightKg: $0) } ?? "— (needs weight)"],
+            ["Laryngeal mask", weight.map { "Size " + PedsCalc.lmaSize(weightKg: $0) } ?? needs("— (needs weight)")],
         ]
         return VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: ageMonths < 1 ? "Set the age for tube sizes" : "For \(years) y \(months) mo").padding(.leading, 2)
             FactTable(rows: rows)
+            // Under 3 kg the tube size and depth above are by age only (Ben, Nov 19): the caution sits with them.
+            if let n = PedsCalc.newbornAirwayNote(weightKg: weight) { CautionLine(text: n) }
             EvidenceNote("Uncuffed: age/4 + 4 (Cole); cuffed: age/4 + 3.5 (Khine), from 2 years; fixed sizes below that. Oral depth: age/2 + 12 cm from 2 years, 3 × tube ID before; nasal: age/2 + 15 cm. Laryngeal mask sizes follow the manufacturers' weight bands. Have the half-size above and below ready; confirm with a leak test and the chest radiograph when indicated.")
         }
     }
@@ -524,10 +534,10 @@ struct PedsCalculatorView: View {
             return (lo, hi)
         }()
         var rows: [[String]] = [
-            ["Maintenance", weight == nil ? "—" : PedsCalc.fmt(maint) + " mL/h (4-2-1)"],
-            ["Blood volume", ebv.map { "\(PedsCalc.range($0.low, $0.high)) mL · \($0.row.group), \(PedsCalc.range($0.row.mlPerKgLow, $0.row.mlPerKgHigh)) mL/kg" } ?? "—"],
+            ["Maintenance", weight == nil ? needs("—") : PedsCalc.fmt(maint) + " mL/h (4-2-1)"],
+            ["Blood volume", ebv.map { "\(PedsCalc.range($0.low, $0.high)) mL · \($0.row.group), \(PedsCalc.range($0.row.mlPerKgLow, $0.row.mlPerKgHigh)) mL/kg" } ?? needs("—")],
         ]
-        rows.append(["Allowable loss", mabl.map { "\(PedsCalc.range($0.0, $0.1)) mL" } ?? "— (enter hematocrits)"])
+        rows.append(["Allowable loss", mabl.map { "\(PedsCalc.range($0.0, $0.1)) mL" } ?? needs("— (enter hematocrits)")])
         return VStack(alignment: .leading, spacing: 12) {
             FactTable(rows: rows)
             HStack(spacing: 12) {

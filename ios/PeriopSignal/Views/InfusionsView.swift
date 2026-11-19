@@ -35,7 +35,8 @@ struct InfusionsView: View {
     var body: some View {
         ToolScroll {
             VStack(alignment: .leading, spacing: 14) {
-                CompactWeightField(text: $weightText, focus: $focused, patientWeight: myPatient.weightKg)
+                CompactWeightField(text: $weightText, focus: $focused, patientWeight: Self.patientWeight(for: myPatient.record))
+                adultLine
                 searchField
                 if !groups.isEmpty { pumpLine }
                 if groups.isEmpty {
@@ -88,6 +89,23 @@ struct InfusionsView: View {
             .padding(.horizontal, 12).padding(.vertical, 9)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+    }
+
+    /// Ben, Nov 19 (after the GPT-6 review): the doses on this screen are adult doses. One quiet line says so beside the weight
+    /// field, and a child's case does not fill the weight in (the pediatric and ACLS screens use the same isChild test).
+    static let adultNoteAdult = "Adult doses"
+    static let adultNoteChild = "Adult doses: the case is a child"
+    static func adultNote(for record: PatientRecord) -> String { record.isChild ? adultNoteChild : adultNoteAdult }
+    /// The weight My Patient fills in: the adult's, never a child's.
+    static func patientWeight(for record: PatientRecord) -> Double? { record.isChild ? nil : record.weightKg }
+
+    private var adultLine: some View {
+        Text(Self.adultNote(for: myPatient.record))
+            .font(PS.sys(size: 12, weight: .medium))
+            .foregroundStyle(myPatient.record.isChild ? PS.fg2 : PS.fg3)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     /// The one caution surfaced from the footer (Ben, Nov 2), in view above the tables.

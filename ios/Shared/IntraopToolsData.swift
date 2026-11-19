@@ -267,6 +267,15 @@ struct McsData: Codable, Hashable {
     var sources: [EvidenceSource]
 
     func sources(_ ids: [String]) -> [EvidenceSource] { ids.compactMap { id in sources.first { $0.id == id } } }
+
+    /// The cautions shown in view under the device chips (Ben, Nov 19, after the GPT-6 review): not blank, in the order written.
+    var cautionLines: [String] {
+        cautions.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    }
+    /// True when the "Explanation & Evidence" footer holds the legend or sources.
+    var footerHasContent: Bool { !legend.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !sources.isEmpty }
+    /// The cautions kept in the footer as well: only when the footer would otherwise be empty.
+    var footerCautions: [String] { footerHasContent ? [] : cautionLines }
 }
 
 // MARK: TEE companion

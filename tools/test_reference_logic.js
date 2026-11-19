@@ -92,6 +92,44 @@ test('doses and rounding', () => {
   eq(R.range(70, 70), '70'); eq(R.range(70, 75), '70–75');
 });
 
+test('an absurd weight never reaches a number (PedsCalc.fmt guard, 1.12)', () => {
+  // The app traps on String(Int(1e20)); the page reads "—" and the dose lines read "Check the weight".
+  eq(R.fmt(1e20), '—'); eq(R.fmt(Infinity), '—'); eq(R.fmt(-Infinity), '—'); eq(R.fmt(NaN), '—'); eq(R.fmt(1e9), '—');
+  eq(R.fmt(999999999), '999999999'); eq(R.fmt(150), '150'); eq(R.fmt(0.123), '0.12');
+  eq(R.peds.doseText(0.01, null, 'mg', 1e20, null, 1).text, 'Check the weight', 'not even a dose held at its maximum');
+  eq(R.peds.doseText(0.01, null, 'mg', Infinity, null, 1).text, 'Check the weight');
+  eq(R.peds.doseText(0.01, null, 'mg', NaN, null, null).text, 'Check the weight');
+  eq(R.peds.doseText(2, 3, 'mg', 18, null, null).text, '36–54 mg');
+  const norepi = { form: 'perKgPerMin', start: 0.05, startHigh: 0.1, unit: 'mcg' };
+  eq(R.infusionLines(norepi, 1e20).equivalent, 'Check the weight'); eq(R.infusionLines(norepi, Infinity).equivalent, 'Check the weight');
+  eq(R.infusionLines(norepi, 70).equivalent, '3.5–7 mcg/min at 70 kg');
+  const ntg = { form: 'perMin', start: 5, unit: 'mcg' };
+  eq(R.infusionLines(ntg, 1e-300).equivalent, 'Check the weight');
+  for (const form of ['perKg', 'perKgPerHour']) eq(R.infusionLines({ form, start: 1, unit: 'mg' }, 1e20).equivalent, 'Check the weight', form);
+});
+test('pediatric weight check', () => {
+  const ok = (w, y, m) => eq(R.peds.verdict(w, y, m).weightKg, w);
+  const msg = (w, y, m) => R.peds.verdict(w, y, m).message;
+  eq(R.peds.verdict(null, 0, 0).message, null); eq(R.peds.verdict(null, 0, 0).weightKg, null);
+  // alone: 0.4 kg to 150 kg
+  ok(0.4, 0, 0); ok(150, 0, 0); ok(18, 0, 0);
+  eq(msg(0.39, 0, 0), 'Check the weight'); eq(msg(0, 0, 0), 'Check the weight'); eq(msg(-3, 0, 0), 'Check the weight');
+  eq(msg(Infinity, 0, 0), 'Check the weight'); eq(msg(NaN, 0, 0), 'Check the weight');
+  eq(msg(150.1, 0, 0), 'Check the weight');
+  // with an age: over 150 kg and the ratio say "against the age"; under 0.4 kg is still the number itself
+  eq(msg(150.1, 16, 0), 'Check the weight against the age'); ok(150, 16, 0);
+  eq(msg(0.39, 5, 0), 'Check the weight');
+  // 5 years: estimate 18 kg, so 6 to 54 kg
+  ok(54, 5, 0); ok(6, 5, 0);
+  eq(msg(54.01, 5, 0), 'Check the weight against the age'); eq(msg(5.99, 5, 0), 'Check the weight against the age');
+  // 6 months: estimate 7 kg
+  ok(21, 0, 6); eq(msg(21.01, 0, 6), 'Check the weight against the age'); ok(7 / 3 + 0.01, 0, 6); eq(msg(2.3, 0, 6), 'Check the weight against the age');
+  // 14 years has no estimate: only the absolute limits apply
+  ok(150, 14, 0); ok(30, 14, 0);
+  eq(R.peds.newbornAirwayNote(2.5), 'Under 3 kg: choose tube size and depth by weight from your neonatal chart; the values shown are by age.');
+  eq(R.peds.newbornAirwayNote(2.99) !== null, true); eq(R.peds.newbornAirwayNote(3), null); eq(R.peds.newbornAirwayNote(null), null);
+});
+
 // ---------- local anesthetics ----------
 const lidocaine = { id: 'lidocaine', name: 'Lidocaine', maxMgPerKg: 4.5, concentrations: [1, 2], kind: 'amide', adultPlainMgPerKg: 4.5, adultPlainMaxMg: 300, adultEpiMgPerKg: 7, adultEpiMaxMg: 500, pedsEpiMgPerKg: 7 };
 const bupivacaine = { id: 'bupivacaine', name: 'Bupivacaine', maxMgPerKg: 2.5, concentrations: [0.25, 0.5], kind: 'amide', adultPlainMgPerKg: 2.5, adultPlainMaxMg: 175, adultEpiMaxMg: 225, per24hMaxMg: 400 };
