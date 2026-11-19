@@ -40,6 +40,12 @@
     ],
     "answer": 1,
     "explanation": "The statement recommends chest decompression when tension pneumothorax is a concern and advises against empirical bilateral decompression without suspected thoracic trauma. Epinephrine ranks below life-saving interventions. It is a position statement, not trial evidence."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/peds-2026-joint-statement-pediatric-traumatic-ohca.mp3",
+    "seconds": 186,
+    "bytes": 1485740,
+    "voice": "kokoro:af_heart"
    }
   },
   {
