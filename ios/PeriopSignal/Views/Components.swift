@@ -642,8 +642,18 @@ struct SafariView: UIViewControllerRepresentable {
 
 struct ShareSheet: UIViewControllerRepresentable {
     var items: [Any]
+    /// True for a patient share: the files made for it (PatientSendFiles) are removed when the sheet is dismissed or an
+    /// activity is done, not when it opens, so the receiving app can still read them. Ben, Nov 19 (after the GPT-6 review).
+    var purgesPatientFiles = false
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
+        Self.controller(items: items, purgesPatientFiles: purgesPatientFiles)
+    }
+    static func controller(items: [Any], purgesPatientFiles: Bool) -> UIActivityViewController {
+        let vc = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        if purgesPatientFiles {
+            vc.completionWithItemsHandler = { _, _, _, _ in PatientSendFiles.purge() }
+        }
+        return vc
     }
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

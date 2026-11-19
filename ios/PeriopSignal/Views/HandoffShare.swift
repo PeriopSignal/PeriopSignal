@@ -35,7 +35,28 @@ enum HandoffShare {
     }
 
     static func copy(_ text: String) {
-        UIPasteboard.general.setItems([pasteboardItem(text)], options: [:])
+        setPatientItems([pasteboardItem(text)])
+    }
+
+    /// Copy for plain text only (an archived summary).
+    static func copyPlain(_ text: String) {
+        setPatientItems([[UTType.utf8PlainText.identifier: text]])
+    }
+
+    // MARK: The pasteboard for patient text
+
+    /// How long copied patient text stays on the pasteboard.
+    static let pasteboardLifetime: TimeInterval = 600
+
+    /// Ben, Nov 19 (after the GPT-6 review): patient text copied from the app stays on this phone (no Universal Clipboard to
+    /// the user's other devices) and is gone from the pasteboard after ten minutes.
+    static func patientPasteboardOptions(now: Date = Date()) -> [UIPasteboard.OptionsKey: Any] {
+        [.localOnly: true, .expirationDate: now.addingTimeInterval(pasteboardLifetime)]
+    }
+
+    /// Every copy of patient text goes through here.
+    static func setPatientItems(_ items: [[String: Any]], now: Date = Date()) {
+        UIPasteboard.general.setItems(items, options: patientPasteboardOptions(now: now))
     }
 
     // MARK: The 1.9 briefs (preprocedure summary and handoff)
@@ -82,7 +103,7 @@ enum HandoffShare {
     /// Copy: the plain text (the fishbone as one line) with the rich text beside it, closed by the footer.
     static func copy(blocks: [SummaryBlock], now: Date = Date()) {
         let footer = PatientBriefs.footer(now)
-        UIPasteboard.general.setItems([pasteboardItem(PatientBriefs.sharedText(blocks, now: now), rich: richText(blocks, footer: footer))], options: [:])
+        setPatientItems([pasteboardItem(PatientBriefs.sharedText(blocks, now: now), rich: richText(blocks, footer: footer))])
     }
 
     static func pasteboardItem(_ text: String, rich: NSAttributedString) -> [String: Any] {
