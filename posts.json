@@ -1,7 +1,47 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-17T09:08:46+00:00",
+ "generatedAt": "2026-11-19T09:15:13+00:00",
  "posts": [
+  {
+   "id": "peds-2026-joint-statement-pediatric-traumatic-ohca",
+   "date": "2026-11-19",
+   "dateApprox": false,
+   "addedAt": "2026-11-19",
+   "journal": "Pediatrics",
+   "jshort": "Peds",
+   "kind": "Consensus",
+   "topics": [
+    "trauma",
+    "pediatric"
+   ],
+   "headline": "Joint EMS and trauma societies update guidance on withholding or stopping resuscitation in children with traumatic arrest",
+   "summary": "NAEMSP, ACS-COT, ACEP and AAP replaced their 2014 position statement on pediatric traumatic out-of-hospital circulatory arrest, setting out what EMS should prioritise and when resuscitation may be withheld.",
+   "takeHome": [
+    "Identify children who may benefit from trauma-center transport promptly; balance on-scene resuscitation against transfer to a proximate trauma center.",
+    "Focus on reversible causes: hemorrhage control, least-invasive airway, decompression for suspected tension pneumothorax; epinephrine ranks below these life-saving interventions.",
+    "Resuscitation may be withheld for injuries incompatible with life, prolonged arrest or valid DNR orders; point-of-care ultrasound may guide decisions."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Traumatic out-of-hospital arrest in children is rare, high-acuity and nearly uniformly fatal, and the first joint statement on withholding or stopping resuscitation dates from 2014. NAEMSP, ACS-COT, ACEP and AAP have now updated it, published in Pediatrics on 19 November 2026 as part of the Prehospital Trauma Compendium, because the literature has grown and keeps showing a very poor prognosis.\n\n**What they recommend.**\n- Promptly identify children who may benefit from transport to a trauma center, and balance on-scene resuscitation against transfer to the nearest one.\n- Look for reversible causes and use clinically indicated life-saving interventions: external hemorrhage control (pressure, packing, tourniquets), the least invasive airway that achieves patency, oxygenation and ventilation, and chest decompression when tension pneumothorax is a concern. Empirical bilateral decompression is not recommended without suspected thoracic trauma.\n- Compressions and ventilation play a larger role than in adults, because children often arrest from head injury, hypoxia or other non-hemorrhagic mechanisms; give CPR when the cause is unclear. Epinephrine is a lower priority.\n- Consider point-of-care ultrasound to guide decisions to withhold or stop.\n- Resuscitation may be withheld with injuries incompatible with life, evidence of prolonged arrest (rigor mortis, dependent lividity, decomposition) or DNR/DNAR orders.\n\n**Caveats.** This is a position statement and resource document, not a trial, and we read the abstract only, so the evidence grading is not covered here.\n\n**For the anesthesiologist.** You meet these children at the end of the prehospital chain. The emphasis on hemorrhage control, minimal airway intervention and no reflex needle decompression shapes what arrives in the trauma bay, and the non-hemorrhagic mechanisms (head injury, hypoxia) are a reminder to look beyond blood loss. It is worth comparing local EMS protocols and transfer pathways with the statement.",
+   "url": "https://doi.org/10.1542/peds.2026-079371",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Anders",
+   "title": "Prehospital Trauma Compendium: Prehospital Management of Pediatric Traumatic Out-of-Hospital Circulatory Arrest - A Joint Position Statement and Resource Document of NAEMSP, ACS-COT, ACEP, and AAP",
+   "quiz": {
+    "question": "According to the updated joint statement on pediatric traumatic out-of-hospital circulatory arrest, what is recommended for chest decompression by EMS?",
+    "options": [
+     "Empirical bilateral decompression in every child in arrest, whatever the injury pattern",
+     "Decompress if tension pneumothorax is a concern, not empirically without suspected thoracic trauma",
+     "Decompress only after two doses of epinephrine have been given",
+     "Defer all decompression until the child reaches a trauma center"
+    ],
+    "answer": 1,
+    "explanation": "The statement recommends chest decompression when tension pneumothorax is a concern and advises against empirical bilateral decompression without suspected thoracic trauma. Epinephrine ranks below life-saving interventions. It is a position statement, not trial evidence."
+   }
+  },
   {
    "id": "circulation-2026-ablation-biatrial-vs-left-atrial-maze-rheumatic-mitral",
    "date": "2026-11-16",
