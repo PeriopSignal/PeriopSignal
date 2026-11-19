@@ -17506,8 +17506,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass.",
-                    "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
                   ]
                 },
                 "allergy": {
@@ -17536,7 +17535,7 @@
                   "star": true,
                   "notes": [
                     "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass.",
-                    "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
+                    "If vancomycin is used, the guideline's text says an aminoglycoside may be added for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
                   ]
                 }
               }
@@ -17574,8 +17573,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass.",
-                    "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
                   ]
                 },
                 "allergy": {
@@ -17604,7 +17602,7 @@
                   "star": true,
                   "notes": [
                     "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass.",
-                    "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
+                    "If vancomycin is used, the guideline's text says an aminoglycoside may be added for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
                   ]
                 }
               }
@@ -17621,7 +17619,7 @@
           },
           {
             "id": "endarterectomy",
-            "name": "Thromboendarterectomy (not carotid)",
+            "name": "Thromboendarterectomy (not carotid or brachial)",
             "variants": [
               {
                 "id": "only",
@@ -17645,9 +17643,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass.",
-                    "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it.",
-                    "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
+                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass."
                   ]
                 },
                 "allergy": {
@@ -17676,8 +17672,7 @@
                   "star": true,
                   "notes": [
                     "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass.",
-                    "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it.",
-                    "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
+                    "If vancomycin is used, the guideline's text says an aminoglycoside may be added for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
                   ]
                 }
               }
@@ -17712,7 +17707,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's text says patients undergoing vascular access procedures for hemodialysis may benefit from antistaphylococcal antimicrobials; its evidence is a placebo-controlled study in which upper-extremity prosthetic graft infection was 6% with placebo and 1% with vancomycin. The agent shown is the table's, for vascular procedures with a higher risk of infection, including implantation of prosthetic material."
+                    "Periop Signal note: the guideline's text says patients undergoing vascular access procedures for hemodialysis may benefit from antistaphylococcal antimicrobials. In a placebo-controlled study, upper-extremity prosthetic graft infection was 6% with placebo and 1% with vancomycin. The agents shown are the table's for vascular procedures."
                   ]
                 },
                 "allergy": {
@@ -17740,7 +17735,7 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Periop Signal note: the guideline's text says patients undergoing vascular access procedures for hemodialysis may benefit from antistaphylococcal antimicrobials; its evidence is a placebo-controlled study in which upper-extremity prosthetic graft infection was 6% with placebo and 1% with vancomycin. The agent shown is the table's, for vascular procedures with a higher risk of infection, including implantation of prosthetic material."
+                    "Periop Signal note: the guideline's text says patients undergoing vascular access procedures for hemodialysis may benefit from antistaphylococcal antimicrobials. In a placebo-controlled study, upper-extremity prosthetic graft infection was 6% with placebo and 1% with vancomycin. The agents shown are the table's for vascular procedures."
                   ]
                 }
               }
@@ -17775,9 +17770,7 @@
                     }
                   ],
                   "notes": [
-                    "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it.",
-                    "The guideline's text says prospective data from well-designed studies on prophylaxis for endovascular stenting do not exist; if prophylaxis is desired, the same antimicrobials and short duration of therapy used for open vascular procedures should be given.",
-                    "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
+                    "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it."
                   ]
                 },
                 "allergy": {
@@ -17806,8 +17799,7 @@
                   "star": true,
                   "notes": [
                     "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it.",
-                    "The guideline's text says prospective data from well-designed studies on prophylaxis for endovascular stenting do not exist; if prophylaxis is desired, the same antimicrobials and short duration of therapy used for open vascular procedures should be given.",
-                    "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
+                    "If vancomycin is used, the guideline's text says an aminoglycoside may be added for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
                   ]
                 }
               }
@@ -17857,7 +17849,7 @@
                     }
                   ],
                   "notes": [
-                    "The guideline says there have been no well-designed clinical trials of antimicrobial prophylaxis for patients undergoing bariatric surgical procedures, that treatment guidelines support its use, and that there is no consensus on the appropriate antimicrobial regimen. Higher doses of antimicrobials are uniformly recommended in morbidly obese patients undergoing bariatric procedures."
+                    "The guideline says higher doses of antimicrobials are uniformly recommended in morbidly obese patients undergoing bariatric procedures. It also says there have been no well-designed clinical trials of antimicrobial prophylaxis for bariatric surgical procedures; treatment guidelines support its use based on morbid obesity and additional comorbidities as risk factors for postoperative infections."
                   ]
                 },
                 "allergy": {
@@ -17883,7 +17875,7 @@
                     }
                   ],
                   "notes": [
-                    "The guideline says there have been no well-designed clinical trials of antimicrobial prophylaxis for patients undergoing bariatric surgical procedures, that treatment guidelines support its use, and that there is no consensus on the appropriate antimicrobial regimen. Higher doses of antimicrobials are uniformly recommended in morbidly obese patients undergoing bariatric procedures."
+                    "The guideline says higher doses of antimicrobials are uniformly recommended in morbidly obese patients undergoing bariatric procedures. It also says there have been no well-designed clinical trials of antimicrobial prophylaxis for bariatric surgical procedures; treatment guidelines support its use based on morbid obesity and additional comorbidities as risk factors for postoperative infections."
                   ]
                 }
               }
@@ -18168,7 +18160,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the table grades its gastroduodenal rows A. The guideline's text grades this recommendation C: a single dose of cefazolin in clean procedures, such as highly selective vagotomy, and antireflux procedures only in patients at high risk of postoperative infection."
+                    "Periop Signal note: the table grades this row A; the guideline's text grades the recommendation C. The row is for antireflux surgery and highly selective vagotomy in high-risk patients only."
                   ]
                 },
                 "allergy": {
@@ -18194,7 +18186,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the table grades its gastroduodenal rows A. The guideline's text grades this recommendation C: a single dose of cefazolin in clean procedures, such as highly selective vagotomy, and antireflux procedures only in patients at high risk of postoperative infection."
+                    "Periop Signal note: the table grades this row A; the guideline's text grades the recommendation C. The row is for antireflux surgery and highly selective vagotomy in high-risk patients only."
                   ]
                 },
                 "label": "High risk"
@@ -18571,7 +18563,7 @@
               {
                 "id": "complicated",
                 "label": "Complicated",
-                "outside": "The guideline's table has no row for this: its recommendation is for appendectomy for uncomplicated appendicitis. Its text says complicated appendicitis (perforated or gangrenous appendicitis, including peritonitis or abscess formation) is treated as a complicated intraabdominal infection and is not addressed separately. It also says all patients with a suspected clinical diagnosis of appendicitis should receive appropriate preoperative i.v. antimicrobials."
+                "outside": "The guideline's table has no row for this: its row is for appendectomy for uncomplicated appendicitis. Its text says complicated appendicitis (perforated or gangrenous appendicitis, including peritonitis or abscess formation) is treated as a complicated intraabdominal infection and is not addressed separately. It says all patients with a suspected clinical diagnosis of appendicitis, even those with an uncomplicated case, should receive appropriate preoperative i.v. antimicrobials."
               }
             ],
             "catalog": [
@@ -18949,14 +18941,14 @@
                   "text": "None",
                   "kind": "none",
                   "notes": [
-                    "Periop Signal note: the guideline's text says clean head and neck procedures include thyroidectomy and lymph node excisions. It lists radical or bilateral neck dissections among the procedure-related risk factors for infection, and its table has a separate row for clean-contaminated cancer surgery."
+                    "Periop Signal note: the guideline's text says clean head and neck procedures include thyroidectomy and lymph node excisions. It does not say whether a neck dissection is a clean procedure; it lists radical or bilateral neck dissections among the risk factors for infection."
                   ]
                 },
                 "allergy": {
                   "text": "None",
                   "kind": "none",
                   "notes": [
-                    "Periop Signal note: the guideline's text says clean head and neck procedures include thyroidectomy and lymph node excisions. It lists radical or bilateral neck dissections among the procedure-related risk factors for infection, and its table has a separate row for clean-contaminated cancer surgery."
+                    "Periop Signal note: the guideline's text says clean head and neck procedures include thyroidectomy and lymph node excisions. It does not say whether a neck dissection is a clean procedure; it lists radical or bilateral neck dissections among the risk factors for infection."
                   ]
                 }
               }
@@ -19667,7 +19659,7 @@
         "procedures": [
           {
             "id": "clean",
-            "name": "Clean hand, knee or foot surgery or arthroscopy, without instrumentation or implant",
+            "name": "Clean hand, knee or foot surgery or arthroscopy, no implanted foreign material",
             "variants": [
               {
                 "id": "only",
@@ -19680,7 +19672,7 @@
                   "text": "None",
                   "kind": "none",
                   "notes": [
-                    "The guideline's background says antimicrobial prophylaxis in patients undergoing diagnostic and operative arthroscopic procedures is controversial. Its recommendation is that prophylaxis is not recommended for patients undergoing clean orthopedic procedures, including knee, hand, and foot procedures, arthroscopy, and other procedures without instrumentation or implantation of foreign materials (strength of evidence against prophylaxis = C).",
+                    "The guideline's recommendation is that antimicrobial prophylaxis is not recommended for clean orthopedic procedures, including knee, hand, and foot procedures, arthroscopy, and other procedures without instrumentation or implantation of foreign materials (strength of evidence against prophylaxis = C). Its background calls prophylaxis in arthroscopic procedures controversial.",
                     "The guideline says: if the potential for implantation of foreign materials is unknown, the procedure should be treated as with implantation."
                   ]
                 },
@@ -19688,7 +19680,7 @@
                   "text": "None",
                   "kind": "none",
                   "notes": [
-                    "The guideline's background says antimicrobial prophylaxis in patients undergoing diagnostic and operative arthroscopic procedures is controversial. Its recommendation is that prophylaxis is not recommended for patients undergoing clean orthopedic procedures, including knee, hand, and foot procedures, arthroscopy, and other procedures without instrumentation or implantation of foreign materials (strength of evidence against prophylaxis = C).",
+                    "The guideline's recommendation is that antimicrobial prophylaxis is not recommended for clean orthopedic procedures, including knee, hand, and foot procedures, arthroscopy, and other procedures without instrumentation or implantation of foreign materials (strength of evidence against prophylaxis = C). Its background calls prophylaxis in arthroscopic procedures controversial.",
                     "The guideline says: if the potential for implantation of foreign materials is unknown, the procedure should be treated as with implantation."
                   ]
                 }
@@ -19940,7 +19932,7 @@
                     }
                   ],
                   "notes": [
-                    "The guideline says most studies of prophylaxis in joint replacement were in total hip or total knee arthroplasty: there is a lack of efficacy data involving elbow, shoulder, and ankle arthroplasty; however, the same antimicrobial prophylaxis principles can be applied."
+                    "The guideline says the same antimicrobial prophylaxis principles can be applied to elbow, shoulder, and ankle arthroplasty; most studies were in total hip or total knee arthroplasty, and efficacy data for the other joints are lacking."
                   ]
                 },
                 "allergy": {
@@ -19968,7 +19960,7 @@
                   ],
                   "star": true,
                   "notes": [
-                    "The guideline says most studies of prophylaxis in joint replacement were in total hip or total knee arthroplasty: there is a lack of efficacy data involving elbow, shoulder, and ankle arthroplasty; however, the same antimicrobial prophylaxis principles can be applied."
+                    "The guideline says the same antimicrobial prophylaxis principles can be applied to elbow, shoulder, and ankle arthroplasty; most studies were in total hip or total knee arthroplasty, and efficacy data for the other joints are lacking."
                   ]
                 }
               }
@@ -20062,14 +20054,14 @@
               {
                 "id": "no-risk",
                 "label": "No risk factors",
-                "outside": "The guideline's table has no row for this: its recommendation is for lower tract instrumentation with risk factors for infection, and its text says no antimicrobial prophylaxis is recommended for clean urologic procedures in patients without risk factors for postoperative infections. For transrectal needle biopsy of the prostate, its text says the studies support the routine use of antimicrobial prophylaxis in all patients. For transurethral resection of the prostate (TURP), its text says two large meta-analyses have suggested prophylactic antimicrobials may be effective in all patients, including low-risk patients and those with preoperatively sterile urine."
+                "outside": "The guideline's table has no row for this: its recommendation is for lower tract instrumentation with risk factors for infection. Its text says no antimicrobial prophylaxis is recommended for clean urologic procedures in patients without risk factors for postoperative infections. Two operations differ in its text. Transrectal needle biopsy of the prostate: the studies support the routine use of antimicrobial prophylaxis in all patients. Transurethral resection of the prostate (TURP): two large meta-analyses have suggested prophylactic antimicrobials may be effective in all patients, including low-risk patients."
               }
             ],
             "catalog": [
               "cystoscopy"
             ],
             "question": "Risk factors for infection?",
-            "questionInfo": "The guideline's urologic-specific risk factors: anatomic anomalies of the urinary tract, urinary obstruction, urinary stone, and indwelling or externalized catheters, in addition to general risk factors. Preoperative UTI, particularly if recurrent, is a high-risk factor; the guideline says patients with preoperative bacteriuria or UTI should be treated before the procedure, when possible."
+            "questionInfo": "The guideline says urologic-specific risk factors include anatomic anomalies of the urinary tract, urinary obstruction, urinary stone, and indwelling or externalized catheters, in addition to the general risk factors for postoperative infection. It adds operation-specific factors: length of postoperative catheterization, mode of irrigation, and postoperative pyuria. Preoperative UTI, particularly if recurrent, is a high-risk factor; the guideline says patients with preoperative bacteriuria or UTI should be treated before the procedure, when possible."
           },
           {
             "id": "clean-no-entry",
@@ -20709,7 +20701,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures. It cites a Cochrane review of breast cancer procedures (axillary lymph node dissection and primary nonreconstructive surgery) that found fewer surgical-site infections with prophylaxis, and says most other studies of clean procedures, among them lumpectomy, mastectomy and axillary node dissection, found no significant decrease."
+                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures. It cites a Cochrane review of breast cancer procedures (axillary lymph node dissection and primary nonreconstructive surgery) whose authors concluded that antimicrobial prophylaxis is warranted to decrease the risk of surgical-site infection."
                   ]
                 },
                 "allergy": {
@@ -20737,7 +20729,7 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures. It cites a Cochrane review of breast cancer procedures (axillary lymph node dissection and primary nonreconstructive surgery) that found fewer surgical-site infections with prophylaxis, and says most other studies of clean procedures, among them lumpectomy, mastectomy and axillary node dissection, found no significant decrease."
+                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures. It cites a Cochrane review of breast cancer procedures (axillary lymph node dissection and primary nonreconstructive surgery) whose authors concluded that antimicrobial prophylaxis is warranted to decrease the risk of surgical-site infection."
                   ]
                 }
               }
