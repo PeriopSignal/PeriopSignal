@@ -17712,7 +17712,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's text says patients undergoing vascular access procedures for hemodialysis may benefit from antistaphylococcal antimicrobials. Its evidence is a placebo-controlled study of permanent vascular access placement, in which upper-extremity prosthetic graft infection was 6% with placebo and 1% with vancomycin. The agent shown is the table's, for vascular procedures with a higher risk of infection, including implantation of prosthetic material."
+                    "Periop Signal note: the guideline's text says patients undergoing vascular access procedures for hemodialysis may benefit from antistaphylococcal antimicrobials; its evidence is a placebo-controlled study in which upper-extremity prosthetic graft infection was 6% with placebo and 1% with vancomycin. The agent shown is the table's, for vascular procedures with a higher risk of infection, including implantation of prosthetic material."
                   ]
                 },
                 "allergy": {
@@ -17740,7 +17740,7 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Periop Signal note: the guideline's text says patients undergoing vascular access procedures for hemodialysis may benefit from antistaphylococcal antimicrobials. Its evidence is a placebo-controlled study of permanent vascular access placement, in which upper-extremity prosthetic graft infection was 6% with placebo and 1% with vancomycin. The agent shown is the table's, for vascular procedures with a higher risk of infection, including implantation of prosthetic material."
+                    "Periop Signal note: the guideline's text says patients undergoing vascular access procedures for hemodialysis may benefit from antistaphylococcal antimicrobials; its evidence is a placebo-controlled study in which upper-extremity prosthetic graft infection was 6% with placebo and 1% with vancomycin. The agent shown is the table's, for vascular procedures with a higher risk of infection, including implantation of prosthetic material."
                   ]
                 }
               }
@@ -17775,7 +17775,6 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass.",
                     "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it.",
                     "The guideline's text says prospective data from well-designed studies on prophylaxis for endovascular stenting do not exist; if prophylaxis is desired, the same antimicrobials and short duration of therapy used for open vascular procedures should be given.",
                     "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
@@ -17806,7 +17805,6 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Periop Signal note: the guideline's recommendation is for vascular procedures with a higher risk of infection, including implantation of prosthetic material; its text names aneurysm repair, thromboendarterectomy and vein bypass.",
                     "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it.",
                     "The guideline's text says prospective data from well-designed studies on prophylaxis for endovascular stenting do not exist; if prophylaxis is desired, the same antimicrobials and short duration of therapy used for open vascular procedures should be given.",
                     "The guideline's text says an aminoglycoside may be added to vancomycin for aerobic gram-negative coverage if the procedure involves the abdominal aorta or a groin incision."
@@ -20711,7 +20709,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures. It cites a Cochrane review of breast cancer procedures (axillary lymph node dissection and primary nonreconstructive surgery) that found fewer surgical-site infections with prophylaxis. It also says most studies of many clean plastic surgery procedures, among them lumpectomy, mastectomy and axillary node dissection, found that prophylaxis does not significantly decrease the risk of infection."
+                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures. It cites a Cochrane review of breast cancer procedures (axillary lymph node dissection and primary nonreconstructive surgery) that found fewer surgical-site infections with prophylaxis, and says most other studies of clean procedures, among them lumpectomy, mastectomy and axillary node dissection, found no significant decrease."
                   ]
                 },
                 "allergy": {
@@ -20739,7 +20737,7 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures. It cites a Cochrane review of breast cancer procedures (axillary lymph node dissection and primary nonreconstructive surgery) that found fewer surgical-site infections with prophylaxis. It also says most studies of many clean plastic surgery procedures, among them lumpectomy, mastectomy and axillary node dissection, found that prophylaxis does not significantly decrease the risk of infection."
+                    "Periop Signal note: the guideline's text gives this recommendation for breast cancer procedures as well as for clean procedures with risk factors and clean-contaminated procedures. It cites a Cochrane review of breast cancer procedures (axillary lymph node dissection and primary nonreconstructive surgery) that found fewer surgical-site infections with prophylaxis, and says most other studies of clean procedures, among them lumpectomy, mastectomy and axillary node dissection, found no significant decrease."
                   ]
                 }
               }
