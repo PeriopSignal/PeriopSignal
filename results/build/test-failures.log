@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/C112Tests.swift:337: error: -[PeriopSignalTests.C112Tests testTheTouchedBoxStaysWhereItWasWhenABoxAboveItFolds] : Asynchronous wait failed: Exceeded timeout of 3 seconds, with unfulfilled expectations: "scrolled".
+Test Case '-[PeriopSignalTests.C112Tests testTheTouchedBoxStaysWhereItWasWhenABoxAboveItFolds]' failed (23.589 seconds).
