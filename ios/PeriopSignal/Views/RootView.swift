@@ -9,9 +9,6 @@ struct RootView: View {
     @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
     @Environment(ReferenceStore.self) private var refs
-    @Environment(PatientInbox.self) private var inbox
-    @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("ps.appearance") private var appearance: Appearance = .dark
     /// The terms version this phone accepted; a new version asks again.
     @AppStorage("ps.terms.accepted") private var termsAccepted = ""
     /// The app's first-time tips (Tips.swift), drawn over the tab bar; My Patient keeps its own.
@@ -62,11 +59,8 @@ struct RootView: View {
                 }
             }
             .task { await launch(); offerTour() }
-            // The app-switcher cover (PrivacyCover): drawn the moment the app stops being the active one, while a patient
-            // is on screen, and removed the moment it is active again. It only draws; nothing is dismissed or reset.
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in updateCover(active: false) }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in updateCover(active: true) }
-            .onChange(of: scenePhase) { _, phase in updateCover(active: phase == .active) }
+            // The app-switcher cover: its own modifier, so this chain stays small enough for the compiler to type-check.
+            .modifier(PrivacyCoverWatch())
             .onChange(of: router.showWelcome) { _, _ in offerTour() }
             .onChange(of: termsAccepted) { _, _ in offerTour() }
             .onChange(of: router.selectedTab) { _, _ in offerTour() }
@@ -77,17 +71,6 @@ struct RootView: View {
             .onChange(of: store.posts.count) { _, _ in
                 Task { await ReadStore.updateBadge(unread: read.unread(in: store.posts).count) }
             }
-    }
-
-    @MainActor private func updateCover(active: Bool) {
-        if active {
-            PrivacyCoverWindow.shared.hide()
-            return
-        }
-        let patientScreenOpen = inbox.pending != nil || PatientRoomsUI.shared.archive != nil
-        if PrivacyCover.covers(phase: .inactive, tab: router.selectedTab, patientScreenOpen: patientScreenOpen) {
-            PrivacyCoverWindow.shared.show(style: PrivacyCover.style(for: appearance))
-        }
     }
 
     /// First launch, or new terms. Screenshot runs (debug builds) skip it unless -ps.terms show.
@@ -161,5 +144,33 @@ struct RootView: View {
             speech.toggle()
         }
         #endif
+    }
+}
+
+
+/// The app-switcher cover (PrivacyCover): drawn the moment the app stops being the active one, while a patient is on
+/// screen, and removed the moment it is active again. It only draws; nothing is dismissed or reset.
+private struct PrivacyCoverWatch: ViewModifier {
+    @Environment(Router.self) private var router
+    @Environment(PatientInbox.self) private var inbox
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("ps.appearance") private var appearance: Appearance = .dark
+
+    func body(content: Content) -> some View {
+        content
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in update(active: false) }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in update(active: true) }
+            .onChange(of: scenePhase) { _, phase in update(active: phase == .active) }
+    }
+
+    @MainActor private func update(active: Bool) {
+        if active {
+            PrivacyCoverWindow.shared.hide()
+            return
+        }
+        let patientScreenOpen = inbox.pending != nil || PatientRoomsUI.shared.archive != nil
+        if PrivacyCover.covers(phase: .inactive, tab: router.selectedTab, patientScreenOpen: patientScreenOpen) {
+            PrivacyCoverWindow.shared.show(style: PrivacyCover.style(for: appearance))
+        }
     }
 }
