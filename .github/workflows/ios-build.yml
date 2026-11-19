@@ -1116,6 +1116,15 @@ jobs:
           shot 1289-proph-orthopedic-open-large-text 16 -ps.ref prophylaxis -ps.proph.group orthopedic -ps.textScale 1.5 -ps.forceAppearance light
           shot 1290-proph-tonsil-fess-light 14 -ps.ref prophylaxis -ps.proph.group headneck -ps.proph.procedure tonsil-fess -ps.proph.weight 90 -ps.forceAppearance light
           shot 1291-proph-plastic-open-light 14 -ps.ref prophylaxis -ps.proph.group plastic -ps.forceAppearance light
+          # Penicillin-only allergy is asked (Ben, Nov 19, after the GPT-6 review): the unanswered state, answered No and Yes, and a cephalosporin allergy that is still Yes.
+          shot 1300-proph-allergy-unanswered-light-375 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.patient.width 375 -ps.forceAppearance light
+          shot 1301-proph-allergy-unanswered-dark-375 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1302-proph-allergy-unanswered-large-text 24 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1303-proph-allergy-answered-no-light 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.proph.allergy 0 -ps.forceAppearance light
+          shot 1304-proph-allergy-yes-hint-light-375 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.proph.allergy 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1305-proph-allergy-yes-hint-dark-375 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.proph.allergy 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1306-proph-allergy-yes-hint-large-text 24 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.proph.allergy 1 -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1307-proph-case-cephalosporin-allergy-yes-light 22 -ps.tab patient -ps.patient demo-112-proph-ceph -ps.patient.open prophylaxis -ps.forceAppearance light
           # ---- 1.12 helper T shots (1240-1279): add your shot lines directly under this line ----
           shot 1240-cardiotext-echo-chips-light 18 -ps.tab patient -ps.patient demo-112-cardiotext-blank -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "TTE 6/26 EF 35%, mod MR, RV nl, LV dilated"
           shot 1241-cardiotext-echo-chips-dark 18 -ps.tab patient -ps.patient demo-112-cardiotext-blank -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "TTE 6/26 EF 35%, mod MR, RV nl, LV dilated"
