@@ -20558,7 +20558,8 @@
                     }
                   ],
                   "notes": [
-                    "Fluconazole is for patients at high risk of fungal infection, e.g., those with enteric drainage of the pancreas."
+                    "Fluconazole is for patients at high risk of fungal infection, e.g., those with enteric drainage of the pancreas.",
+                    "The guideline's text says: for patients at high risk of Candida infection, fluconazole adjusted for renal function may be considered."
                   ]
                 },
                 "allergy": {
