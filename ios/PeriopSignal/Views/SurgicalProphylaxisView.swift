@@ -98,19 +98,22 @@ private struct ProphylaxisInfoButton: View {
     }
 }
 
-/// No / Yes in the app's choice chip look (ink fill when chosen).
+/// No / Yes in the app's choice chip look (ink fill when chosen). Not answered (Ben, Nov 19: a penicillin-only allergy is asked):
+/// neither is chosen.
 private struct ProphylaxisYesNo: View {
     var label: String
     var on: Bool
+    var answered: Bool = true
     var onChange: (Bool) -> Void
 
     var body: some View {
         HStack(spacing: 6) {
-            chip("No", selected: !on)
-            chip("Yes", selected: on)
+            chip("No", selected: answered && !on)
+            chip("Yes", selected: answered && on)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
+        .accessibilityValue(answered ? "" : "Not answered")
     }
 
     private func chip(_ title: String, selected: Bool) -> some View {
@@ -253,7 +256,7 @@ struct SurgicalProphylaxisView: View {
     }
 
     #if DEBUG
-    /// Screenshot runs: -ps.proph.group <id>, -ps.proph.procedure <id>, -ps.proph.variant <id>, -ps.proph.allergy 1, -ps.proph.mrsa 1,
+    /// Screenshot runs: -ps.proph.group <id>, -ps.proph.procedure <id>, -ps.proph.variant <id>, -ps.proph.allergy 1 (Yes) or 0 (No), -ps.proph.mrsa 1,
     /// -ps.proph.weight 90 (the typed weight of the standalone tool), -ps.proph.change 1 (the Surgery picker reopened),
     /// -ps.proph.info about|allergy|mrsa|result|question|group, -ps.proph.table 1 ("Full guideline table" opened),
     /// -ps.proph.confirm <drug> (the Start question),
@@ -265,7 +268,9 @@ struct SurgicalProphylaxisView: View {
         if !p.isEmpty { input.chooseProcedure(p, data: data) }
         let v = LaunchSeed.string("ps.proph.variant")
         if !v.isEmpty { input.chooseVariant(v, data: data) }
-        if LaunchSeed.string("ps.proph.allergy") == "1" { input.betaLactamAllergy = true }
+        // 1 answers Yes, 0 answers No (also for a case that left the allergy unanswered).
+        if LaunchSeed.string("ps.proph.allergy") == "1" { input.setAllergy(true) }
+        if LaunchSeed.string("ps.proph.allergy") == "0" { input.setAllergy(false) }
         if LaunchSeed.string("ps.proph.mrsa") == "1" { input.mrsa = true }
         if LaunchSeed.bool("ps.proph.change") { changing = true }
         if LaunchSeed.bool("ps.proph.table") {
@@ -354,8 +359,9 @@ struct SurgicalProphylaxisView: View {
                 questionBlock(p).padding(14)
             }
             Hairline()
-            toggleRow("β-lactam allergy", on: input.betaLactamAllergy, caption: allergyCaption, info: { sheet = allergyContent(data) }) { v in
-                withAnimation(.snappy) { input.betaLactamAllergy = v }
+            toggleRow("β-lactam allergy", on: input.betaLactamAllergy, caption: allergyCaption, needsAnswer: input.allergyUnanswered,
+                      info: { sheet = allergyContent(data) }) { v in
+                withAnimation(.snappy) { input.setAllergy(v) }
             }
             Hairline()
             toggleRow("Known MRSA colonization", on: input.mrsa, caption: mrsaCaption, info: { sheet = mrsaContent(data) }) { v in
@@ -373,8 +379,12 @@ struct SurgicalProphylaxisView: View {
         return input.procedure == nil ? c : nil
     }
 
+    /// "From the case: Penicillin (rash)" under Yes the case set; while the allergy is asked, the entries and "Not selected for you:
+    /// choose." (gone once the user taps No or Yes).
     private var allergyCaption: String? {
-        caseBound && prefill.betaLactamAllergy && input.betaLactamAllergy ? prefill.allergyCaption : nil
+        guard caseBound else { return nil }
+        if input.allergyUnanswered { return prefill.allergyAsk ? prefill.allergyCaption : nil }
+        return prefill.betaLactamAllergy && input.betaLactamAllergy ? prefill.allergyCaption : nil
     }
 
     private var mrsaCaption: String? {
@@ -477,22 +487,32 @@ struct SurgicalProphylaxisView: View {
         }
     }
 
-    private func toggleRow(_ title: String, on: Bool, caption: String?, info: @escaping () -> Void, change: @escaping (Bool) -> Void) -> some View {
+    /// `needsAnswer`: neither No nor Yes is chosen and the row has the attention outline the weight field has when a weight is needed.
+    private func toggleRow(_ title: String, on: Bool, caption: String?, needsAnswer: Bool = false, info: @escaping () -> Void,
+                           change: @escaping (Bool) -> Void) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 8) {
                     toggleTitle(title, info: info)
                     Spacer(minLength: 8)
-                    ProphylaxisYesNo(label: title, on: on, onChange: change)
+                    ProphylaxisYesNo(label: title, on: on, answered: !needsAnswer, onChange: change)
                 }
                 VStack(alignment: .leading, spacing: 8) {
                     toggleTitle(title, info: info)
-                    ProphylaxisYesNo(label: title, on: on, onChange: change)
+                    ProphylaxisYesNo(label: title, on: on, answered: !needsAnswer, onChange: change)
                 }
             }
             if let caption { captionText(caption) }
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
+        .overlay {
+            if needsAnswer {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(PS.accent.opacity(0.8), lineWidth: 1.5)
+                    .padding(.horizontal, 5).padding(.vertical, 2)
+                    .allowsHitTesting(false)
+            }
+        }
     }
 
     private func toggleTitle(_ title: String, info: @escaping () -> Void) -> some View {
@@ -597,7 +617,7 @@ struct SurgicalProphylaxisView: View {
 
     @ViewBuilder private func resultBody(_ a: ProphylaxisAnswer, _ r: PatientRecord, _ timers: CaseTimerData) -> some View {
         switch a.state {
-        case .outside, .text:
+        case .outside, .text, .allergyQuestion:
             Text(a.body).font(PS.sys(size: 15)).foregroundStyle(PS.fg).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
             notes(a)
         case .none:
@@ -607,6 +627,7 @@ struct SurgicalProphylaxisView: View {
             // What changes how every dose below is read comes first.
             if let weightLine = a.weightLine { leadLine(weightLine) }
             if let childLine = a.childLine { leadLine(childLine) }
+            if let hint = a.allergyHint { allergyHintLine(hint) }
             regimens(a, r, timers)
             notes(a)
             if a.mrsa != nil || a.mrsaNote != nil {
@@ -635,6 +656,18 @@ struct SurgicalProphylaxisView: View {
         HStack(alignment: .firstTextBaseline, spacing: 7) {
             Image(systemName: "exclamationmark.triangle").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg2).accessibilityHidden(true)
             Text(text).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// Above the agents of the alternative for a β-lactam allergy (Ben, Nov 19): the guideline's own exception, with the allergy ⓘ
+    /// (the sheet the allergy row opens) after it.
+    @ViewBuilder private func allergyHintLine(_ text: String) -> some View {
+        if let data {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(text).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1).fixedSize(horizontal: false, vertical: true)
+                ProphylaxisInfoButton(label: "About β-lactam allergy") { sheet = allergyContent(data) }
+                Spacer(minLength: 0)
+            }
         }
     }
 

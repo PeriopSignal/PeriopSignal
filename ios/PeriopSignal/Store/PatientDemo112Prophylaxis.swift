@@ -5,6 +5,9 @@ import Foundation
 /// "demo-112-proph"), shots 1200-1239. Nothing here is written to disk.
 ///   demo-112-proph-cabg: 67-year-old man, 92 kg, 178 cm, CABG ×3 planned, a penicillin allergy with a rash, MRSA screen positive:
 ///     the calculator opens prefilled with all three, each with its caption, and Start buttons.
+///     Since Ben's Nov 19 decision (after the GPT-6 review) the penicillin rash is ASKED: the allergy row opens with neither No nor Yes
+///     chosen (shots 1300-1314).
+///   demo-112-proph-ceph: the same man at 92 kg, CABG x3, a ceftriaxone rash (a cephalosporin: the allergy is still prefilled Yes).
 ///   demo-112-proph-plain: the same man at 82 kg with no allergy and no MRSA screen (the Start confirmation, "Started").
 ///   demo-112-proph-running: as plain, with a cefazolin course already running (40 minutes ago).
 ///   demo-112-proph-avr: an aortic valve replacement planned (it selects the Cardiac group only), 80 kg.
@@ -14,6 +17,7 @@ enum PatientDemo112Prophylaxis {
     static func record(_ seed: String) -> PatientRecord? {
         switch seed {
         case "demo-112-proph-cabg": return cabg()
+        case "demo-112-proph-ceph": return ceph()
         case "demo-112-proph-plain": return base(weight: 82)
         case "demo-112-proph-running": return running()
         case "demo-112-proph-avr": return avr()
@@ -37,6 +41,12 @@ enum PatientDemo112Prophylaxis {
         var r = base(weight: 92)
         r.allergyList = AllergyCatalog.parse("PCN - rash")
         r.infections.results["mrsa"] = .positive
+        return r
+    }
+
+    private static func ceph() -> PatientRecord {
+        var r = base(weight: 92)
+        r.allergyList = AllergyCatalog.parse("ceftriaxone - rash")
         return r
     }
 

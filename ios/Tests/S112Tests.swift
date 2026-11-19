@@ -559,11 +559,22 @@ final class S112Tests: XCTestCase {
     }
 
     func testPrefillReadsAPenicillinCephalosporinOrCarbapenemAllergy() throws {
+        // Ben, Nov 19 (after the GPT-6 review): a penicillin-only history with no severe or IgE-type reaction is asked, not answered
+        // (this test pinned "PCN - rash" to Yes before). The cephalosporins and carbapenems, and a penicillin with a severe
+        // reaction, are still Yes. The asking rules have their own tests in ProphylaxisAllergy113Tests.
         let pcn = ProphylaxisEngine.prefill(record: allergic("PCN - rash"), data: d)
-        XCTAssertTrue(pcn.betaLactamAllergy)
-        XCTAssertEqual(pcn.allergyCaption, "From the case: Penicillin (rash)")
-        for typed in ["cefazolin", "cephalosporins", "carbapenems", "meropenem", "ceftriaxone anaphylaxis", "amoxicillin", "augmentin", "Zosyn", "ertapenem"] {
-            XCTAssertTrue(ProphylaxisEngine.prefill(record: allergic(typed), data: d).betaLactamAllergy, typed)
+        XCTAssertFalse(pcn.betaLactamAllergy)
+        XCTAssertTrue(pcn.allergyAsk)
+        XCTAssertEqual(pcn.allergyCaption, "From the case: Penicillin (rash). Not selected for you: choose.")
+        for typed in ["cefazolin", "cephalosporins", "carbapenems", "meropenem", "ceftriaxone anaphylaxis", "PCN anaphylaxis", "ertapenem"] {
+            let p = ProphylaxisEngine.prefill(record: allergic(typed), data: d)
+            XCTAssertTrue(p.betaLactamAllergy, typed)
+            XCTAssertFalse(p.allergyAsk, typed)
+        }
+        for typed in ["amoxicillin", "augmentin", "Zosyn"] {
+            let p = ProphylaxisEngine.prefill(record: allergic(typed), data: d)
+            XCTAssertTrue(p.allergyAsk, typed)
+            XCTAssertFalse(p.betaLactamAllergy, typed)
         }
         // A β-lactam the catalog does not carry, named in the extra list.
         var cefoxitin = adult()
@@ -599,8 +610,12 @@ final class S112Tests: XCTestCase {
 
     func testAllergiesTypedBeforeTheListAreReadAsTheRowReadsThem() {
         var r = adult()
-        r.allergies = "PCN rash"
+        // Read as the row reads it: a cephalosporin typed before the list is Yes; a bare penicillin rash is asked (Nov 19 decision).
+        r.allergies = "ceftriaxone rash"
         XCTAssertTrue(ProphylaxisEngine.prefill(record: r, data: d).betaLactamAllergy)
+        r.allergies = "PCN rash"
+        XCTAssertTrue(ProphylaxisEngine.prefill(record: r, data: d).allergyAsk)
+        XCTAssertFalse(ProphylaxisEngine.prefill(record: r, data: d).betaLactamAllergy)
         r.allergies = "latex"
         XCTAssertFalse(ProphylaxisEngine.prefill(record: r, data: d).betaLactamAllergy)
         var none = adult()
@@ -625,7 +640,8 @@ final class S112Tests: XCTestCase {
     }
 
     func testThePrefillIsOnlyAStartingPointAndWritesNothingToTheCase() throws {
-        var r = allergic("PCN - rash")
+        // A cephalosporin rash (was "PCN - rash", which is asked since Nov 19) so that the prefill sets the answer to Yes.
+        var r = allergic("ceftriaxone - rash")
         r.infections.results["mrsa"] = .positive
         let before = r
         var i = ProphylaxisInput()
