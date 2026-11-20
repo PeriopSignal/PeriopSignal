@@ -21,6 +21,8 @@ import WidgetKit
 ///   -ps.nx.drug <id> [-ps.nx.tier <id>] [-ps.nx.renal <n>] [-ps.nx.elderly 1]   Blocks on anticoagulants: pick the drug, the dose
 ///                           tier, the kidney row (counted from 0) and the elderly toggle, with -ps.ref neuraxial. With none of them the tool
 ///                           starts unchosen, as it does for a user. Add -ps.patient.width 375 to lay it out at that width.
+///   -ps.ask.demo matched|none   the Ask sheet with a fixed question and a canned answer, no model called (1.13). "matched" lists sample
+///                           sources found by the app's own matching; "none" shows the nothing-matched line. Add -ps.patient.width 375 and -ps.textScale 1.5 as usual.
 ///   -ps.forceAppearance light|dark   this launch only (not saved) / -ps.forceLaunchCount N
 ///   -ps.peds.tab 0|1|2      the pediatric calculator's section: Drugs, Airway, Fluids & Blood (with -ps.peds.weight, .years, .months)
 ///   -ps.mcs.table 1         open the Device numbers sheet on the mechanical support page (with -ps.mcs.device lvad)
@@ -30,6 +32,11 @@ enum DebugLaunch {
     static var tab: String? { UserDefaults.standard.string(forKey: "ps.tab") }
     static var presave: String? { UserDefaults.standard.string(forKey: "ps.presave") }
     static var screen: String? { UserDefaults.standard.string(forKey: "ps.screen") }
+    /// "matched" or "none": see AskDemo.
+    static var askDemo: String? {
+        let s = LaunchSeed.string("ps.ask.demo")
+        return s.isEmpty ? nil : s
+    }
     static var openQuiz: Bool { UserDefaults.standard.bool(forKey: "ps.openQuiz") }
     static var listen: Bool { UserDefaults.standard.bool(forKey: "ps.listen") }
     static var showWelcome: Bool { UserDefaults.standard.bool(forKey: "ps.showWelcome") }
@@ -41,6 +48,60 @@ enum DebugLaunch {
     static var topics: [String]? {
         guard let s = UserDefaults.standard.string(forKey: "ps.topics.debug"), !s.isEmpty else { return nil }
         return s.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
+    }
+}
+
+/// What the Ask sheet shows in a screenshot run instead of calling a model: the library it searches and the answer it shows.
+struct AskPreset {
+    var posts: [Post]
+    var refs: [QuickRef]
+    var answer: String
+    var backend: AskEngine.Backend
+}
+
+/// Sample material for the Ask screenshots. It is made up for the picture (it says so) and carries no clinical content.
+enum AskDemo {
+    static func post(_ id: String, _ headline: String) -> Post {
+        Post(id: id, date: "2026-10-14", journal: "Sample Journal", jshort: "Sample", kind: "RCT", topics: [],
+             headline: headline, summary: "A sample post made up for a screenshot.", takeHome: [], deepDive: "", url: "https://example.com", impact: 1)
+    }
+
+    static var refs: [QuickRef] {
+        [QuickRef(id: "demo-ref", title: "Sample quick reference: tranexamic acid", society: "Sample Society", short: "Sample", year: 2025,
+                  keywords: ["TXA"], summary: "A sample card made up for a screenshot.",
+                  source: RefSource(title: "Sample source", url: "https://example.com"),
+                  sections: [RefSection(heading: "Cardiac surgery", kind: .text, text: "Sample text about cardiac surgery.")])]
+    }
+
+    /// The question, the sample library and the canned answer for a launch argument; nil for any other value.
+    static func preset(_ name: String) -> (question: String, preset: AskPreset)? {
+        let library = [post("demo-1", "Sample post: tranexamic acid in cardiac surgery"),
+                       post("demo-2", "Sample post: a different topic that should not be listed")]
+        switch name {
+        case "matched":
+            return ("What is TXA used for in cardiac surgery?",
+                    AskPreset(posts: library, refs: refs,
+                              answer: "Sample answer for a screenshot; no model was called. It cites the sample sources as [1] and [2].",
+                              backend: .onDevice))
+        case "none":
+            return ("How do I plan the week for my team?",
+                    AskPreset(posts: library, refs: refs,
+                              answer: "Sample answer for a screenshot; no model was called. It is written from general knowledge.",
+                              backend: .onDevice))
+        default:
+            return nil
+        }
+    }
+}
+
+/// The Ask sheet on its own for the screenshot run.
+struct AskDemoScreen: View {
+    var body: some View {
+        if let d = AskDemo.preset(DebugLaunch.askDemo ?? "") {
+            AskView(question: d.question, preset: d.preset)
+        } else {
+            Text("Unknown -ps.ask.demo value").foregroundStyle(PS.fg)
+        }
     }
 }
 

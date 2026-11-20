@@ -10,12 +10,18 @@ struct AskView: View {
     /// Opens a cited post or quick reference (the presenter decides how).
     var onOpenPost: (Post) -> Void = { _ in }
     var onOpenRef: (QuickRef) -> Void = { _ in }
+    #if DEBUG
+    /// Screenshot runs only (-ps.ask.demo): fixed sources and a canned answer, no model called.
+    var preset: AskPreset? = nil
+    #endif
 
     @State private var answer = ""
     @State private var error: String?
     @State private var running = false
     @State private var backend: AskEngine.Backend?
     @State private var grounding = AskEngine.Grounding(posts: [], refs: [])
+    /// False until the sources for this question are worked out, so "nothing matched" is not shown while they load.
+    @State private var groundingReady = false
     @State private var task: Task<Void, Never>?
     @State private var followUp = ""
     @State private var copied = false
@@ -31,13 +37,15 @@ struct AskView: View {
                             .foregroundStyle(PS.fg)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                    if showsNothingMatched { nothingMatched }
                     answerBlock
-                    if !grounding.sources.isEmpty { sources }
+                    if !grounding.isEmpty { sources }
                     footer
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
                 .padding(.bottom, 30)
+                .modifier(DebugContentWidth())
             }
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
@@ -57,6 +65,21 @@ struct AskView: View {
         }
         .task(id: question) { await run() }
         .onDisappear { task?.cancel() }
+    }
+
+    /// Nothing matched and an answer is on its way: say so above it (Ben, Nov 20), so a general-knowledge answer does not
+    /// look like it came from the library.
+    private var showsNothingMatched: Bool { groundingReady && grounding.isEmpty && backend != nil }
+
+    private var nothingMatched: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "info.circle").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg2)
+            Text(AskEngine.nothingMatchedLine)
+                .font(PS.sys(size: 14, weight: .medium))
+                .foregroundStyle(PS.fg)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder private var answerBlock: some View {
@@ -132,23 +155,22 @@ struct AskView: View {
             Hairline()
             Text(provenance)
                 .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
-            EvidenceNote("An AI answer for orientation, written from the material above and general knowledge. It can be wrong: check doses, thresholds and recommendations against the source documents before acting on them.", title: "AI answer: it can be wrong")
+            EvidenceNote(AskEngine.footerNote(matched: !grounding.isEmpty), title: "AI answer: it can be wrong")
         }
     }
 
-    private var provenance: String {
-        switch backend {
-        case .onDevice: return "Answered on this phone by Apple Intelligence; nothing left the device. AI answers can be wrong: check the sources."
-        case .cloud: return "Answered by Claude through Periop Signal's proxy; the question and the material above were sent, nothing else. AI answers can be wrong: check the sources."
-        case nil: return "Answers are not available on this phone yet."
-        }
-    }
+    private var provenance: String { AskEngine.provenance(backend: backend, matched: !grounding.isEmpty) }
 
     private func run(force: AskEngine.Backend? = nil) async {
         answer = ""; error = nil
+        #if DEBUG
+        if let preset { applyPreset(preset); return }
+        #endif
         let chosen = force ?? AskEngine.backend(endpoint: refs.askEndpoint, preferOnDevice: prefs.askOnDevice)
         backend = chosen
-        grounding = AskEngine.grounding(for: question, posts: store.posts, refs: refs.quickrefs)
+        // Cut to what this route can take, so the list below is exactly what the model is given (also when the route changes).
+        grounding = AskEngine.grounding(for: question, posts: store.posts, refs: refs.quickrefs, backend: chosen)
+        groundingReady = true
         guard let chosen else {
             error = "Answers need either Apple Intelligence (iPhone 15 Pro or newer on iOS 26) or the Periop Signal proxy, which is not set up yet."
             return
@@ -166,6 +188,20 @@ struct AskView: View {
         }
     }
 }
+
+#if DEBUG
+extension AskView {
+    /// Shows a canned answer with sources worked out from the preset's own posts and quick references, by the same
+    /// grounding the app uses.
+    fileprivate func applyPreset(_ p: AskPreset) {
+        backend = p.backend
+        grounding = AskEngine.grounding(for: question, posts: p.posts, refs: p.refs, backend: p.backend)
+        groundingReady = true
+        answer = p.answer
+        running = false
+    }
+}
+#endif
 
 /// The row that offers an answer from search results.
 struct AskRow: View {
