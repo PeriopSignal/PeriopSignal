@@ -1139,6 +1139,25 @@ jobs:
           shot 1344-neuraxial-avoid-light 12 -ps.ref neuraxial -ps.nx.drug dti -ps.forceAppearance light
           shot 1345-neuraxial-kidney-unchosen-w375-dark 12 -ps.ref neuraxial -ps.nx.drug rivaroxaban -ps.nx.tier low -ps.patient.width 375 -ps.forceAppearance dark
           shot 1346-neuraxial-dose-unchosen-large-text-light 12 -ps.ref neuraxial -ps.nx.drug rivaroxaban -ps.textScale 1.25 -ps.forceAppearance light
+          # Ask, the feed basis line and the Reference home after the outside review (Nov 20).
+          shot 1370-ask-matched-light 14 -ps.ask.demo matched -ps.forceAppearance light
+          shot 1371-ask-matched-dark-375 14 -ps.ask.demo matched -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1372-ask-none-light 14 -ps.ask.demo none -ps.forceAppearance light
+          shot 1373-ask-matched-large-text 14 -ps.ask.demo matched -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1380-feed-basis-abstract-rct-light 12 -ps.openPost nejm-2026-tavi-pci-sequencing -ps.forceAppearance light
+          shot 1381-feed-basis-full-text-rct-light 12 -ps.openPost jama-2025-levoecmo -ps.forceAppearance light
+          shot 1382-feed-basis-summary-page-guideline-no-limitations-light 12 -ps.openPost acc-aha-2025-achd-guideline -ps.forceAppearance light
+          shot 1383-feed-basis-abstract-guideline-no-limitations-light 12 -ps.openPost circ-2026-aha-acc-acute-pulmonary-embolism-guideline -ps.forceAppearance light
+          shot 1384-feed-basis-abstract-rct-dark-375 12 -ps.openPost nejm-2026-tavi-pci-sequencing -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1385-feed-basis-full-text-large-text-light 12 -ps.openPost jama-2025-levoecmo -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1386-feed-basis-title-open-light 12 -ps.openPost nejm-2026-tavi-pci-sequencing -ps.evidence.open 1 -ps.forceAppearance light
+          shot 1387-feed-card-glance-three-lines-light 12 -ps.screen cards -ps.card.post icm-2026-bicarbonate-bayesian-meta-analysis,jama-2025-bicaricu-2 -ps.forceAppearance light
+          shot 1388-feed-card-glance-three-lines-large-text-dark 12 -ps.screen cards -ps.card.post icm-2026-bicarbonate-bayesian-meta-analysis -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 1390-ref-home-no-favorites-light 12 -ps.tab reference -ps.forceAppearance light
+          shot 1391-ref-home-three-favorites-light 12 -ps.tab reference -ps.favorites.debug "valves,neuraxial,score:rcri" -ps.forceAppearance light
+          shot 1392-ref-home-three-favorites-dark-375 12 -ps.tab reference -ps.favorites.debug "valves,neuraxial,score:rcri" -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1393-ref-home-no-favorites-large-text-light 12 -ps.tab reference -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1394-ref-home-large-text-dark-375 12 -ps.tab reference -ps.favorites.debug "valves,neuraxial,score:rcri" -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
           # ---- 1.12 helper T shots (1240-1279): add your shot lines directly under this line ----
           shot 1240-cardiotext-echo-chips-light 18 -ps.tab patient -ps.patient demo-112-cardiotext-blank -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "TTE 6/26 EF 35%, mod MR, RV nl, LV dilated"
           shot 1241-cardiotext-echo-chips-dark 18 -ps.tab patient -ps.patient demo-112-cardiotext-blank -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "TTE 6/26 EF 35%, mod MR, RV nl, LV dilated"
