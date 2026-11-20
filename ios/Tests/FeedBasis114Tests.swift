@@ -73,6 +73,6 @@ final class FeedBasis114Tests: XCTestCase {
     func testGlanceFieldOrderIsUnchanged() {
         // The result stays last; the card gets more room, not a new order.
         let g = Glance(design: "RCT", n: "100 adults", outcome: "Mortality", result: "No difference")
-        XCTAssertEqual(g.rows.map(\.label), ["Design", "Population", "Outcome", "Result"])
+        XCTAssertEqual(g.rows.map { $0.label }, ["Design", "Population", "Outcome", "Result"])
     }
 }
