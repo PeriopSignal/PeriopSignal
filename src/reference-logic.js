@@ -199,11 +199,11 @@
         toggle('opioids', 'Postoperative opioids expected'),
       ],
       bands: [
-        band(0, 0, '0 factors · 10%', 'Low risk. Fifth consensus (2025): two prophylactic interventions for adults at any risk', 'low'),
-        band(1, 1, '1 factor · 21%', 'Medium risk: two interventions (e.g. dexamethasone + a 5-HT₃ antagonist)', 'low'),
-        band(2, 2, '2 factors · 39%', 'Medium risk: two interventions', 'moderate'),
-        band(3, 3, '3 factors · 61%', 'High risk: three to four interventions from different classes, plus risk reduction (TIVA, opioid-sparing, regional)', 'high'),
-        band(4, 4, '4 factors · 79%', 'High risk: three to four interventions, plus risk reduction', 'high'),
+        band(0, 0, '0 factors · 10%', 'Low risk. Two prophylactic interventions for every adult at risk', 'low'),
+        band(1, 1, '1 factor · 21%', 'Medium risk. Two prophylactic interventions for every adult at risk', 'low'),
+        band(2, 2, '2 factors · 39%', 'Medium risk. Two prophylactic interventions for every adult at risk', 'moderate'),
+        band(3, 3, '3 factors · 61%', 'High risk. Three to four interventions from different classes, plus baseline risk reduction', 'high'),
+        band(4, 4, '4 factors · 79%', 'High risk. Three to four interventions from different classes, plus baseline risk reduction', 'high'),
       ],
       readout: 'Incidence of PONV within 24 h in Apfel’s 1999 cohorts (inhalational anesthesia, no prophylaxis). Rescue uses a class not already given; a same-class repeat within 6 h adds nothing.',
       source: src('A simplified risk score for predicting postoperative nausea and vomiting', 'Apfel CC, et al. Anesthesiology. 1999;91:693–700.', 'https://doi.org/10.1097/00000542-199909000-00022', '10.1097/00000542-199909000-00022'),
@@ -445,6 +445,45 @@
     }
     return { earliest: hours === null ? null : lastDoseMs + hours * 3600000, hours, rule, avoid };
   };
+  /** Drug, dose tier, kidney row and the elderly toggle, as NeuraxialSelection in the app (ios/Shared/PedsCalc.swift).
+   *  Ben, Nov 19 (after an outside review): the dose and the kidney row start empty, so the tool never shows a time
+   *  from a step the user skipped. A drug with one tier has that tier chosen for it. */
+  R.neuraxialSel = {
+    fresh: () => ({ drugID: null, tierID: null, renalIndex: null, elderly: false }),
+    /** Changing the drug clears the tier, the kidney row and the elderly toggle. */
+    selectDrug(sel, drug) {
+      sel.drugID = drug ? drug.id : null;
+      sel.tierID = drug && drug.tiers.length === 1 ? drug.tiers[0].id : null;
+      sel.renalIndex = null; sel.elderly = false;
+    },
+    /** A different dose tier has its own kidney rows, so the kidney row is cleared. */
+    selectTier(sel, tier) { sel.tierID = tier ? tier.id : null; sel.renalIndex = null; },
+    selectRenal(sel, index) { sel.renalIndex = index; },
+    /** The chosen tier; null until one is chosen (a single-tier drug counts as chosen). */
+    tier(sel, drug) {
+      if (!drug) return null;
+      if (sel.tierID !== null && sel.tierID !== undefined) return drug.tiers.find((t) => t.id === sel.tierID) || null;
+      return drug.tiers.length === 1 ? drug.tiers[0] : null;
+    },
+    /** The next thing to choose: 'chooseDrug', 'chooseDose', 'chooseKidney' or 'ready'. */
+    stage(sel, drug) {
+      if (!drug) return 'chooseDrug';
+      const t = R.neuraxialSel.tier(sel, drug);
+      if (!t) return 'chooseDose';
+      if (t.renal && t.renal.length) {
+        const i = sel.renalIndex;
+        if (i === null || i === undefined || !(i >= 0 && i < t.renal.length)) return 'chooseKidney';
+      }
+      return 'ready';
+    },
+    /** The answer, or null while a choice is still missing. */
+    answer(sel, drug, lastDoseMs) {
+      if (R.neuraxialSel.stage(sel, drug) !== 'ready') return null;
+      return R.neuraxialAnswer(R.neuraxialSel.tier(sel, drug), sel.renalIndex, sel.elderly, lastDoseMs);
+    },
+    /** What the result card says in place of a time while a choice is missing; null when nothing is missing. */
+    prompt(stage) { return stage === 'chooseDose' ? 'Choose the dose' : (stage === 'chooseKidney' ? 'Choose kidney function' : null); },
+  };
   /** "Normal renal function" → "normal renal function"; "CrCl 30–49 mL/min" stays as written. */
   R.softLower = function (s) {
     const first = s.split(' ')[0];
@@ -489,6 +528,19 @@
   // ---------- PONV (PONVPlan) ----------
   R.ponv = {
     target: (factors, counts) => counts.find((c) => factors >= c.minFactors && factors <= c.maxFactors) || null,
+    /** How many interventions a count row asks for, as the headline says it: "2", or "3 to 4" when the row gives a range. */
+    wanted(target) {
+      if (!target) return '2';
+      if (target.agentsHigh && target.agentsHigh > target.agents) return target.agents + ' to ' + target.agentsHigh;
+      return String(target.agents);
+    },
+    /** Ben, Nov 19 (after an outside review): the guideline says interventions, not antiemetics, so the headline does too. */
+    headline: (target) => R.ponv.wanted(target) + ' interventions from different classes',
+    /** The end of the "Classes Chosen" line. The bar is full at the fewest the row asks for; a range names its upper end. */
+    progressWord(target) {
+      if (target && target.agentsHigh && target.agentsHigh > target.agents) return 'chosen, up to ' + target.agentsHigh;
+      return 'chosen';
+    },
     classes(chosen, agents) { const seen = []; for (const a of agents) if (chosen.has(a.id) && !seen.includes(a.class)) seen.push(a.class); return seen; },
     rescueOptions(chosen, agents) { const used = new Set(R.ponv.classes(chosen, agents)); return agents.filter((a) => a.rescue === true && !used.has(a.class)); },
     longActingGiven: (chosen, agents) => agents.filter((a) => chosen.has(a.id) && a.longActing === true),

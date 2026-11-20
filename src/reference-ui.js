@@ -367,12 +367,14 @@
       h += `<section class="r-sec"><div class="r-sechead"><h3>Risk Factors (APFEL)</h3>${sel.on.size || chosen.size ? `<button type="button" class="r-link" data-a="reset">${I.reset} Reset</button>` : ''}</div><div class="r-card flush">${def.items.map((it) => scoreItem(it, sel)).join('')}</div></section>`;
       if (!data) return h + loading('the agents') + `</div>`;
       const target = R.ponv.target(factors, data.counts), classes = R.ponv.classes(chosen, data.agents), need = target ? target.agents : 2;
-      const wanted = target ? (target.agentsHigh && target.agentsHigh > target.agents ? `${target.agents}–${target.agentsHigh}` : String(target.agents)) : '2';
+      // Ben, Nov 19 (after an outside review): the headline says interventions, the counts row may carry a note under it,
+      // and the baseline risk reduction is offered at every risk count, not only from 3 factors. Same as the app.
       h += resultCard(toneC, `<div class="r-big"><span class="n">${factors}</span><span class="of">${factors === 1 ? 'risk factor' : 'risk factors'}${band ? `<strong style="color:${toneC}">${esc(band.label)}</strong>` : ''}</span></div>
-        <p class="r-headline">${I.pills.replace('<svg', `<svg style="color:${toneC}"`)}Give ${wanted} antiemetics from different classes</p>
+        <p class="r-headline">${I.pills.replace('<svg', `<svg style="color:${toneC}"`)}${esc(R.ponv.headline(target))}</p>
         ${target ? `<p class="r-detail">${esc(target.text)} (Fifth consensus).</p>` : ''}
-        ${progress(Math.min(classes.length, need), need, toneC, 'Classes Chosen', 'chosen', 'clearAgents')}
-        ${factors >= 3 ? `<div class="r-sub"><strong>Reduce the Baseline Risk</strong><div class="r-chips">${data.riskReduction.map((r) => `<span>${esc(r)}</span>`).join('')}</div></div>` : ''}`);
+        ${target && target.note ? `<p class="r-small">${esc(target.note)}</p>` : ''}
+        ${progress(Math.min(classes.length, need), need, toneC, 'Classes Chosen', R.ponv.progressWord(target), 'clearAgents')}
+        <div class="r-sub"><strong>Reduce the Baseline Risk</strong><div class="r-chips">${data.riskReduction.map((r) => `<span>${esc(r)}</span>`).join('')}</div></div>`);
       const agents = data.agents.filter((a) => a.prophylaxis !== false);
       h += `<section class="r-sec"><div class="r-sechead"><h3>Antiemetic Agents</h3></div><p class="r-small">Tick what you give; two agents of one class count once.</p><div class="r-card flush">${agents.map((a) => {
         const on = chosen.has(a.id);
@@ -606,24 +608,30 @@
 
   // ---------- blocks on anticoagulants ----------
   function mountNeuraxial(host) {
-    const st = { drug: '', tier: null, renal: 0, elderly: false, last: Date.now(), general: false };
+    // Ben, Nov 19 (after an outside review): the dose and the kidney row start empty, so no time is shown from a step the
+    // user skipped (R.neuraxialSel in reference-logic.js, the same rules as NeuraxialSelection in the app).
+    const st = { sel: R.neuraxialSel.fresh(), last: Date.now(), general: false };
+    const allDrugs = () => bundle.neuraxial.groups.flatMap((g) => g.drugs);
     const step = (n, title, inner) => `<section class="r-card"><div class="r-step"><span class="sn">${n}</span><h3>${esc(title)}</h3></div>${inner}</section>`;
     const update = view(host, () => {
       const data = bundle && bundle.neuraxial;
       let h = `<div class="r-stack">`;
       if (!data) return h + step(1, 'Which drug?', loading('the rules')) + `</div>`;
-      const all = data.groups.flatMap((g) => g.drugs), drug = all.find((d) => d.id === st.drug) || null;
-      const tier = drug ? (drug.tiers.find((t) => t.id === st.tier) || drug.tiers[0]) : null;
-      h += step(1, 'Which drug?', `<select id="nx-drug" class="r-bigsel${drug ? '' : ' empty'}" data-a="drug" aria-label="Antithrombotic drug"><option value=""${drug ? '' : ' selected'}>Choose the antithrombotic</option>${data.groups.map((g) => `<optgroup label="${esc(g.name)}">${g.drugs.map((d) => `<option value="${esc(d.id)}"${d.id === st.drug ? ' selected' : ''}>${esc(d.name)}</option>`).join('')}</optgroup>`).join('')}</select>`);
+      const all = data.groups.flatMap((g) => g.drugs), drug = all.find((d) => d.id === st.sel.drugID) || null;
+      const tier = R.neuraxialSel.tier(st.sel, drug), stage = R.neuraxialSel.stage(st.sel, drug);
+      h += step(1, 'Which drug?', `<select id="nx-drug" class="r-bigsel${drug ? '' : ' empty'}" data-a="drug" aria-label="Antithrombotic drug"><option value=""${drug ? '' : ' selected'}>Choose the antithrombotic</option>${data.groups.map((g) => `<optgroup label="${esc(g.name)}">${g.drugs.map((d) => `<option value="${esc(d.id)}"${d.id === st.sel.drugID ? ' selected' : ''}>${esc(d.name)}</option>`).join('')}</optgroup>`).join('')}</select>`);
       if (drug) {
         let n = 2;
         if (drug.tiers.length > 1) h += step(n++, 'Which dose?', `<div class="r-radios">${drug.tiers.map((t) => radioRow('tier', 'tier', t.id, tier && tier.id === t.id, t.label)).join('')}</div>`);
         if (tier && tier.renal && tier.renal.length) {
-          h += step(n++, 'Kidney function?', `<div class="r-radios">${tier.renal.map((r, i) => radioRow('renal', 'renal', String(i), st.renal === i, r.label, r.hours !== null && r.hours !== undefined ? R.fmtHours(r.hours) : '')).join('')}</div>${tier.renal.some((r) => r.elderlyHours) ? switchRow('elderly', st.elderly, 'Elderly patient') : ''}`);
+          h += step(n++, 'Kidney function?', `<div class="r-radios">${tier.renal.map((r, i) => radioRow('renal', 'renal', String(i), st.sel.renalIndex === i, r.label, r.hours !== null && r.hours !== undefined ? R.fmtHours(r.hours) : '')).join('')}</div>${tier.renal.some((r) => r.elderlyHours) ? switchRow('elderly', st.sel.elderly, 'Elderly patient') : ''}`);
         }
         h += step(n, 'Last dose was at', `<input class="r-when" id="nx-last" type="datetime-local" data-a="last" value="${toLocalInput(st.last)}" max="${toLocalInput(Date.now() + 3600000)}" aria-label="Time of the last dose">${tier && tier.inrRule ? `<p class="r-small">Warfarin counts in days: the block needs a normal INR on the day, whatever the calendar says.</p>` : ''}`);
-        if (tier) {
-          const a = R.neuraxialAnswer(tier, st.renal, st.elderly, st.last), now = Date.now();
+        // In place of a time while the dose or the kidney function has not been chosen.
+        const a = R.neuraxialSel.answer(st.sel, drug, st.last), prompt = R.neuraxialSel.prompt(stage);
+        if (!a && prompt) h += resultCard('var(--fg-3)', `${eyebrow('Earliest neuraxial or deep block', 'var(--fg-3)')}<p class="r-answer" style="color:var(--accent)">${esc(prompt)}</p>`);
+        if (a) {
+          const now = Date.now();
           const passed = a.earliest !== null && a.earliest <= now;
           const tone = a.avoid ? 'var(--accent)' : (passed ? 'var(--new)' : 'var(--accent-2)');
           let big;
@@ -632,6 +640,8 @@
           else if (a.hours === 0) big = `<p class="r-answer" style="color:var(--new)">Now</p>`;
           else big = `<p class="r-answer">No Interval</p>`;
           h += resultCard(tone, `${eyebrow('Earliest neuraxial or deep block', tone)}${big}<p class="r-detail">${esc(a.rule)}</p>${tier.level ? `<p class="r-detail">${esc(tier.level)}</p>` : ''}${tier.renalNote ? `<p class="r-detail">${esc(tier.renalNote)}</p>` : ''}`);
+        }
+        if (tier) {
           const rows = [];
           if (tier.catheter) rows.push(['Catheter in place', tier.catheter]);
           rows.push(['Next dose', tier.restartText || (tier.restartHours !== null && tier.restartHours !== undefined ? (tier.restartHours === 0 ? 'No interval after the block or catheter removal' : R.fmtHours(tier.restartHours) + ' after needle placement or catheter removal') : 'Not specified')]);
@@ -643,10 +653,11 @@
       h += `<footer class="r-footer"><div class="r-btns">${ghostLink('#card-asra-anticoagulation', I.table, 'Full ASRA table')}${data.sourceURL ? ghostLink(data.sourceURL, I.doc, 'Guideline', true) : ''}</div>${footnote('ASRA Pain Medicine, fifth edition (2025)' + (data.reviewed ? '; reviewed ' + monthYear(data.reviewed) : '') + '. The interval is the guideline’s minimum for a patient on this drug alone; combinations, kidney function and age push it out, and a bloody tap or a catheter changes the plan. The guideline and your judgement decide.')}</footer>`;
       return h + `</div>`;
     }, {
-      drug(el) { st.drug = el.value; const d = (bundle.neuraxial.groups.flatMap((g) => g.drugs)).find((x) => x.id === el.value); st.tier = d ? d.tiers[0].id : null; st.renal = 0; },
-      tier(el) { st.tier = el.dataset.v; st.renal = 0; },
-      renal(el) { st.renal = Number(el.dataset.v); },
-      elderly() { st.elderly = !st.elderly; },
+      // Changing the drug clears the tier, the kidney row and the elderly toggle; a one-tier drug has its tier chosen for it.
+      drug(el) { R.neuraxialSel.selectDrug(st.sel, allDrugs().find((x) => x.id === el.value) || null); },
+      tier(el) { const d = allDrugs().find((x) => x.id === st.sel.drugID); R.neuraxialSel.selectTier(st.sel, d ? d.tiers.find((t) => t.id === el.dataset.v) || null : null); },
+      renal(el) { R.neuraxialSel.selectRenal(st.sel, Number(el.dataset.v)); },
+      elderly() { st.sel.elderly = !st.sel.elderly; },
       last(el) { const t = fromLocalInput(el.value); if (t !== null) st.last = t; },
       general() { st.general = !st.general; },
     });
