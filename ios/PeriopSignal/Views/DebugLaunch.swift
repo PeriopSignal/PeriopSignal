@@ -25,6 +25,7 @@ import WidgetKit
 ///   -ps.peds.tab 0|1|2      the pediatric calculator's section: Drugs, Airway, Fluids & Blood (with -ps.peds.weight, .years, .months)
 ///   -ps.mcs.table 1         open the Device numbers sheet on the mechanical support page (with -ps.mcs.device lvad)
 ///   -ps.patient.width 375   also lays the pediatric calculator and the mechanical support page out at that width (1.13)
+///                           and the Reference home (1.14); -ps.textScale 1.5 lays it out at large text
 enum DebugLaunch {
     static var openPost: String? { UserDefaults.standard.string(forKey: "ps.openPost") }
     static var tab: String? { UserDefaults.standard.string(forKey: "ps.tab") }

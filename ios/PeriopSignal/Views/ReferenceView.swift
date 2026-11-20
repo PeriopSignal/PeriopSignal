@@ -199,6 +199,29 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
     var summary: String { items.count == 1 ? items[0].blurb : items.map(\.title).joined(separator: " · ") }
     /// Where the folder row goes: straight to the tool when the folder holds only one.
     var route: RefRoute { items.count == 1 ? items[0].route : .folder(self) }
+    /// How many lines the folder row's summary may take on the Reference home; nil is as many as it needs.
+    /// Ben, Nov 20 (after an outside review): the Emergency row names every tool in the folder without an ellipsis, so malignant
+    /// hyperthermia, difficult airway and massive transfusion can be read from the home screen. The other rows keep two lines.
+    var summaryLineLimit: Int? { self == .emergency ? nil : 2 }
+}
+
+/// What the Reference home lists, top to bottom (a pure order, so a test can pin it).
+/// Ben, Nov 20 (after an outside review): Emergency is always the first row, above the favorites, whatever has been starred;
+/// the other folders keep their order below the favorites.
+enum RefHomeSection: Hashable {
+    /// The Emergency folder's row, alone in its own card.
+    case emergency
+    /// The starred tools; listed only while something is starred.
+    case favorites
+    /// The remaining folders, in `RefHomeSection.otherFolders` order.
+    case folders
+
+    static func order(hasFavorites: Bool) -> [RefHomeSection] {
+        hasFavorites ? [.emergency, .favorites, .folders] : [.emergency, .folders]
+    }
+
+    /// The folders under the favorites: every folder but Emergency, in the order the folders are declared.
+    static var otherFolders: [RefFolder] { RefFolder.allCases.filter { $0 != .emergency } }
 }
 
 /// A star in the toolbar of every tool, to add it to the favorites at the top of the tab.
@@ -275,8 +298,7 @@ struct ReferenceView: View {
                     if searching {
                         ReferenceSearchResults(query: trimmed, path: $path) { ask = AskPrompt(question: trimmed) }
                     } else {
-                        if !favorites.keys.isEmpty { favoritesSection }
-                        folders
+                        ForEach(RefHomeSection.order(hasFavorites: !favorites.keys.isEmpty), id: \.self) { homeSection($0) }
                         footer
                     }
                 }
@@ -284,6 +306,8 @@ struct ReferenceView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
                 .padding(.bottom, 28)
+                // Screenshot runs: -ps.patient.width 375 lays the home out as on that width (the CI simulator is wider).
+                .modifier(DebugContentWidth())
             }
             .readTipFrames(tips.isShowing, into: tips)
             .background(FeedBackground())
@@ -372,35 +396,91 @@ struct ReferenceView: View {
 
     // MARK: Folders
 
-    private var folders: some View {
+    /// One section of the home, in the order `RefHomeSection.order` gives.
+    @ViewBuilder private func homeSection(_ section: RefHomeSection) -> some View {
+        switch section {
+        case .emergency: folderList([.emergency])
+        case .favorites: favoritesSection
+        case .folders: folderList(RefHomeSection.otherFolders)
+        }
+    }
+
+    /// A card of folder rows. The first folder on the page carries the first-visit tip's target (Emergency, now the top row).
+    private func folderList(_ list: [RefFolder]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(spacing: 0) {
-                ForEach(Array(RefFolder.allCases.enumerated()), id: \.element.id) { i, f in
-                    Button { path.append(f.route) } label: {
-                        HStack(spacing: 14) {
-                            Image(systemName: f.icon)
-                                .font(PS.sys(size: 17, weight: .semibold))
-                                .foregroundStyle(f.tint)
-                                .frame(width: 40, height: 40)
-                                .background(f.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(f.title).font(PS.serif(size: 17)).foregroundStyle(PS.fg)
-                                Text(f.summary).font(PS.sys(size: 12)).foregroundStyle(PS.fg2).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                            }
-                            Spacer(minLength: 0)
-                            if f.items.count > 1 { Text("\(f.items.count)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3) }
-                            Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                        }
-                        .padding(.horizontal, 16).padding(.vertical, 13)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .tipFrame(i == 0 ? TipTarget.referenceFirstFolder : "reference.folder.\(f.rawValue)", in: tips)
-                    if i < RefFolder.allCases.count - 1 { Hairline().padding(.leading, 70) }
+                ForEach(Array(list.enumerated()), id: \.element.id) { i, f in
+                    Button { path.append(f.route) } label: { RefFolderRow(folder: f) }
+                        .buttonStyle(.plain)
+                        .tipFrame(f == .emergency ? TipTarget.referenceFirstFolder : "reference.folder.\(f.rawValue)", in: tips)
+                    if i < list.count - 1 { Hairline().padding(.leading, 70) }
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         }
+    }
+}
+
+/// One folder row on the Reference home: icon, title and a summary of its tools, the number of tools and a chevron.
+/// A row whose summary wraps (Emergency, `summaryLineLimit` nil) puts the count and the chevron on the title line and lays out from
+/// the top, as the other wrapping rows (`QuickRefRow`, `GuidelineRow`) do, so the wrapped text keeps the row's full width and the
+/// chevron never sits in the middle of a three-line summary.
+struct RefFolderRow: View {
+    var folder: RefFolder
+
+    private var count: some View {
+        Group {
+            if folder.items.count > 1 { Text("\(folder.items.count)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3) }
+        }
+    }
+    private var chevron: some View {
+        Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+    }
+    private var icon: some View {
+        Image(systemName: folder.icon)
+            .font(PS.sys(size: 17, weight: .semibold))
+            .foregroundStyle(folder.tint)
+            .frame(width: 40, height: 40)
+            .background(folder.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+    private var title: some View { Text(folder.title).font(PS.serif(size: 17)).foregroundStyle(PS.fg) }
+    private var summary: some View {
+        Text(folder.summary).font(PS.sys(size: 12)).foregroundStyle(PS.fg2)
+            .lineLimit(folder.summaryLineLimit)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    var body: some View {
+        Group {
+            if folder.summaryLineLimit == nil {
+                HStack(alignment: .top, spacing: 14) {
+                    icon
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            title
+                            Spacer(minLength: 0)
+                            count
+                            chevron
+                        }
+                        summary
+                    }
+                }
+            } else {
+                HStack(spacing: 14) {
+                    icon
+                    VStack(alignment: .leading, spacing: 3) {
+                        title
+                        summary
+                    }
+                    Spacer(minLength: 0)
+                    count
+                    chevron
+                }
+            }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 13)
+        .contentShape(Rectangle())
     }
 }
 
