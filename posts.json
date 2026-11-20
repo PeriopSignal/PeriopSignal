@@ -47,6 +47,26 @@
     "seconds": 192,
     "bytes": 1538156,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "International Expert Consensus Statement on Contemporary Prevention and Management of Postoperative Delirium in Cardiac Surgery",
+    "authors": [
+     "Abdulaziz S",
+     "Zaaqoq AM",
+     "Cho SM",
+     "Butt S",
+     "Alohali AF",
+     "Fraser JF",
+     "Amer M",
+     "Mufti H",
+     "Tronstad O",
+     "Bainbridge D",
+     "De Somer F",
+     "AlThenayan E"
+    ],
+    "journal": "The Annals of Thoracic Surgery",
+    "doi": "10.1016/j.athoracsur.2026.10.056",
+    "year": 2026
    }
   },
   {
