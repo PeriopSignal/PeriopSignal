@@ -26,6 +26,8 @@ struct RootView: View {
             ShareCardPreviewScreen()
         } else if DebugLaunch.screen == "gallery" {
             PatientStyleGallery()
+        } else if DebugLaunch.askDemo != nil {
+            AskDemoScreen()
         } else {
             main
         }
