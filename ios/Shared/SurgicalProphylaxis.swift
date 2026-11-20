@@ -313,11 +313,22 @@ struct ProphylaxisInput: Hashable {
     var procedure: String?
     var variant: String?
     var betaLactamAllergy = false
+    /// Ben, Nov 19 (after an outside review): a penicillin-only allergy with no severe or IgE-type reaction on record is asked, not
+    /// answered for the user. True from applying such a prefill until the user taps No or Yes (`setAllergy`); while true neither
+    /// answer is chosen and `betaLactamAllergy` stays false.
+    var allergyUnanswered = false
     var mrsa = false
 
-    init(group: String? = nil, procedure: String? = nil, variant: String? = nil, betaLactamAllergy: Bool = false, mrsa: Bool = false) {
+    init(group: String? = nil, procedure: String? = nil, variant: String? = nil, betaLactamAllergy: Bool = false, mrsa: Bool = false,
+         allergyUnanswered: Bool = false) {
         self.group = group; self.procedure = procedure; self.variant = variant
-        self.betaLactamAllergy = betaLactamAllergy; self.mrsa = mrsa
+        self.betaLactamAllergy = betaLactamAllergy; self.mrsa = mrsa; self.allergyUnanswered = allergyUnanswered
+    }
+
+    /// The user taps No or Yes: the allergy is answered.
+    mutating func setAllergy(_ yes: Bool) {
+        betaLactamAllergy = yes
+        allergyUnanswered = false
     }
 
     /// A group chosen: its only procedure at once, else none yet. The same group again changes nothing.
@@ -362,7 +373,8 @@ struct ProphylaxisInput: Hashable {
             chooseGroup(g, data: data)
             if let proc = p.procedure { chooseProcedure(proc, data: data) }
         }
-        if p.betaLactamAllergy { betaLactamAllergy = true }
+        if p.betaLactamAllergy { betaLactamAllergy = true; allergyUnanswered = false }
+        if p.allergyAsk { betaLactamAllergy = false; allergyUnanswered = true }
         if p.mrsa { mrsa = true }
     }
 }
@@ -418,6 +430,9 @@ struct ProphylaxisAnswer: Hashable {
         /// The table's cell as it is.
         case text
         case regimens
+        /// The case lists a penicillin only (no severe or IgE-type reaction), the allergy is not answered yet and No and Yes give
+        /// different results: the screen asks instead of showing agents.
+        case allergyQuestion
     }
 
     var state: State = .noProcedure
@@ -441,6 +456,8 @@ struct ProphylaxisAnswer: Hashable {
     /// What the result's ⓘ opens: paragraphs, none twice.
     var info: [String] = []
     var alternative = false
+    /// On the alternative for a β-lactam allergy, above the agents: a penicillin-only allergy may still allow a cephalosporin.
+    var allergyHint: String?
 
     /// Every agent line the result shows, the MRSA block's included.
     var allLines: [ProphylaxisLine] {
@@ -458,10 +475,13 @@ struct ProphylaxisPrefill: Hashable {
     var betaLactamAllergy = false
     /// "From the case: Penicillin (rash)".
     var allergyCaption: String?
+    /// A penicillin-only allergy with no severe or IgE-type reaction: the allergy row is left for the user to answer (its caption
+    /// says so). `betaLactamAllergy` stays false then.
+    var allergyAsk = false
     var mrsa = false
     var mrsaCaption: String?
 
-    var isEmpty: Bool { group == nil && !betaLactamAllergy && !mrsa }
+    var isEmpty: Bool { group == nil && !betaLactamAllergy && !allergyAsk && !mrsa }
 }
 
 // MARK: - The engine
@@ -470,6 +490,12 @@ enum ProphylaxisEngine {
     static let recommendedTitle = "Recommended"
     static let allergyTitle = "Alternative for β-lactam allergy"
     static let outsideTitle = "Not in the guideline's table"
+    static let allergyQuestionTitle = "Check the allergy first"
+    static let allergyQuestionBody = "Penicillin is on the allergy list. The guideline allows a cephalosporin unless the reaction was IgE-mediated (anaphylaxis, urticaria, bronchospasm) or exfoliative (Stevens-Johnson syndrome, toxic epidermal necrolysis). Choose No or Yes above."
+    /// Ends the allergy row's caption while the allergy is not answered: "From the case: Penicillin (rash). Not selected for you: choose."
+    static let allergyAskTail = ". Not selected for you: choose."
+    /// Above the agents of the alternative for a β-lactam allergy, with the allergy ⓘ beside it.
+    static let allergyHint = "Penicillin allergy only? A cephalosporin may still be allowed."
     static let mrsaTitle = "Known MRSA colonization"
     static let mrsaDoseNote = "Single preoperative dose"
     static let mrsaListedLead = "Vancomycin is among the choices above."
@@ -507,6 +533,14 @@ enum ProphylaxisEngine {
             if let n = g.note, !n.isEmpty { a.info = [n] }
             return a
         }
+        if input.allergyUnanswered, allergyChangesResult(v) {
+            // No agents, no doses, no MRSA block and no Start until the user says No or Yes.
+            var a = ProphylaxisAnswer()
+            a.state = .allergyQuestion
+            a.title = allergyQuestionTitle
+            a.body = allergyQuestionBody
+            return a
+        }
         guard let res = input.betaLactamAllergy ? v.allergy : v.recommended else { return ProphylaxisAnswer() }
 
         var a = ProphylaxisAnswer()
@@ -531,6 +565,7 @@ enum ProphylaxisEngine {
             a.body = res.display.flatMap { $0.isEmpty ? nil : $0 } ?? res.text
         case .regimens:
             a.state = .regimens
+            if input.betaLactamAllergy { a.allergyHint = allergyHint }
             var usedClasses: [ProphylaxisClass] = []
             for (ri, reg) in res.regimens.enumerated() {
                 var slots: [ProphylaxisSlotAnswer] = []
@@ -590,6 +625,15 @@ enum ProphylaxisEngine {
         if let n = g.note { info.add(n) }
         a.info = info.paragraphs
         return a
+    }
+
+    /// The answer to the allergy question would change the result: one of the two results has agents and they are not the same.
+    /// A result that is the same either way (no prophylaxis, a table cell as text, no row) never asks.
+    static func allergyChangesResult(_ v: ProphylaxisVariant) -> Bool {
+        let no = v.recommended, yes = v.allergy
+        guard no != nil || yes != nil else { return false }
+        guard no?.kind == .regimens || yes?.kind == .regimens else { return false }
+        return no != yes
     }
 
     /// The record the doses are worked out for. A weight outside Case Timers' own plausible range (`weightFlag`, 35–200 kg: a
@@ -721,8 +765,14 @@ enum ProphylaxisEngine {
         }
         let lactam = ProphylaxisAllergy.betaLactams(r)
         if !lactam.isEmpty {
-            out.betaLactamAllergy = true
-            out.allergyCaption = captionLead + lactam.map(\.text).joined(separator: "; ")
+            let entries = captionLead + lactam.map(\.text).joined(separator: "; ")
+            if ProphylaxisAllergy.asksFirst(lactam) {
+                out.allergyAsk = true
+                out.allergyCaption = entries + allergyAskTail
+            } else {
+                out.betaLactamAllergy = true
+                out.allergyCaption = entries
+            }
         }
         if r.infections.results["mrsa"] == .positive {
             out.mrsa = true
@@ -791,6 +841,64 @@ enum ProphylaxisAllergy {
     }
 
     static func betaLactams(_ r: PatientRecord) -> [PatientAllergy] { items(r).filter { isBetaLactam($0) && !isTolerance($0) } }
+
+    // MARK: Ask or answer (Ben, Nov 19, after an outside review)
+
+    // The 2013 guideline: a cephalosporin "can safely be used in patients with an allergic reaction to penicillins that is not an
+    // IgE-mediated reaction (e.g., anaphylaxis, urticaria, bronchospasm) or exfoliative dermatitis (Stevens-Johnson syndrome, toxic
+    // epidermal necrolysis)", and the patient should be asked whether a true allergy exists. So a penicillin-only history with no
+    // such reaction on record is asked, not answered for the user. Anything else keeps the old prefill: Yes.
+
+    /// Penicillins the medication catalog does not carry, by name (folded): the penicillin ones of `extraGenerics`.
+    static let penicillinExtras: Set<String> = [
+        "ampicillin sulbactam", "ampicillin-sulbactam", "unasyn", "nafcillin", "oxacillin", "penicillin g", "ticarcillin", "mezlocillin",
+        "piperacillin",
+    ]
+
+    /// The most severe level the Allergies list offers (mild, severe, anaphylaxis): only this one counts as severe by itself.
+    static let topSeverity = "anaphylaxis"
+
+    /// Reaction words that begin an IgE-type or severe reaction, matched at the start of a word of the reaction text (folded).
+    /// "swell" and "swollen" are added to the words Ben gave: the same reaction as swelling.
+    static let severeReactionPrefixes: [String] = [
+        "anaphyla", "hive", "urticaria", "angioedema", "swell", "swollen", "bronchospasm", "wheez", "throat", "hypotens", "shock",
+        "stevens", "exfoliat", "blister", "desquam",
+    ]
+
+    /// Short abbreviations matched as whole words only (so "ten" is not "tender" and "dress" is not "address").
+    static let severeReactionWords: Set<String> = ["sjs", "ten", "dress"]
+
+    /// The allergen is a penicillin: the "Penicillin" class entry, a medication whose class line begins with penicillin, or one of
+    /// the penicillins the catalog does not carry.
+    static func isPenicillinClass(_ a: PatientAllergy) -> Bool {
+        let name = a.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return false }
+        if let idx = AllergyCatalog.phrases.exact(name) {
+            let e = AllergyCatalog.entries[idx]
+            if e.id == "penicillin" { return true }
+            if e.id.hasPrefix("med:"), let m = MedicationCatalog.entry(id: String(e.id.dropFirst(4))) {
+                return m.drugClass.lowercased().hasPrefix("penicillin")
+            }
+            return false
+        }
+        return penicillinExtras.contains(CatalogText.fold(name))
+    }
+
+    /// The entry's severity is the top level, or its recorded reaction names an IgE-type or severe reaction.
+    static func isSevereOrIgE(_ a: PatientAllergy) -> Bool {
+        if a.severity == topSeverity { return true }
+        let words: [String] = CatalogText.fold(a.reaction).split(whereSeparator: { !$0.isLetter }).map(String.init)
+        for w in words {
+            if severeReactionWords.contains(w) { return true }
+            if severeReactionPrefixes.contains(where: { w.hasPrefix($0) }) { return true }
+        }
+        return words.joined(separator: " ").contains("toxic epidermal")
+    }
+
+    /// Ask (true) when every recorded β-lactam entry is a penicillin and none has a severe or IgE-type reaction on record.
+    static func asksFirst(_ lactams: [PatientAllergy]) -> Bool {
+        !lactams.isEmpty && lactams.allSatisfy { isPenicillinClass($0) && !isSevereOrIgE($0) }
+    }
 }
 
 // MARK: - Where the calculator replaces the quick reference

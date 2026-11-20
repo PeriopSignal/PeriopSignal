@@ -92,6 +92,44 @@ test('doses and rounding', () => {
   eq(R.range(70, 70), '70'); eq(R.range(70, 75), '70–75');
 });
 
+test('an absurd weight never reaches a number (PedsCalc.fmt guard, 1.12)', () => {
+  // The app traps on String(Int(1e20)); the page reads "—" and the dose lines read "Check the weight".
+  eq(R.fmt(1e20), '—'); eq(R.fmt(Infinity), '—'); eq(R.fmt(-Infinity), '—'); eq(R.fmt(NaN), '—'); eq(R.fmt(1e9), '—');
+  eq(R.fmt(999999999), '999999999'); eq(R.fmt(150), '150'); eq(R.fmt(0.123), '0.12');
+  eq(R.peds.doseText(0.01, null, 'mg', 1e20, null, 1).text, 'Check the weight', 'not even a dose held at its maximum');
+  eq(R.peds.doseText(0.01, null, 'mg', Infinity, null, 1).text, 'Check the weight');
+  eq(R.peds.doseText(0.01, null, 'mg', NaN, null, null).text, 'Check the weight');
+  eq(R.peds.doseText(2, 3, 'mg', 18, null, null).text, '36–54 mg');
+  const norepi = { form: 'perKgPerMin', start: 0.05, startHigh: 0.1, unit: 'mcg' };
+  eq(R.infusionLines(norepi, 1e20).equivalent, 'Check the weight'); eq(R.infusionLines(norepi, Infinity).equivalent, 'Check the weight');
+  eq(R.infusionLines(norepi, 70).equivalent, '3.5–7 mcg/min at 70 kg');
+  const ntg = { form: 'perMin', start: 5, unit: 'mcg' };
+  eq(R.infusionLines(ntg, 1e-300).equivalent, 'Check the weight');
+  for (const form of ['perKg', 'perKgPerHour']) eq(R.infusionLines({ form, start: 1, unit: 'mg' }, 1e20).equivalent, 'Check the weight', form);
+});
+test('pediatric weight check', () => {
+  const ok = (w, y, m) => eq(R.peds.verdict(w, y, m).weightKg, w);
+  const msg = (w, y, m) => R.peds.verdict(w, y, m).message;
+  eq(R.peds.verdict(null, 0, 0).message, null); eq(R.peds.verdict(null, 0, 0).weightKg, null);
+  // alone: 0.4 kg to 150 kg
+  ok(0.4, 0, 0); ok(150, 0, 0); ok(18, 0, 0);
+  eq(msg(0.39, 0, 0), 'Check the weight'); eq(msg(0, 0, 0), 'Check the weight'); eq(msg(-3, 0, 0), 'Check the weight');
+  eq(msg(Infinity, 0, 0), 'Check the weight'); eq(msg(NaN, 0, 0), 'Check the weight');
+  eq(msg(150.1, 0, 0), 'Check the weight');
+  // with an age: over 150 kg and the ratio say "against the age"; under 0.4 kg is still the number itself
+  eq(msg(150.1, 16, 0), 'Check the weight against the age'); ok(150, 16, 0);
+  eq(msg(0.39, 5, 0), 'Check the weight');
+  // 5 years: estimate 18 kg, so 6 to 54 kg
+  ok(54, 5, 0); ok(6, 5, 0);
+  eq(msg(54.01, 5, 0), 'Check the weight against the age'); eq(msg(5.99, 5, 0), 'Check the weight against the age');
+  // 6 months: estimate 7 kg
+  ok(21, 0, 6); eq(msg(21.01, 0, 6), 'Check the weight against the age'); ok(7 / 3 + 0.01, 0, 6); eq(msg(2.3, 0, 6), 'Check the weight against the age');
+  // 14 years has no estimate: only the absolute limits apply
+  ok(150, 14, 0); ok(30, 14, 0);
+  eq(R.peds.newbornAirwayNote(2.5), 'Under 3 kg: choose tube size and depth by weight from your neonatal chart; the values shown are by age.');
+  eq(R.peds.newbornAirwayNote(2.99) !== null, true); eq(R.peds.newbornAirwayNote(3), null); eq(R.peds.newbornAirwayNote(null), null);
+});
+
 // ---------- local anesthetics ----------
 const lidocaine = { id: 'lidocaine', name: 'Lidocaine', maxMgPerKg: 4.5, concentrations: [1, 2], kind: 'amide', adultPlainMgPerKg: 4.5, adultPlainMaxMg: 300, adultEpiMgPerKg: 7, adultEpiMaxMg: 500, pedsEpiMgPerKg: 7 };
 const bupivacaine = { id: 'bupivacaine', name: 'Bupivacaine', maxMgPerKg: 2.5, concentrations: [0.25, 0.5], kind: 'amide', adultPlainMgPerKg: 2.5, adultPlainMaxMg: 175, adultEpiMaxMg: 225, per24hMaxMg: 400 };
@@ -194,9 +232,100 @@ test('neuraxial timing', () => {
   const avoid = R.neuraxialAnswer(dabi, 2, false, last); eq(avoid.avoid, true); eq(avoid.earliest, null);
   const fonda = { holdHours: 36, renal: [{ label: 'Normal', hours: 36, elderlyHours: 42 }] };
   eq(R.neuraxialAnswer(fonda, 0, true, last).hours, 42); eq(R.neuraxialAnswer(fonda, 0, false, last).hours, 36);
+  // The "avoid" flag wins when present; older data (no flag) falls back to the word "against" in the hold text.
+  eq(R.neuraxialAnswer({ holdHours: null, holdText: 'Not on this one', avoid: true }, null, false, last).avoid, true);
+  eq(R.neuraxialAnswer({ holdHours: null, holdText: 'ASRA suggests against it', avoid: false }, null, false, last).avoid, false);
+  eq(R.neuraxialAnswer({ holdHours: null, holdText: 'ASRA suggests against it' }, null, false, last).avoid, true);
+  eq(R.neuraxialAnswer({ holdHours: null, holdText: 'Not specified' }, null, false, last).avoid, false);
   eq(R.fmtHours(168), '7 days'); eq(R.fmtHours(36), '36 h');
   eq(R.countdown(last + (3600 * 26 + 300) * 1000, last), 'in 1 d 2 h');
   eq(R.countdown(last, last + 10000), 'now');
+});
+
+// ---------- website copy of the app's Nov 19 changes (PONV plan wording, Blocks on anticoagulants selection) ----------
+test('PONV headline, progress word and band texts match the app', () => {
+  const p = bundle.ponv;
+  // Ben, Nov 19 (after an outside review): "interventions", not "antiemetics".
+  eq(R.ponv.headline(R.ponv.target(0, p.counts)), '2 interventions from different classes');
+  eq(R.ponv.headline(R.ponv.target(2, p.counts)), '2 interventions from different classes');
+  eq(R.ponv.headline(R.ponv.target(3, p.counts)), '3 to 4 interventions from different classes');
+  eq(R.ponv.headline(null), '2 interventions from different classes');
+  eq(R.ponv.wanted(R.ponv.target(4, p.counts)), '3 to 4');
+  eq(R.ponv.progressWord(R.ponv.target(1, p.counts)), 'chosen');
+  eq(R.ponv.progressWord(R.ponv.target(3, p.counts)), 'chosen, up to 4');
+  eq(R.ponv.progressWord(null), 'chosen');
+  // A single-number row never reads "2 to 2".
+  eq(R.ponv.wanted({ agents: 2, agentsHigh: 2 }), '2');
+  // The band texts end with the wording of reference.json ponv.counts, so the two cannot drift.
+  const apfel = R.score('apfel');
+  for (let f = 0; f <= 4; f++) {
+    const text = R.ponv.target(f, p.counts).text;
+    assert.ok(R.scoreBand(apfel, f).detail.endsWith(text), 'band ' + f + ' detail');
+  }
+  // The counts note exists for the high-risk row and not for the first one.
+  assert.ok(R.ponv.target(3, p.counts).note); assert.ok(!R.ponv.target(1, p.counts).note);
+  assert.ok(p.riskReduction.length > 0);
+});
+
+test('anticoagulant timing: dose and kidney row start empty', () => {
+  const all = bundle.neuraxial.groups.flatMap((g) => g.drugs), drug = (id) => all.find((d) => d.id === id);
+  const S = R.neuraxialSel, last = 1700000000 * 1000;
+  const sel = S.fresh();
+  eq(S.stage(sel, null), 'chooseDrug'); eq(S.answer(sel, null, last), null);
+  // More than one tier: nothing chosen, no time, the prompt says so.
+  S.selectDrug(sel, drug('rivaroxaban'));
+  eq(S.stage(sel, drug('rivaroxaban')), 'chooseDose'); eq(S.tier(sel, drug('rivaroxaban')), null);
+  eq(S.answer(sel, drug('rivaroxaban'), last), null); eq(S.prompt('chooseDose'), 'Choose the dose');
+  // Tier with kidney rows: still no time until a row is chosen.
+  S.selectTier(sel, drug('rivaroxaban').tiers.find((t) => t.id === 'low'));
+  eq(S.stage(sel, drug('rivaroxaban')), 'chooseKidney'); eq(S.answer(sel, drug('rivaroxaban'), last), null);
+  eq(S.prompt('chooseKidney'), 'Choose kidney function');
+  S.selectRenal(sel, 0);
+  eq(S.stage(sel, drug('rivaroxaban')), 'ready');
+  eq(S.answer(sel, drug('rivaroxaban'), last).hours, drug('rivaroxaban').tiers.find((t) => t.id === 'low').renal[0].hours);
+  eq(S.prompt('ready'), null); eq(S.prompt('chooseDrug'), null);
+  // A tier with no kidney rows is ready as soon as it is chosen.
+  S.selectTier(sel, drug('rivaroxaban').tiers.find((t) => t.id === 'high'));
+  eq(sel.renalIndex, null); eq(S.stage(sel, drug('rivaroxaban')), 'ready');
+  eq(S.answer(sel, drug('rivaroxaban'), last).hours, 72);
+  // Choosing another tier clears the kidney row.
+  S.selectTier(sel, drug('dabigatran').tiers[0]); S.selectRenal(sel, 1);
+  S.selectTier(sel, drug('dabigatran').tiers[1]); eq(sel.renalIndex, null);
+  // Single-tier drugs behave as before: the tier is chosen for them.
+  S.selectDrug(sel, drug('clopidogrel'));
+  eq(S.stage(sel, drug('clopidogrel')), 'ready'); eq(S.answer(sel, drug('clopidogrel'), last).hours, 168);
+  // Changing the drug clears the tier, the kidney row and the elderly toggle.
+  S.selectDrug(sel, drug('fondaparinux')); S.selectTier(sel, drug('fondaparinux').tiers[0]); S.selectRenal(sel, 0); sel.elderly = true;
+  S.selectDrug(sel, drug('dabigatran'));
+  eq(sel.tierID, null); eq(sel.renalIndex, null); eq(sel.elderly, false);
+  eq(S.stage(sel, drug('dabigatran')), 'chooseDose');
+  // The elderly toggle still lengthens a row that has elderly hours (fondaparinux).
+  const fx = drug('fondaparinux').tiers.find((t) => t.renal.some((r) => r.elderlyHours));
+  S.selectDrug(sel, drug('fondaparinux')); S.selectTier(sel, fx);
+  const ri = fx.renal.findIndex((r) => r.elderlyHours); S.selectRenal(sel, ri);
+  const young = S.answer(sel, drug('fondaparinux'), last).hours; sel.elderly = true;
+  eq(S.answer(sel, drug('fondaparinux'), last).hours, fx.renal[ri].elderlyHours); assert.ok(fx.renal[ri].elderlyHours > young);
+  // A stale kidney index outside the tier's rows counts as no choice.
+  sel.renalIndex = 99; eq(S.stage(sel, drug('fondaparinux')), 'chooseKidney');
+});
+
+test('anticoagulant timing: the avoid flag, with the old text check as the fallback', () => {
+  const S = R.neuraxialSel, last = 1700000000 * 1000;
+  const drugOf = (tier) => ({ id: 'x', name: 'X', tiers: [tier] });
+  // The flag wins over the wording, both ways.
+  const yes = drugOf({ id: 't', label: 'T', holdHours: null, holdText: 'Not on this one', avoid: true });
+  const no = drugOf({ id: 't', label: 'T', holdHours: null, holdText: 'ASRA suggests against it', avoid: false });
+  // No flag (older data): the word "against" in the hold text decides.
+  const old = drugOf({ id: 't', label: 'T', holdHours: null, holdText: 'ASRA suggests against it' });
+  const none = drugOf({ id: 't', label: 'T', holdHours: null, holdText: 'Not specified' });
+  const sel = S.fresh();
+  for (const [d, expected] of [[yes, true], [no, false], [old, true], [none, false]]) {
+    S.selectDrug(sel, d); eq(S.answer(sel, d, last).avoid, expected);
+  }
+  // The shipped data: a drug whose tier carries the flag reads Avoid once chosen.
+  const flagged = bundle.neuraxial.groups.flatMap((g) => g.drugs).filter((d) => d.tiers.some((t) => t.avoid === true));
+  assert.ok(flagged.length > 0);
+  for (const d of flagged) { S.selectDrug(sel, d); S.selectTier(sel, d.tiers.find((t) => t.avoid === true)); eq(S.answer(sel, d, last).avoid, true); }
 });
 
 // ---------- valves ----------

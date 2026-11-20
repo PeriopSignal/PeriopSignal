@@ -45,7 +45,10 @@ struct EvidenceTag: View {
 
     private var tint: Color {
         let t = text.lowercased()
-        if t.hasPrefix("g?") || t.contains("verify") { return PS.accent2 }
+        // Ben, Nov 19 (after an outside review): "Verify" (not yet checked against the source) is the caution colour, not the
+        // blue of a tap that does something.
+        if t.contains("verify") { return PS.accent }
+        if t.hasPrefix("g?") { return PS.accent2 }
         if t.hasPrefix("g") || t.hasPrefix("rct") { return PS.green }
         return PS.fg3
     }

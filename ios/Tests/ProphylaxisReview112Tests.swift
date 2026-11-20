@@ -111,8 +111,14 @@ final class ProphylaxisReview112Tests: XCTestCase {
             XCTAssertNil(ProphylaxisEngine.prefill(record: r, data: d).allergyCaption, typed)
         }
         // A reaction, or a tolerance of ANOTHER drug written with a real reaction, is still the allergy.
-        for typed in ["PCN - rash", "cefazolin anaphylaxis", "PCN (hives; tolerated cefazolin)", "penicillin"] {
+        for typed in ["cefazolin anaphylaxis", "PCN (hives; tolerated cefazolin)", "cefazolin - rash"] {
             XCTAssertTrue(ProphylaxisEngine.prefill(record: allergic(typed), data: d).betaLactamAllergy, typed)
+        }
+        // Ben, Nov 19: a penicillin with a mild reaction, or none, is asked (it was Yes here before), but never read away.
+        for typed in ["PCN - rash", "penicillin"] {
+            let p = ProphylaxisEngine.prefill(record: allergic(typed), data: d)
+            XCTAssertTrue(p.allergyAsk, typed)
+            XCTAssertNotNil(p.allergyCaption, typed)
         }
         XCTAssertTrue(ProphylaxisAllergy.isTolerance(PatientAllergy(name: "Cefazolin", reaction: "tolerated")))
         XCTAssertFalse(ProphylaxisAllergy.isTolerance(PatientAllergy(name: "Cefazolin", reaction: "rash, later tolerated")))

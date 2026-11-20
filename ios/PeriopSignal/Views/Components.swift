@@ -477,12 +477,16 @@ struct GlanceStrip: View {
     var glance: Glance
     var compact = false
 
+    /// Ben, Nov 20 (after an outside review): the feed card's glance line shows up to three lines, not two, because the
+    /// result comes last and was the part cut off. The order of its fields is unchanged.
+    static let compactLineLimit = 3
+
     var body: some View {
         if compact {
             (Text(compactLine))
                 .font(PS.sys(size: 11.5, weight: .medium, design: .monospaced))
                 .foregroundStyle(PS.fg3)
-                .lineLimit(2)
+                .lineLimit(GlanceStrip.compactLineLimit)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel("At a glance: " + compactPlain)
@@ -642,8 +646,18 @@ struct SafariView: UIViewControllerRepresentable {
 
 struct ShareSheet: UIViewControllerRepresentable {
     var items: [Any]
+    /// True for a patient share: the files made for it (PatientSendFiles) are removed when the sheet is dismissed or an
+    /// activity is done, not when it opens, so the receiving app can still read them. Ben, Nov 19 (after an outside review).
+    var purgesPatientFiles = false
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
+        Self.controller(items: items, purgesPatientFiles: purgesPatientFiles)
+    }
+    static func controller(items: [Any], purgesPatientFiles: Bool) -> UIActivityViewController {
+        let vc = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        if purgesPatientFiles {
+            vc.completionWithItemsHandler = { _, _, _, _ in PatientSendFiles.purge() }
+        }
+        return vc
     }
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

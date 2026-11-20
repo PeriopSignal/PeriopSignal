@@ -18,6 +18,59 @@ enum PedsCalc {
         return nil
     }
 
+    // MARK: The typed weight
+
+    /// Ben, Nov 19 (after an outside review): a typed weight that cannot be a child's gets no dose, size or volume worked out
+    /// from it, only "Check the weight". The limits are 0.4 kg and 150 kg, and, when an age is entered, 3 times and one third
+    /// of the app's own age-based estimate (`estimatedWeight`).
+    static let weightMinKg = 0.4
+    static let weightMaxKg = 150.0
+    static let weightAgeRatio = 3.0
+    /// The line when the age is the reason (the weight is far from the estimate for the age, or over the maximum with an age entered).
+    static let checkWeightAgeText = "Check the weight against the age"
+
+    /// What the pediatric screen makes of the weight field: the weight to use (nil when none was typed or it is implausible)
+    /// and, for an implausible one, the line to show.
+    struct WeightVerdict: Equatable {
+        var weightKg: Double?
+        var message: String?
+    }
+
+    /// The text of the weight field as a number: nil for an empty or unreadable field. Unlike WeightField.value it keeps
+    /// 0, a negative number and "inf", so the check can name them.
+    static func typedWeight(_ text: String) -> Double? {
+        let t = text.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")
+        return t.isEmpty ? nil : Double(t)
+    }
+
+    /// Pure rule behind "Check the weight". Implausible: not finite, 0 or less, under 0.4 kg; over 150 kg; and, when the age
+    /// has an estimate (1 month to 12 years), more than 3 times or less than one third of it. Over 150 kg and the age ratio
+    /// read "Check the weight against the age" when an age is entered; the rest read "Check the weight".
+    static func verdict(weightKg: Double?, years: Int, months: Int) -> WeightVerdict {
+        guard let w = weightKg else { return WeightVerdict(weightKg: nil, message: nil) }
+        let ageEntered = years * 12 + months >= 1
+        guard w.isFinite, w >= weightMinKg else { return WeightVerdict(weightKg: nil, message: checkWeightText) }
+        if w > weightMaxKg {
+            return WeightVerdict(weightKg: nil, message: ageEntered ? checkWeightAgeText : checkWeightText)
+        }
+        if let e = estimatedWeight(years: years, months: months), w > weightAgeRatio * e || w < e / weightAgeRatio {
+            return WeightVerdict(weightKg: nil, message: checkWeightAgeText)
+        }
+        return WeightVerdict(weightKg: w, message: nil)
+    }
+
+    /// The same from the field's text.
+    static func verdict(text: String, years: Int, months: Int) -> WeightVerdict {
+        verdict(weightKg: typedWeight(text), years: years, months: months)
+    }
+
+    /// Under 3 kg the tube size and depth shown are worked out from age only (Ben, Nov 19): one caution line beside them.
+    static let newbornAirwayCaution = "Under 3 kg: choose tube size and depth by weight from your neonatal chart; the values shown are by age."
+    static func newbornAirwayNote(weightKg: Double?) -> String? {
+        guard let w = weightKg, w.isFinite, w < 3 else { return nil }
+        return newbornAirwayCaution
+    }
+
     /// Endotracheal tube internal diameter (mm): Cole's formula for uncuffed tubes from 2 years, the
     /// Khine modification for cuffed; fixed sizes below that.
     static func ettSizes(years: Int, months: Int) -> (uncuffed: String, cuffed: String) {
@@ -94,8 +147,21 @@ enum PedsCalc {
     static func half(_ v: Double) -> String { fmt((v * 2).rounded() / 2) }
     static func tenth(_ v: Double) -> String { fmt((v * 10).rounded() / 10) }
 
-    /// Clinical rounding: 2 decimals under 1, 1 decimal under 10, whole numbers from 10.
+    /// The largest number any line shows. Past it (or for a value that is not a number) no whole number can be
+    /// written safely: String(Int(r)) traps on an infinite, NaN or enormous Double, which a pasted 20-digit weight reaches.
+    static let shownLimit = 1e9
+    /// What fmt writes for a number it cannot show.
+    static let unreadable = "—"
+    /// The words beside a dose or an amount that could not be worked out from the weight.
+    static let checkWeightText = "Check the weight"
+
+    /// True when a number can be shown (finite and under `shownLimit`). Same idea as AclsCalc.whole.
+    static func shows(_ v: Double) -> Bool { v.isFinite && Swift.abs(v) < shownLimit }
+
+    /// Clinical rounding: 2 decimals under 1, 1 decimal under 10, whole numbers from 10. A number that cannot be
+    /// shown reads "—" (Ben, Nov 19, after an outside review: an absurd weight must never crash the app).
     static func fmt(_ v: Double) -> String {
+        guard shows(v) else { return unreadable }
         let r: Double
         if v < 1 { r = (v * 100).rounded() / 100 }
         else if v < 10 { r = (v * 10).rounded() / 10 }
@@ -109,6 +175,8 @@ enum PedsCalc {
 
     /// "12–18 mg" style range for a per-kg dose at a weight, held within `min` and `max`.
     static func doseText(low: Double, high: Double?, unit: String, weightKg: Double, min: Double? = nil, max: Double?) -> (text: String, capped: Bool) {
+        // An absurd weight must not reach a dose, not even one held at its maximum.
+        guard shows(weightKg) else { return (checkWeightText, false) }
         var lo = low * weightKg
         var hi = (high ?? low) * weightKg
         var capped = false
@@ -120,6 +188,7 @@ enum PedsCalc {
             if lo > m { lo = m; capped = true }
             if hi > m { hi = m; capped = true }
         }
+        guard shows(lo), shows(hi) else { return (checkWeightText, false) }
         if abs(hi - lo) < 0.0001 { return (fmt(lo) + " " + unit, capped) }
         return (fmt(lo) + "–" + fmt(hi) + " " + unit, capped)
     }
@@ -137,25 +206,39 @@ enum InfusionCalc {
             if let hi, abs(hi - lo) > 0.0001 { return "\(PedsCalc.fmt(lo))–\(PedsCalc.fmt(hi)) \(u)" }
             return "\(PedsCalc.fmt(lo)) \(u)"
         }
+        // The weight-based line, only when the weight and every number worked out from it can be shown. Otherwise
+        // "Check the weight" (Ben, Nov 19, after an outside review: an absurd weight must never crash the app).
+        func at(_ w: Double, _ numbers: [Double?], _ text: () -> String) -> String {
+            guard PedsCalc.shows(w), numbers.allSatisfy({ n in n.map { PedsCalc.shows($0) } ?? true }) else { return PedsCalc.checkWeightText }
+            return text() + " at \(PedsCalc.fmt(w)) kg"
+        }
         switch d.form {
         case .perKgPerMin:
             let dose = span(start, d.startHigh, unit + "/kg/min")
             guard let w = weightKg, w > 0 else { return (dose, nil) }
-            let s = scaled(start * w, d.startHigh.map { $0 * w }, unit)
-            return (dose, span(s.lo, s.hi, s.unit + "/min") + " at \(PedsCalc.fmt(w)) kg")
+            return (dose, at(w, [start * w, d.startHigh.map { $0 * w }]) {
+                let s = scaled(start * w, d.startHigh.map { $0 * w }, unit)
+                return span(s.lo, s.hi, s.unit + "/min")
+            })
         case .perMin:
             let dose = span(start, d.startHigh, unit + "/min")
             guard let w = weightKg, w > 0 else { return (dose, nil) }
-            return (dose, span(start / w, d.startHigh.map { $0 / w }, unit + "/kg/min") + " at \(PedsCalc.fmt(w)) kg")
+            return (dose, at(w, [start / w, d.startHigh.map { $0 / w }]) {
+                span(start / w, d.startHigh.map { $0 / w }, unit + "/kg/min")
+            })
         case .perKg:
             let dose = span(start, d.startHigh, unit + "/kg")
             guard let w = weightKg, w > 0 else { return (dose, nil) }
-            return (dose, total(start * w, d.startHigh.map { $0 * w }, unit) + " at \(PedsCalc.fmt(w)) kg")
+            return (dose, at(w, [start * w, d.startHigh.map { $0 * w }]) {
+                total(start * w, d.startHigh.map { $0 * w }, unit)
+            })
         case .perKgPerHour:
             let dose = span(start, d.startHigh, unit + "/kg/h")
             guard let w = weightKg, w > 0 else { return (dose, nil) }
-            let s = scaled(start * w, d.startHigh.map { $0 * w }, unit)
-            return (dose, span(s.lo, s.hi, s.unit + "/h") + " at \(PedsCalc.fmt(w)) kg")
+            return (dose, at(w, [start * w, d.startHigh.map { $0 * w }]) {
+                let s = scaled(start * w, d.startHigh.map { $0 * w }, unit)
+                return span(s.lo, s.hi, s.unit + "/h")
+            })
         case .perHour:
             return (span(start, d.startHigh, unit + "/h"), nil)
         case .fixed:
@@ -182,6 +265,71 @@ enum InfusionCalc {
 }
 
 // MARK: - Neuraxial timing arithmetic
+
+/// What has been picked so far on "Blocks on anticoagulants", and what is still missing.
+///
+/// Ben, Nov 19 (after an outside review): the tool must not show a time the user did not choose. The first dose tier is the
+/// shortest interval for the heparins and the longest for the DOACs, and the first kidney row is the best kidney function,
+/// so a user who skipped a step could be shown the shortest interval. A drug with more than one dose tier starts with no tier
+/// chosen, a tier with kidney rows starts with no kidney row chosen, and until each needed choice is made there is no answer.
+/// A drug with a single tier and no kidney rows needs no choice and answers at once, as before.
+struct NeuraxialSelection: Equatable {
+    var drugID: String?
+    var tierID: String?
+    var renalIndex: Int?
+    var elderly = false
+
+    /// The next thing the user has to choose; `ready` when the answer can be shown.
+    enum Stage: Equatable { case chooseDrug, chooseDose, chooseKidney, ready }
+
+    /// Changing the drug clears the tier, the kidney row and the "Elderly patient" toggle. A drug with one tier has that tier
+    /// chosen for it (there is nothing to choose).
+    mutating func selectDrug(_ drug: NeuraxialDrug) {
+        drugID = drug.id
+        tierID = drug.tiers.count == 1 ? drug.tiers.first?.id : nil
+        renalIndex = nil
+        elderly = false
+    }
+
+    /// A different dose tier has its own kidney rows, so the kidney row is cleared.
+    mutating func selectTier(_ tier: NeuraxialTier) {
+        tierID = tier.id
+        renalIndex = nil
+    }
+
+    mutating func selectRenal(_ index: Int) { renalIndex = index }
+
+    /// The chosen tier; nil until one is chosen (a single-tier drug counts as chosen).
+    func tier(in drug: NeuraxialDrug?) -> NeuraxialTier? {
+        guard let drug else { return nil }
+        if let id = tierID { return drug.tiers.first { $0.id == id } }
+        return drug.tiers.count == 1 ? drug.tiers.first : nil
+    }
+
+    func stage(drug: NeuraxialDrug?) -> Stage {
+        guard let drug else { return .chooseDrug }
+        guard let t = tier(in: drug) else { return .chooseDose }
+        if let rules = t.renal, !rules.isEmpty {
+            guard let i = renalIndex, rules.indices.contains(i) else { return .chooseKidney }
+        }
+        return .ready
+    }
+
+    /// The answer, or nil while a choice is still missing.
+    func answer(drug: NeuraxialDrug?, lastDose: Date) -> NeuraxialCalc.Answer? {
+        guard stage(drug: drug) == .ready, let t = tier(in: drug) else { return nil }
+        return NeuraxialCalc.answer(tier: t, renalIndex: renalIndex, elderly: elderly, lastDose: lastDose)
+    }
+
+    /// What the result card says in place of a time while a choice is missing; nil when nothing is missing or no drug is chosen.
+    static func prompt(for stage: Stage) -> String? {
+        switch stage {
+        case .chooseDose: return "Choose the dose"
+        case .chooseKidney: return "Choose kidney function"
+        case .chooseDrug, .ready: return nil
+        }
+    }
+}
 
 enum NeuraxialCalc {
     struct Answer: Hashable {
@@ -210,7 +358,10 @@ enum NeuraxialCalc {
             if rule.isEmpty { rule = "\(fmtHours(h)) after the last dose" }
             if h == 0 { rule = tier.holdText ?? "No hold required" }
         } else {
-            avoid = tier.holdText?.lowercased().contains("against") ?? false
+            // Ben, Nov 19 (after an outside review): the "avoid" answer must not hang on one word in the sentence.
+            // The tier's own `avoid` flag wins when the data carries it; older data (no flag) falls back to the
+            // word "against" in the hold text ("ASRA suggests against ...").
+            avoid = tier.avoid ?? (tier.holdText?.lowercased().contains("against") ?? false)
             if rule.isEmpty { rule = "No interval specified" }
         }
         let earliest = hours.map { lastDose.addingTimeInterval($0 * 3600) }

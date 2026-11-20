@@ -763,6 +763,9 @@ struct PONVCount: Codable, Hashable {
     var agents: Int
     var agentsHigh: Int?
     var text: String
+    /// Ben, Nov 19 (after an outside review): a line shown under the headline for this row (the Fifth Consensus says more research
+    /// is needed on a third or fourth antiemetic in high-risk patients). Optional because older bundles do not have it.
+    var note: String?
 }
 
 struct PONVAgent: Codable, Identifiable, Hashable {
@@ -785,6 +788,24 @@ struct PONVAgent: Codable, Identifiable, Hashable {
 }
 
 enum PONVPlan {
+    /// How many interventions a count row asks for, as the headline says it: "2", or "3 to 4" when the row gives a range.
+    static func wanted(_ target: PONVCount?) -> String {
+        guard let t = target else { return "2" }
+        if let hi = t.agentsHigh, hi > t.agents { return "\(t.agents) to \(hi)" }
+        return "\(t.agents)"
+    }
+
+    /// Ben, Nov 19 (after an outside review): the guideline says interventions, not antiemetics, so the headline does too.
+    static func headline(_ target: PONVCount?) -> String {
+        wanted(target) + " interventions from different classes"
+    }
+
+    /// The end of the "Classes Chosen" line. The bar is full at the fewest the row asks for; a range names its upper end.
+    static func progressWord(_ target: PONVCount?) -> String {
+        if let t = target, let hi = t.agentsHigh, hi > t.agents { return "chosen, up to \(hi)" }
+        return "chosen"
+    }
+
     /// The consensus count for this many Apfel factors: (fewest, most) interventions and the wording.
     static func target(factors: Int, counts: [PONVCount]) -> PONVCount? {
         counts.first { factors >= $0.minFactors && factors <= $0.maxFactors }
@@ -858,6 +879,9 @@ struct NeuraxialTier: Codable, Identifiable, Hashable {
     var removalHours: Double?
     var afterRemovalHours: Double?
     var inrRule: Bool?
+    /// True when ASRA's advice for this tier is to avoid the block (parenteral direct thrombin inhibitors). Optional so older
+    /// data without it still decodes; when it is missing, `NeuraxialCalc` falls back to the word "against" in `holdText`.
+    var avoid: Bool? = nil
 }
 
 // MARK: Vasoactive infusions and hematologic agents

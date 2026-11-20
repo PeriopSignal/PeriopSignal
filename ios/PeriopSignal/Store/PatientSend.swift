@@ -90,10 +90,42 @@ enum PatientSendText {
     }
 }
 
-/// The file made for a send with the AirDrop link on (the share sheet is given its URL), kept in this phone's tmp folder.
-/// It is removed at the next launch, and any older than ten minutes when another is made.
+/// The files made for a send (the patient file, or the summary PDF), kept in this phone's tmp folder, one folder each.
+/// Ben, Nov 19 (after an outside review): they hold the patient, so they are written like the stored records: complete
+/// file protection on the file and on its folders, and left out of backups. They are removed when the share sheet is
+/// dismissed (ShareSheet), at the next launch, and any older than ten minutes when another is made.
 enum PatientSendFiles {
     static var folder: URL { FileManager.default.temporaryDirectory.appendingPathComponent("PatientSend", isDirectory: true) }
+
+    /// The attributes every folder here is made with.
+    static let protection: [FileAttributeKey: Any] = [.protectionKey: FileProtectionType.complete]
+
+    /// Writes `data` as `name` in a new folder of its own (tmp/PatientSend/<UUID>/<name>), protected and out of backups;
+    /// the file keeps `name` so the receiving app and the share sheet show it. Nil when it cannot be written.
+    static func write(_ data: Data, named name: String) -> URL? {
+        purge(olderThan: 600)
+        let fm = FileManager.default
+        var parent = folder
+        var dir = parent.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let file = dir.appendingPathComponent(name)
+        do {
+            try fm.createDirectory(at: parent, withIntermediateDirectories: true, attributes: protection)
+            // A folder an earlier build made has no protection yet.
+            try? fm.setAttributes(protection, ofItemAtPath: parent.path)
+            try fm.createDirectory(at: dir, withIntermediateDirectories: false, attributes: protection)
+        } catch {
+            return nil
+        }
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? parent.setResourceValues(values)
+        try? dir.setResourceValues(values)
+        guard PatientFiles.write(data, to: file) else {
+            try? fm.removeItem(at: dir)
+            return nil
+        }
+        return file
+    }
 
     /// Removes the files made for earlier sends (all, or only those older than the given seconds).
     static func purge(olderThan seconds: TimeInterval = 0) {

@@ -14,7 +14,8 @@ struct McsView: View {
     @Environment(TipCenter.self) private var tips
     @State private var device: String?
     @State private var openQuestions: Set<Int> = []
-    @State private var tableOpen = false
+    // Screenshot runs: -ps.mcs.table 1 opens the Device numbers sheet.
+    @State private var tableOpen = LaunchSeed.bool("ps.mcs.table")
 
     var body: some View {
         Group {
@@ -29,6 +30,9 @@ struct McsView: View {
                         ChoiceChips(options: d.devices.map { (id: $0.id, label: $0.name) }, selected: device) { id in
                             withAnimation(.snappy) { device = id; openQuestions = [] }
                         }
+                        // Ben, Nov 19 (after an outside review): the section's cautions ("Every number is reference only. Verify all
+                        // LVAD rows") are in view under the chips, not folded into "Explanation & Evidence".
+                        cautions(d)
                         if let id = device, let dev = d.devices.first(where: { $0.id == id }) {
                             deviceCard(dev, d)
                         }
@@ -52,6 +56,7 @@ struct McsView: View {
         .scrollContentBackground(.hidden)
         .navigationTitle("Mechanical Support")
         .navigationBarTitleDisplayMode(.inline)
+        .modifier(DebugContentWidth())
         .task(id: device != nil && refs.mcs != nil) {
             // The first visit, once a device's questions are on screen: one tip at the questions.
             guard device != nil, refs.mcs != nil else { return }
@@ -122,15 +127,29 @@ struct McsView: View {
         }
     }
 
-    private func footer(_ d: McsData) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Hairline()
-            EvidenceDisclosure {
-                ForEach(d.cautions, id: \.self) { c in
-                    Text("• " + c).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+    @ViewBuilder private func cautions(_ d: McsData) -> some View {
+        if !d.cautionLines.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(d.cautionLines, id: \.self) { c in CautionLine(text: c) }
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+
+    @ViewBuilder private func footer(_ d: McsData) -> some View {
+        // The cautions are in view above; they are repeated here only when nothing else would be in the footer.
+        if d.footerHasContent || !d.footerCautions.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Hairline()
+                EvidenceDisclosure {
+                    ForEach(d.footerCautions, id: \.self) { c in
+                        Text("• " + c).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if !d.legend.isEmpty {
+                        Text(d.legend).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    }
+                    EvidenceLinks(sources: device.flatMap { id in d.devices.first { $0.id == id } }.map { d.sources($0.sources ?? []) } ?? d.sources, onOpen: onOpen)
                 }
-                Text(d.legend).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                EvidenceLinks(sources: device.flatMap { id in d.devices.first { $0.id == id } }.map { d.sources($0.sources ?? []) } ?? d.sources, onOpen: onOpen)
             }
         }
     }

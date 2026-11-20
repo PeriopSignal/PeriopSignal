@@ -60,13 +60,15 @@ struct DeepDiveView: View {
                     }
                 }
                 related
-                Text("Overview written by Claude from the paper, abstract and society pages, then checked against the source link. Confirm details against the paper before changing practice. Added to the feed \(PSDate.display(post.addedAt, long: true)).")
+                Text(PostBasis.footer(basis: post.authorBasis, added: PSDate.display(post.addedAt, long: true)))
                     .font(PS.sys(size: 12))
                     .foregroundStyle(PS.fg3)
                     .padding(.top, 4)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 32)
+            // Screenshot runs: -ps.patient.width 375 lays the page out as on that width (the CI simulator is wider).
+            .modifier(DebugContentWidth())
         }
         .background(PS.bg.ignoresSafeArea())
         .navigationTitle("Deep dive")
@@ -110,6 +112,13 @@ struct DeepDiveView: View {
                 }
                 Spacer(minLength: 6)
                 if post.isLandmark { Eyebrow(text: "Landmark", color: PS.accent, size: 10) }
+            }
+            // Ben, Nov 20 (after an outside review): what the summary was written from, once, right under the meta line.
+            if let basis = post.basisLine {
+                Text(basis)
+                    .font(PS.sys(size: 12))
+                    .foregroundStyle(PS.fg3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             if showTitle, let title = paperTitle {
                 Text(title)
@@ -271,10 +280,6 @@ struct DeepDiveView: View {
                             Image(systemName: "minus").font(PS.sys(size: 9, weight: .bold)).foregroundStyle(PS.fg3)
                             Text(item).font(PS.sys(size: 14.5)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
                         }
-                    }
-                    if !post.authorBasis.isEmpty {
-                        Text("Taken from the \(post.authorBasis).")
-                            .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).padding(.top, 2)
                     }
                 }
                 .padding(.leading, 12)
