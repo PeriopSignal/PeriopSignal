@@ -41,6 +41,12 @@
     ],
     "answer": 3,
     "explanation": "Opioid-sparing multimodal analgesia is recommended, as is preoperative screening with the Montreal Cognitive Assessment and Clinical Frailty Scale. Dexmedetomidine, cerebral oximetry, processed EEG-guided depth monitoring and optimized oxygen delivery are only 'may be considered'. Based on the abstract."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ats-2026-postoperative-delirium-cardiac-surgery-consensus.mp3",
+    "seconds": 192,
+    "bytes": 1538156,
+    "voice": "kokoro:af_heart"
    }
   },
   {
