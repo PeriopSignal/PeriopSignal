@@ -15,6 +15,7 @@ import WidgetKit
 ///   -ps.listen 1            show the mini player (paused)
 ///   -ps.screen widget       show the widget preview screen instead of the app
 ///   -ps.screen cards        show the two posts with the most topic tags as cards (button-row layout check)
+///   -ps.screen cards -ps.card.post a,b   the feed cards of these posts (ids) instead of the two with most topic tags (1.12: the glance line's third line)
 ///   -ps.screen sharecard    render the share image for the newest landmark post
 ///   -ps.screen gallery      My Patient's style gallery: every chip, link and heading variant on one page (1.11)
 ///   -ps.showWelcome 1       open the welcome screen (topics and alerts)
@@ -24,7 +25,7 @@ import WidgetKit
 ///   -ps.forceAppearance light|dark   this launch only (not saved) / -ps.forceLaunchCount N
 ///   -ps.peds.tab 0|1|2      the pediatric calculator's section: Drugs, Airway, Fluids & Blood (with -ps.peds.weight, .years, .months)
 ///   -ps.mcs.table 1         open the Device numbers sheet on the mechanical support page (with -ps.mcs.device lvad)
-///   -ps.patient.width 375   also lays the pediatric calculator and the mechanical support page out at that width (1.13)
+///   -ps.patient.width 375   also lays the pediatric calculator, the mechanical support page and a post's deep dive out at that width (1.13)
 enum DebugLaunch {
     static var openPost: String? { UserDefaults.standard.string(forKey: "ps.openPost") }
     static var tab: String? { UserDefaults.standard.string(forKey: "ps.tab") }
@@ -49,7 +50,8 @@ enum DebugLaunch {
 struct CardPreviewScreen: View {
     @Environment(PostStore.self) private var store
     var body: some View {
-        let posts = Array(store.posts.sorted { $0.topics.count > $1.topics.count }.prefix(2))
+        let chosen = LaunchSeed.list("ps.card.post").compactMap { id in store.posts.first { $0.id == id } }
+        let posts = chosen.isEmpty ? Array(store.posts.sorted { $0.topics.count > $1.topics.count }.prefix(2)) : chosen
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 ForEach(posts.isEmpty ? [Post.sample] : posts) { post in

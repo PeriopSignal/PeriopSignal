@@ -32,6 +32,32 @@ struct Glance: Codable, Hashable {
     }
 }
 
+/// What a post was written from (its `authorBasis`), said once and plainly on the detail page.
+///
+/// Ben, Nov 20 (after an outside review): the line sits directly under the headline's meta line, for every post that has a
+/// basis, in the quiet caption style: no badge, no colour, no icon. A post with no basis shows nothing. The old "Taken from
+/// the abstract." footnote under the limitations is gone, and the page footer no longer says the paper was read.
+enum PostBasis {
+    /// The line under the headline for an `authorBasis` value; nil for an empty or unknown value.
+    static func line(for basis: String) -> String? {
+        switch basis {
+        case "full text": return "Written from the full text"
+        case "abstract": return "Written from the abstract"
+        case "summary page": return "Written from the publisher’s summary page"
+        default: return nil
+        }
+    }
+
+    /// The page footer, true for every basis: it names the source, not the paper. The pointer to the line under the
+    /// headline is only there when there is such a line. `added` is the long date the post was added to the feed.
+    static func footer(basis: String, added: String) -> String {
+        let source = line(for: basis) == nil
+            ? "Overview written by Claude from the source named above, then checked against the source link."
+            : "Overview written by Claude from the source named above (the line under the headline says what was read), then checked against the source link."
+        return source + " Confirm details against the paper before changing practice. Added to the feed \(added)."
+    }
+}
+
 /// One single-best-answer question written from the post.
 struct Quiz: Codable, Hashable {
     var question: String
@@ -141,6 +167,8 @@ struct Post: Codable, Identifiable, Hashable {
     var primaryTopic: String { topics.first ?? "general" }
     var paperURL: URL? { URL(string: url) }
     var takeHomeIsAuthors: Bool { takeHomeBy == "authors" }
+    /// "Written from the abstract" and the like, for the detail page; nil when the post has no basis.
+    var basisLine: String? { PostBasis.line(for: authorBasis) }
 
     static let researchKinds: Set<String> = ["RCT", "Observational", "Registry", "Meta-analysis", "Trial update"]
     static let guidanceKinds: Set<String> = ["Guideline", "Consensus"]
