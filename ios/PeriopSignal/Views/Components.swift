@@ -477,12 +477,16 @@ struct GlanceStrip: View {
     var glance: Glance
     var compact = false
 
+    /// Ben, Nov 20 (after an outside review): the feed card's glance line shows up to three lines, not two, because the
+    /// result comes last and was the part cut off. The order of its fields is unchanged.
+    static let compactLineLimit = 3
+
     var body: some View {
         if compact {
             (Text(compactLine))
                 .font(PS.sys(size: 11.5, weight: .medium, design: .monospaced))
                 .foregroundStyle(PS.fg3)
-                .lineLimit(2)
+                .lineLimit(GlanceStrip.compactLineLimit)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel("At a glance: " + compactPlain)
