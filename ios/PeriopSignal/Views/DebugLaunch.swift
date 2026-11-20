@@ -21,7 +21,7 @@ import WidgetKit
 ///   -ps.nx.drug <id> [-ps.nx.tier <id>] [-ps.nx.renal <n>] [-ps.nx.elderly 1]   Blocks on anticoagulants: pick the drug, the dose
 ///                           tier, the kidney row (counted from 0) and the elderly toggle, with -ps.ref neuraxial. With none of them the tool
 ///                           starts unchosen, as it does for a user. Add -ps.patient.width 375 to lay it out at that width.
-///   -ps.ask.demo matched|none   the Ask sheet with a fixed question and a canned answer, no model called (1.13). "matched" lists sample
+///   -ps.ask.demo matched|none   the Ask sheet with a fixed question and a canned answer, no model called. "matched" lists sample
 ///                           sources found by the app's own matching; "none" shows the nothing-matched line. Add -ps.patient.width 375 and -ps.textScale 1.5 as usual.
 ///   -ps.forceAppearance light|dark   this launch only (not saved) / -ps.forceLaunchCount N
 ///   -ps.peds.tab 0|1|2      the pediatric calculator's section: Drugs, Airway, Fluids & Blood (with -ps.peds.weight, .years, .months)

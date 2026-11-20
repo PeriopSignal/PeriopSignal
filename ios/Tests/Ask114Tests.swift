@@ -1,7 +1,7 @@
 import XCTest
 @testable import PeriopSignal
 
-/// 1.14, Ben, Nov 20 (after an outside review): an Ask answer must not look better supported by the library than it is.
+/// Ben, Nov 20 (after an outside review): an Ask answer must not look better supported by the library than it is.
 /// Short words and abbreviations match whole words only, an alias table lets TXA find "tranexamic acid" and back, a
 /// source needs a hit in its name or three distinct question words in its body to be listed, the list on screen is what
 /// the model was given (same items, order and numbers on both routes), a quick reference is clipped to the passage that
