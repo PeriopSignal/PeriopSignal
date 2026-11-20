@@ -1,7 +1,48 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-19T09:15:13+00:00",
+ "generatedAt": "2026-11-20T09:18:11+00:00",
  "posts": [
+  {
+   "id": "ats-2026-postoperative-delirium-cardiac-surgery-consensus",
+   "date": "2026-11-19",
+   "dateApprox": false,
+   "addedAt": "2026-11-20",
+   "journal": "Ann Thorac Surg",
+   "jshort": "ATS",
+   "kind": "Consensus",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac",
+    "criticalCare"
+   ],
+   "headline": "Cardiac surgery delirium consensus: 14 statements; opioid-sparing analgesia recommended, dexmedetomidine only 'may be considered'",
+   "summary": "An international multidisciplinary panel used PICOT questions, structured literature reviews and a modified Delphi process to write 14 consensus statements on preventing and managing postoperative delirium across the preoperative, intraoperative, ICU and post-ICU phases of cardiac surgery.",
+   "takeHome": [
+    "Fourteen consensus statements span the preoperative, intraoperative, ICU and post-ICU phases, built from structured reviews and a modified Delphi process.",
+    "Preoperative screening with the Montreal Cognitive Assessment and Clinical Frailty Scale, multicomponent optimization and opioid-sparing multimodal analgesia are recommended.",
+    "Perioperative dexmedetomidine in place of benzodiazepines, cerebral oximetry, processed EEG-guided depth monitoring and optimized oxygen delivery may be considered."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Delirium is one of the commonest neurocognitive complications of cardiac surgery, with reported incidence from 14% to more than 50% depending on the population and the operation. It is linked to longer ventilation, longer ICU and hospital stay, long-term cognitive decline and higher mortality, yet prevention practice varies widely between centers.\n\n**What they did.** An international, multidisciplinary panel applied a PICOT framework to predefined clinical questions in four phases: preoperative, intraoperative, postoperative and intensive care, and recovery after intensive care. Expert groups ran structured literature reviews, and recommendations were agreed with a modified Delphi method.\n\n**What they recommend** (from the abstract):\n- Preoperative: routine screening with the Montreal Cognitive Assessment and the Clinical Frailty Scale, and multicomponent optimization\n- Intraoperative: opioid-sparing multimodal analgesia is recommended; dexmedetomidine in place of benzodiazepines, cerebral oximetry, processed EEG-guided anesthetic depth and optimized oxygen delivery may be considered\n- ICU: validated delirium screening with sedation assessment, daily awakening and breathing trials, care bundles, correction of reversible precipitants and circadian-supportive environments\n- After ICU: continued ward screening and structured post-discharge cognitive follow-up\n\n**Caveats.** This is a Delphi consensus built on structured reviews, so it records expert agreement rather than proven effects on delirium. We read the abstract only; the full document gives the wording and level of agreement for each statement.\n\n**For the anesthesiologist.** The anesthetic-room items are the soft ones: the panel stops at 'may be considered' for dexmedetomidine, cerebral oximetry and processed EEG, so these are reasonable local choices rather than a standard. The firmer asks are upstream and downstream of the case: cognitive and frailty screening before surgery, an opioid-sparing plan, and a handover into an ICU bundle with a named follow-up path.",
+   "url": "https://doi.org/10.1016/j.athoracsur.2026.10.056",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Abdulaziz",
+   "title": "International Expert Consensus Statement on Contemporary Prevention and Management of Postoperative Delirium in Cardiac Surgery",
+   "quiz": {
+    "question": "In the 2026 international consensus on postoperative delirium after cardiac surgery, which measure is recommended rather than only 'may be considered'?",
+    "options": [
+     "Processed EEG-guided depth-of-anesthesia monitoring",
+     "Dexmedetomidine in place of benzodiazepines",
+     "Cerebral oximetry monitoring",
+     "Opioid-sparing multimodal analgesia"
+    ],
+    "answer": 3,
+    "explanation": "Opioid-sparing multimodal analgesia is recommended, as is preoperative screening with the Montreal Cognitive Assessment and Clinical Frailty Scale. Dexmedetomidine, cerebral oximetry, processed EEG-guided depth monitoring and optimized oxygen delivery are only 'may be considered'. Based on the abstract."
+   }
+  },
   {
    "id": "peds-2026-joint-statement-pediatric-traumatic-ohca",
    "date": "2026-11-19",
