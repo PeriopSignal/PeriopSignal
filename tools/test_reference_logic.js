@@ -242,6 +242,92 @@ test('neuraxial timing', () => {
   eq(R.countdown(last, last + 10000), 'now');
 });
 
+// ---------- website copy of the app's Nov 19 changes (PONV plan wording, Blocks on anticoagulants selection) ----------
+test('PONV headline, progress word and band texts match the app', () => {
+  const p = bundle.ponv;
+  // Ben, Nov 19 (after an outside review): "interventions", not "antiemetics".
+  eq(R.ponv.headline(R.ponv.target(0, p.counts)), '2 interventions from different classes');
+  eq(R.ponv.headline(R.ponv.target(2, p.counts)), '2 interventions from different classes');
+  eq(R.ponv.headline(R.ponv.target(3, p.counts)), '3 to 4 interventions from different classes');
+  eq(R.ponv.headline(null), '2 interventions from different classes');
+  eq(R.ponv.wanted(R.ponv.target(4, p.counts)), '3 to 4');
+  eq(R.ponv.progressWord(R.ponv.target(1, p.counts)), 'chosen');
+  eq(R.ponv.progressWord(R.ponv.target(3, p.counts)), 'chosen, up to 4');
+  eq(R.ponv.progressWord(null), 'chosen');
+  // A single-number row never reads "2 to 2".
+  eq(R.ponv.wanted({ agents: 2, agentsHigh: 2 }), '2');
+  // The band texts end with the wording of reference.json ponv.counts, so the two cannot drift.
+  const apfel = R.score('apfel');
+  for (let f = 0; f <= 4; f++) {
+    const text = R.ponv.target(f, p.counts).text;
+    assert.ok(R.scoreBand(apfel, f).detail.endsWith(text), 'band ' + f + ' detail');
+  }
+  // The counts note exists for the high-risk row and not for the first one.
+  assert.ok(R.ponv.target(3, p.counts).note); assert.ok(!R.ponv.target(1, p.counts).note);
+  assert.ok(p.riskReduction.length > 0);
+});
+
+test('anticoagulant timing: dose and kidney row start empty', () => {
+  const all = bundle.neuraxial.groups.flatMap((g) => g.drugs), drug = (id) => all.find((d) => d.id === id);
+  const S = R.neuraxialSel, last = 1700000000 * 1000;
+  const sel = S.fresh();
+  eq(S.stage(sel, null), 'chooseDrug'); eq(S.answer(sel, null, last), null);
+  // More than one tier: nothing chosen, no time, the prompt says so.
+  S.selectDrug(sel, drug('rivaroxaban'));
+  eq(S.stage(sel, drug('rivaroxaban')), 'chooseDose'); eq(S.tier(sel, drug('rivaroxaban')), null);
+  eq(S.answer(sel, drug('rivaroxaban'), last), null); eq(S.prompt('chooseDose'), 'Choose the dose');
+  // Tier with kidney rows: still no time until a row is chosen.
+  S.selectTier(sel, drug('rivaroxaban').tiers.find((t) => t.id === 'low'));
+  eq(S.stage(sel, drug('rivaroxaban')), 'chooseKidney'); eq(S.answer(sel, drug('rivaroxaban'), last), null);
+  eq(S.prompt('chooseKidney'), 'Choose kidney function');
+  S.selectRenal(sel, 0);
+  eq(S.stage(sel, drug('rivaroxaban')), 'ready');
+  eq(S.answer(sel, drug('rivaroxaban'), last).hours, drug('rivaroxaban').tiers.find((t) => t.id === 'low').renal[0].hours);
+  eq(S.prompt('ready'), null); eq(S.prompt('chooseDrug'), null);
+  // A tier with no kidney rows is ready as soon as it is chosen.
+  S.selectTier(sel, drug('rivaroxaban').tiers.find((t) => t.id === 'high'));
+  eq(sel.renalIndex, null); eq(S.stage(sel, drug('rivaroxaban')), 'ready');
+  eq(S.answer(sel, drug('rivaroxaban'), last).hours, 72);
+  // Choosing another tier clears the kidney row.
+  S.selectTier(sel, drug('dabigatran').tiers[0]); S.selectRenal(sel, 1);
+  S.selectTier(sel, drug('dabigatran').tiers[1]); eq(sel.renalIndex, null);
+  // Single-tier drugs behave as before: the tier is chosen for them.
+  S.selectDrug(sel, drug('clopidogrel'));
+  eq(S.stage(sel, drug('clopidogrel')), 'ready'); eq(S.answer(sel, drug('clopidogrel'), last).hours, 168);
+  // Changing the drug clears the tier, the kidney row and the elderly toggle.
+  S.selectDrug(sel, drug('fondaparinux')); S.selectTier(sel, drug('fondaparinux').tiers[0]); S.selectRenal(sel, 0); sel.elderly = true;
+  S.selectDrug(sel, drug('dabigatran'));
+  eq(sel.tierID, null); eq(sel.renalIndex, null); eq(sel.elderly, false);
+  eq(S.stage(sel, drug('dabigatran')), 'chooseDose');
+  // The elderly toggle still lengthens a row that has elderly hours (fondaparinux).
+  const fx = drug('fondaparinux').tiers.find((t) => t.renal.some((r) => r.elderlyHours));
+  S.selectDrug(sel, drug('fondaparinux')); S.selectTier(sel, fx);
+  const ri = fx.renal.findIndex((r) => r.elderlyHours); S.selectRenal(sel, ri);
+  const young = S.answer(sel, drug('fondaparinux'), last).hours; sel.elderly = true;
+  eq(S.answer(sel, drug('fondaparinux'), last).hours, fx.renal[ri].elderlyHours); assert.ok(fx.renal[ri].elderlyHours > young);
+  // A stale kidney index outside the tier's rows counts as no choice.
+  sel.renalIndex = 99; eq(S.stage(sel, drug('fondaparinux')), 'chooseKidney');
+});
+
+test('anticoagulant timing: the avoid flag, with the old text check as the fallback', () => {
+  const S = R.neuraxialSel, last = 1700000000 * 1000;
+  const drugOf = (tier) => ({ id: 'x', name: 'X', tiers: [tier] });
+  // The flag wins over the wording, both ways.
+  const yes = drugOf({ id: 't', label: 'T', holdHours: null, holdText: 'Not on this one', avoid: true });
+  const no = drugOf({ id: 't', label: 'T', holdHours: null, holdText: 'ASRA suggests against it', avoid: false });
+  // No flag (older data): the word "against" in the hold text decides.
+  const old = drugOf({ id: 't', label: 'T', holdHours: null, holdText: 'ASRA suggests against it' });
+  const none = drugOf({ id: 't', label: 'T', holdHours: null, holdText: 'Not specified' });
+  const sel = S.fresh();
+  for (const [d, expected] of [[yes, true], [no, false], [old, true], [none, false]]) {
+    S.selectDrug(sel, d); eq(S.answer(sel, d, last).avoid, expected);
+  }
+  // The shipped data: a drug whose tier carries the flag reads Avoid once chosen.
+  const flagged = bundle.neuraxial.groups.flatMap((g) => g.drugs).filter((d) => d.tiers.some((t) => t.avoid === true));
+  assert.ok(flagged.length > 0);
+  for (const d of flagged) { S.selectDrug(sel, d); S.selectTier(sel, d.tiers.find((t) => t.avoid === true)); eq(S.answer(sel, d, last).avoid, true); }
+});
+
 // ---------- valves ----------
 const valve = (l, n, s) => R.valveRead(l, { numbers: n || {}, signs: new Set(s || []) });
 test('valve param bands', () => {
