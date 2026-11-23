@@ -1435,7 +1435,9 @@ struct CaseTimersView: View {
         logSummary(h, p)
         Hairline()
         reminderRow(h, p, d).id("heparin.timer")
-        if p.isBypass && !h.reversed && !h.doses.isEmpty { bypassRuns(h).id("heparin.bypass") }
+        // The bypass and cross-clamp rows stay after protamine (they were hidden then): the total is wanted at the end of the case,
+        // a time may need correcting, and a patient can go back on bypass (Ben, Nov 23: "have ability to add new bypass run too").
+        if p.isBypass && !h.doses.isEmpty { bypassRuns(h).id("heparin.bypass") }
     }
 
     /// One row per event, oldest first; a tap opens the row in place. The order is read from the log, so an edit re-sorts

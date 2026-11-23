@@ -1475,6 +1475,16 @@ jobs:
           shot 1477-caseswitch-score-saves-to-dark-375 14 -ps.ref score:rcri -ps.patient demo-switch -ps.patient.width 375 -ps.forceAppearance dark
           shot 1478-caseswitch-score-saves-to-large-text-light-375 14 -ps.ref score:rcri -ps.patient demo-switch -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance light
           shot 1479-caseswitch-peds-after-dark-375 28 -ps.ref peds -ps.patient demo-switch-peds -ps.case.switchAfter 12 -ps.case.switchTo 2 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1490-bypass115-clamp-on-light 22 -ps.tab patient -ps.patient demo-115-bypass-on -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.bypass -ps.patient.width 375 -ps.forceAppearance light
+          shot 1491-bypass115-clamp-on-dark 22 -ps.tab patient -ps.patient demo-115-bypass-on -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.bypass -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1492-bypass115-two-runs-light 22 -ps.tab patient -ps.patient demo-115-bypass-two -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.bypass -ps.patient.width 375 -ps.forceAppearance light
+          shot 1493-bypass115-two-runs-dark 22 -ps.tab patient -ps.patient demo-115-bypass-two -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.bypass -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1494-bypass115-run-editor-light 22 -ps.tab patient -ps.patient demo-115-bypass-two -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.run.edit bypass:1 -ps.timers.scroll heparin.bypass -ps.patient.width 375 -ps.forceAppearance light
+          shot 1495-bypass115-run-refused-light 22 -ps.tab patient -ps.patient demo-115-bypass-two -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.run.edit bypass:1:refuse -ps.timers.scroll heparin.bypass -ps.patient.width 375 -ps.forceAppearance light
+          shot 1496-bypass115-two-runs-large-text-light 22 -ps.tab patient -ps.patient demo-115-bypass-two -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.bypass -ps.textScale 1.5 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1497-bypass115-handoff-light 22 -ps.tab patient -ps.patient demo-115-bypass-two -ps.patient.tab summary -ps.handoff.from Bypass -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance light
+          shot 1498-bypass115-handoff-dark 22 -ps.tab patient -ps.patient demo-115-bypass-two -ps.patient.tab summary -ps.handoff.from Bypass -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1499-bypass115-handoff-open-light 22 -ps.tab patient -ps.patient demo-115-bypass-on -ps.patient.tab summary -ps.handoff.from Bypass -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance light
           #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
