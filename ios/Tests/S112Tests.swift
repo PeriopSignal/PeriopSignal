@@ -59,8 +59,9 @@ final class S112Tests: XCTestCase {
         let p = try XCTUnwrap(bundleFile.prophylaxis)
         XCTAssertEqual(p.groups.count, 14)
         // Nov 23 (Ben, "approve all"): 163 operations. The operations the guideline does not name were added (each carries Periop
-        // Signal's reading and a flag), and every group ends with "Operation not listed". It was 55 before.
-        XCTAssertEqual(p.groups.flatMap(\.procedures).count, 163)
+        // Signal's reading and a flag), and every group ends with "Operation not listed". It was 55 before. Nov 23 check: 157; seven
+        // rows were removed (their operations belong with rows the guideline names) and one heart retransplant row was added.
+        XCTAssertEqual(p.groups.flatMap(\.procedures).count, 157)
         XCTAssertEqual(p.mrsaAgent, "vancomycin")
         XCTAssertFalse(p.info.about.isEmpty)
         XCTAssertEqual(p.info.noDose, "Dose not in this app")

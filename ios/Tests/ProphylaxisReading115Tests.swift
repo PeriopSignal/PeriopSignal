@@ -8,7 +8,10 @@ import XCTest
 /// the card says how many there are. A planned operation that no row names opens on "Operation not listed".
 final class ProphylaxisReading115Tests: XCTestCase {
 
-    static let notNamed = "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+    // Nov 23 check: the label says "the 2013 guideline's table" (it said "the 2013 guideline"). Ten rows that carried it now carry a
+    // "Periop Signal note: ..." instead, seven flagged rows were removed and one added, so 65 rows (134 results) are flagged, where 81 rows
+    // (166 results) were.
+    static let notNamed = "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
 
     private var bundleFile: ReferenceBundle!
     private var d: ProphylaxisData { bundleFile.prophylaxis! }
@@ -174,12 +177,14 @@ final class ProphylaxisReading115Tests: XCTestCase {
         XCTAssertFalse(none.info.contains(Self.notNamed))
         XCTAssertFalse(none.notes.contains(Self.notNamed))
         // The same on agents.
-        let pak = answer("transplant", "x-pancreas-after-kidney-transplant")
-        XCTAssertEqual(pak.state, .regimens)
-        XCTAssertEqual(pak.flag, Self.notNamed)
-        XCTAssertEqual(pak.notes.count, 2)
-        XCTAssertEqual(Array(pak.info.prefix(2)), pak.notes)
-        XCTAssertFalse(pak.info.contains(Self.notNamed))
+        // Nov 23 check: the pancreas-after-kidney row was removed, so this uses the new heart retransplant row: the flag and two other
+        // notes on agents.
+        let reHeart = answer("transplant", "x-heart-retransplant")
+        XCTAssertEqual(reHeart.state, .regimens)
+        XCTAssertEqual(reHeart.flag, Self.notNamed)
+        XCTAssertEqual(reHeart.notes.count, 2)
+        XCTAssertEqual(Array(reHeart.info.prefix(2)), reHeart.notes)
+        XCTAssertFalse(reHeart.info.contains(Self.notNamed))
         // A guideline row's own notes move too (no flag), and the one-note and many-notes words differ.
         let pancreas = answer("transplant", "pancreas")
         XCTAssertNil(pancreas.flag)
@@ -199,7 +204,13 @@ final class ProphylaxisReading115Tests: XCTestCase {
         XCTAssertEqual(oil.flag, Self.notNamed)
         XCTAssertEqual(oil.body, d.group("ophthalmic")?.procedure("x-silicone-oil-removal")?.variants.first?.recommended?.text)
         XCTAssertTrue(oil.allLines.isEmpty)
-        XCTAssertTrue(oil.notes.isEmpty)
+        // Nov 23 check: the row now carries two guideline notes besides the flag (it had only the flag sentence): they are behind the
+        // info link, and the flag sentence is not one of them.
+        let oilRes = try XCTUnwrap(d.group("ophthalmic")?.procedure("x-silicone-oil-removal")?.variants.first?.recommended)
+        XCTAssertEqual(oilRes.notes.count, 3)
+        XCTAssertEqual(oil.notes, Array(oilRes.notes.dropFirst()))
+        XCTAssertFalse(oil.notes.contains(Self.notNamed))
+        XCTAssertEqual(Array(oil.info.prefix(2)), oil.notes)
         let oilAlt = answer("ophthalmic", "x-silicone-oil-removal", allergy: true)
         XCTAssertEqual(oilAlt.state, .text)
         XCTAssertEqual(oilAlt.body, "No alternative agent listed")
@@ -274,7 +285,8 @@ final class ProphylaxisReading115Tests: XCTestCase {
         XCTAssertNil(patch.flag)
         XCTAssertEqual(patch.allLines.map(\.agent), ["cefazolin"])
         XCTAssertEqual(patch.notes.count, 1)
-        XCTAssertTrue(patch.notes[0].contains("No evidence grade is shown for that reason."), patch.notes[0])
+        // Nov 23 check: the sentence is now "Periop Signal note: no evidence grade is shown for that reason." (it began "No evidence").
+        XCTAssertTrue(patch.notes[0].contains("Periop Signal note: no evidence grade is shown for that reason."), patch.notes[0])
         XCTAssertEqual(patch.info.first, patch.notes[0])
         let alt = answer("vascular", "carotid", "patch", allergy: true)
         XCTAssertEqual(alt.state, .regimens)
@@ -288,7 +300,8 @@ final class ProphylaxisReading115Tests: XCTestCase {
         for allergy in [false, true] {
             let none = answer("vascular", "carotid", "none", allergy: allergy, mrsa: true)
             XCTAssertEqual(none.state, .outside)
-            XCTAssertTrue(none.body.hasPrefix("The guideline's table has no row for this"), none.body)
+            // Nov 23 check: "has no antibiotic row for this" (it read "has no row for this").
+            XCTAssertTrue(none.body.hasPrefix("The guideline's table has no antibiotic row for this"), none.body)
             XCTAssertNil(none.evidence)
             XCTAssertTrue(none.allLines.isEmpty)
             XCTAssertNil(none.mrsa)
@@ -402,6 +415,43 @@ final class ProphylaxisReading115Tests: XCTestCase {
             XCTAssertNotEqual(p.procedure, "not-listed", id)
             XCTAssertTrue(p.procedure?.hasPrefix("x-") ?? false, "a row added on Nov 23: \(id)")
         }
+    }
+
+    func testTheRowsOfTheNov23CheckAreInTheData() throws {
+        // Nov 23 check: 157 rows. Seven rows were removed because their operations belong with a row the guideline names (the catalog
+        // ids they listed moved to that row), one retransplant row was added, and some planned operations that opened no row now open one.
+        XCTAssertEqual(d.groups.flatMap(\.procedures).count, 157)
+        let removed: [(group: String, row: String)] = [
+            ("vascular", "x-hero-graft-placement-dialysis-access"), ("neurosurgery", "x-intrathecal-pump-for-pain-or-cancer"),
+            ("ophthalmic", "x-cyclophotocoagulation-or-angle-surge"), ("orthopedic", "x-proximal-humerus-pinning-elbow-fract"),
+            ("plastic", "x-breast-cancer-simple-mastectomy-onco"), ("plastic", "x-lumpectomy-with-sentinel-node-biopsy"),
+            ("transplant", "x-pancreas-after-kidney-transplant"),
+        ]
+        for r in removed { XCTAssertNil(d.group(r.group)?.procedure(r.row), r.row) }
+        let opens: [(id: String, group: String, row: String)] = [
+            ("hero-graft", "vascular", "dialysis-graft"), ("mi-glaucoma", "ophthalmic", "ophthalmic"),
+            ("simple-mastectomy", "plastic", "breast-cancer"), ("lumpectomy-slnb", "plastic", "breast-cancer"),
+            ("elbow-orif-complex", "orthopedic", "fixation"), ("wrist-arthroscopy", "orthopedic", "clean"),
+            ("heart-retransplant", "transplant", "x-heart-retransplant"),
+            ("device-pocket", "cardiac", "x-pacemaker-or-icd-lead-pocket-revisio"),
+            ("tvp-lead-repositioning", "cardiac", "x-pacemaker-or-icd-lead-pocket-revisio"),
+            ("moyamoya", "neurosurgery", "x-craniotomy-cerebral-revascularizatio"),
+            ("cleft-lip", "plastic", "x-cleft-lip-and-palate-repair"), ("cleft-palate", "plastic", "x-cleft-lip-and-palate-repair"),
+        ]
+        for o in opens {
+            let p = ProphylaxisEngine.prefill(record: caseWith([try planned(o.id)]), data: d)
+            XCTAssertEqual(p.group, o.group, o.id)
+            XCTAssertEqual(p.procedure, o.row, o.id)
+        }
+        // The wrist and ankle row asks whether it is a fusion or a joint replacement.
+        let wrist = try XCTUnwrap(d.group("orthopedic")?.procedure("x-wrist-fusion-and-ankle-fusion-or-rep"))
+        XCTAssertEqual(wrist.question, "Fusion or joint replacement?")
+        XCTAssertEqual(wrist.variants.map(\.id), ["fusion", "replacement"])
+        // A row the check took the label from keeps its agents and carries the sentence as an ordinary note.
+        let nail = try XCTUnwrap(d.group("orthopedic")?.procedure("x-femoral-intramedullary-nail")?.variants.first?.recommended)
+        XCTAssertNil(nail.flag)
+        XCTAssertTrue(nail.notes.first?.hasPrefix("Periop Signal note: ") == true, "\(nail.notes)")
+        XCTAssertNil(answer("orthopedic", "x-femoral-intramedullary-nail").flag)
     }
 
     func testEveryOperationOfTheCatalogOpensItsRowThenItsGroupsNotListedRowThenNothing() throws {
