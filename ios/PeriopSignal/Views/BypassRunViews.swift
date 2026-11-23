@@ -82,7 +82,7 @@ private struct BypassRunList: View {
                     if let ed = editing, ed.kind == kind, ed.id == run.id {
                         BypassRunEditor(ed: ed, number: i + 1, course: course, editing: $editing, actions: actions)
                     } else {
-                        BypassRunLine(number: i + 1, run: run) { open(run) }
+                        BypassRunLine(number: i + 1, run: run) { openEditor(run) }
                     }
                 }
             }
@@ -90,7 +90,7 @@ private struct BypassRunList: View {
         }
     }
 
-    private func open(_ run: BypassRun) {
+    private func openEditor(_ run: BypassRun) {
         Haptics.light()
         withAnimation(.snappy) { editing = BypassRunEdit(kind: kind, id: run.id, shownStart: run.start, shownEnd: run.end) }
     }

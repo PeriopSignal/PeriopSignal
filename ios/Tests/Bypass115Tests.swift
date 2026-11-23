@@ -174,11 +174,11 @@ final class Bypass115Tests: XCTestCase {
         // Touching is not overlapping: the first ending at the moment the second starts.
         XCTAssertNil(h.changeRun(.bypass, id: h.bypassRuns[0].id, start: at(8, 40), end: at(10, 35), now: at(12, 0)))
         // An open run overlaps whatever starts after it.
-        var open = course()
-        open.bypassRuns = [BypassRun(start: at(8, 40))]
+        var running = course()
+        running.bypassRuns = [BypassRun(start: at(8, 40))]
         let other = BypassRun(start: at(9, 0), end: at(9, 30))
-        open.bypassRuns.append(other)
-        XCTAssertEqual(open.runIssue(.bypass, id: other.id, start: at(9, 0), end: at(9, 30), now: at(12, 0)), BypassRunText.overlap)
+        running.bypassRuns.append(other)
+        XCTAssertEqual(running.runIssue(.bypass, id: other.id, start: at(9, 0), end: at(9, 30), now: at(12, 0)), BypassRunText.overlap)
     }
 
     func testATimeInTheFutureIsRefusedWithAMinuteOfSlack() {
@@ -210,10 +210,10 @@ final class Bypass115Tests: XCTestCase {
         XCTAssertTrue(h.bypassRuns.isEmpty)
         XCTAssertFalse(h.onBypass)
         // The open run deleted: no longer on bypass.
-        var open = course()
-        open.startRun(.bypass, at: at(8, 40))
-        open.deleteRun(.bypass, id: open.bypassRuns[0].id)
-        XCTAssertFalse(open.onBypass)
+        var running = course()
+        running.startRun(.bypass, at: at(8, 40))
+        running.deleteRun(.bypass, id: running.bypassRuns[0].id)
+        XCTAssertFalse(running.onBypass)
     }
 
     // MARK: onBypass and isRecordOnly
