@@ -17656,6 +17656,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "The guideline says antimicrobial prophylaxis is the standard of care for cardiac implantable device insertion. It also says limited data are available on the efficacy and optimal dose and duration of antimicrobial prophylaxis for implantation of a new pacemaker, pacing system, or other cardiac device."
                   ]
                 },
                 "allergy": {
@@ -17680,6 +17683,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "The guideline says antimicrobial prophylaxis is the standard of care for cardiac implantable device insertion. It also says limited data are available on the efficacy and optimal dose and duration of antimicrobial prophylaxis for implantation of a new pacemaker, pacing system, or other cardiac device."
                   ]
                 }
               }
@@ -17725,7 +17731,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis is the standard of care for cardiac implantable device insertion. It also says limited data are available on the efficacy and optimal dose and duration of antimicrobial prophylaxis for implantation of a new pacemaker, pacing system, or other cardiac device."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -17753,7 +17760,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis is the standard of care for cardiac implantable device insertion. It also says limited data are available on the efficacy and optimal dose and duration of antimicrobial prophylaxis for implantation of a new pacemaker, pacing system, or other cardiac device."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -17967,6 +17975,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "Periop Signal note: the guideline says antimicrobial prophylaxis is the standard of care for noncardiac thoracic surgery, including pulmonary resection. For exploratory thoracotomy, its placebo-controlled trial of single-dose cefazolin in thoracic surgery was done “excluding those involving the esophagus and exploratory thoracotomies.”"
                   ]
                 },
                 "allergy": {
@@ -19841,7 +19852,7 @@
               "nissen"
             ],
             "question": "Patient at high risk of infection?",
-            "questionInfo": "Highest risk of postoperative gastroduodenal infection: increased gastric pH (e.g., H2-receptor antagonists or proton-pump inhibitors), gastroduodenal perforation, decreased gastric motility, gastric outlet obstruction, gastric bleeding, morbid obesity or cancer."
+            "questionInfo": "Highest risk of postoperative gastroduodenal infection: increased gastric pH (e.g., H2-receptor antagonists or proton-pump inhibitors), gastroduodenal perforation, decreased gastric motility, gastric outlet obstruction, gastric bleeding, morbid obesity or cancer. The guideline's recommendation text also lists “ASA classification of ≥3” among these risk factors. It recommends cefazolin for antireflux procedures “only in patients at high risk of postoperative infection due to the presence of the above risk factors.”"
           },
           {
             "id": "x-ercp-and-other-endoscopic-gi-procedu",
@@ -19866,7 +19877,7 @@
             ]
           }
         ],
-        "note": "Consider prophylaxis for patients at highest risk of postoperative gastroduodenal infection: increased gastric pH (e.g., H2-receptor antagonists or proton-pump inhibitors), gastroduodenal perforation, decreased gastric motility, gastric outlet obstruction, gastric bleeding, morbid obesity or cancer. Prophylaxis may not be needed when the lumen of the intestinal tract is not entered. Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract."
+        "note": "Consider prophylaxis for patients at highest risk of postoperative gastroduodenal infection: increased gastric pH (e.g., H2-receptor antagonists or proton-pump inhibitors), gastroduodenal perforation, decreased gastric motility, gastric outlet obstruction, gastric bleeding, morbid obesity or cancer. Prophylaxis may not be needed when the lumen of the intestinal tract is not entered. Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract. The guideline's recommendation text also lists “ASA classification of ≥3” among these risk factors."
       },
       {
         "id": "biliary",
@@ -20349,7 +20360,7 @@
               "lap-chole"
             ],
             "question": "Risk of infection?",
-            "questionInfo": "High risk: emergency procedure, diabetes, long procedure, intraoperative gallbladder rupture, age over 70, conversion to open, ASA class 3 or greater, colic within 30 days, reintervention within a month for a noninfectious complication, acute cholecystitis, bile spillage, jaundice, pregnancy, nonfunctioning gallbladder, immunosuppression, prosthetic device."
+            "questionInfo": "High risk: emergency procedure, diabetes, long procedure, intraoperative gallbladder rupture, age over 70, conversion to open, ASA class 3 or greater, colic within 30 days, reintervention within a month for a noninfectious complication, acute cholecystitis, bile spillage, jaundice, pregnancy, nonfunctioning gallbladder, immunosuppression, prosthetic device. The guideline's recommendation text lists “risk of intraoperative gallbladder rupture” as a risk factor. It also says “Current data do not support antimicrobial prophylaxis for low-risk patients undergoing elective laparoscopic cholecystectomies or those with incidental or accidental gallbladder rupture.”"
           },
           {
             "id": "not-listed",
@@ -20363,7 +20374,7 @@
             ]
           }
         ],
-        "note": "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed, not for noninfected biliary conditions. High risk in laparoscopic cholecystectomy: emergency procedure, diabetes, long procedure, intraoperative gallbladder rupture, age over 70, conversion to open, ASA class 3 or greater, colic within 30 days, reintervention within a month for a noninfectious complication, acute cholecystitis, bile spillage, jaundice, pregnancy, nonfunctioning gallbladder, immunosuppression, prosthetic device. Several of these cannot be known beforehand, so a single dose for every laparoscopic cholecystectomy may be reasonable."
+        "note": "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed, not for noninfected biliary conditions. High risk in laparoscopic cholecystectomy: emergency procedure, diabetes, long procedure, intraoperative gallbladder rupture, age over 70, conversion to open, ASA class 3 or greater, colic within 30 days, reintervention within a month for a noninfectious complication, acute cholecystitis, bile spillage, jaundice, pregnancy, nonfunctioning gallbladder, immunosuppression, prosthetic device. Several of these cannot be known beforehand, so a single dose for every laparoscopic cholecystectomy may be reasonable. The guideline says all patients with a suspected biliary tract infection who undergo biliary tract surgery should receive preoperative i.v. antimicrobials. It also says these guidelines do not address patients requiring biliary tract procedures for more-severe infections, including acute cholangitis and health-care-associated or nosocomial biliary infections."
       },
       {
         "id": "lowergi",
@@ -20500,6 +20511,10 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "Periop Signal note: this row does not cover small bowel surgery for complicated intraabdominal infection. The guideline says prophylaxis there “is not addressed separately in these guidelines, as antimicrobial therapy for established intraabdominal infection should be initiated preoperatively.”",
+                    "Periop Signal note: these agents are for small bowel surgery as the guideline defines it, which “does not include small-to-large bowel anastomosis” (for example ileocolic resection)."
                   ]
                 },
                 "allergy": {
@@ -20522,6 +20537,10 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "Periop Signal note: this row does not cover small bowel surgery for complicated intraabdominal infection. The guideline says prophylaxis there “is not addressed separately in these guidelines, as antimicrobial therapy for established intraabdominal infection should be initiated preoperatively.”",
+                    "Periop Signal note: these agents are for small bowel surgery as the guideline defines it, which “does not include small-to-large bowel anastomosis” (for example ileocolic resection)."
                   ]
                 },
                 "label": "Nonobstructed"
@@ -20569,6 +20588,10 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "Periop Signal note: this row does not cover small bowel surgery for complicated intraabdominal infection. The guideline says prophylaxis there “is not addressed separately in these guidelines, as antimicrobial therapy for established intraabdominal infection should be initiated preoperatively.”",
+                    "Periop Signal note: these agents are for small bowel surgery as the guideline defines it, which “does not include small-to-large bowel anastomosis” (for example ileocolic resection)."
                   ]
                 },
                 "allergy": {
@@ -20590,6 +20613,10 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "Periop Signal note: this row does not cover small bowel surgery for complicated intraabdominal infection. The guideline says prophylaxis there “is not addressed separately in these guidelines, as antimicrobial therapy for established intraabdominal infection should be initiated preoperatively.”",
+                    "Periop Signal note: these agents are for small bowel surgery as the guideline defines it, which “does not include small-to-large bowel anastomosis” (for example ileocolic resection)."
                   ]
                 },
                 "label": "Obstructed"
@@ -21028,7 +21055,8 @@
                     }
                   ],
                   "notes": [
-                    "For most patients, also give a mechanical bowel preparation with oral neomycin plus oral erythromycin base or oral metronidazole."
+                    "For most patients, also give a mechanical bowel preparation, then oral neomycin plus oral erythromycin base or oral neomycin plus oral metronidazole (three doses over about 10 hours, the afternoon and evening before surgery).",
+                    "Periop Signal note: ertapenem is a listed option. The guideline says “Routine use of ertapenem for surgical prophylaxis remains controversial due to theoretical concerns regarding increases in resistant organisms and a potential increase in adverse events.”"
                   ]
                 },
                 "allergy": {
@@ -21068,7 +21096,7 @@
                     }
                   ],
                   "notes": [
-                    "For most patients, also give a mechanical bowel preparation with oral neomycin plus oral erythromycin base or oral metronidazole."
+                    "For most patients, also give a mechanical bowel preparation, then oral neomycin plus oral erythromycin base or oral neomycin plus oral metronidazole (three doses over about 10 hours, the afternoon and evening before surgery)."
                   ]
                 }
               }
@@ -21174,7 +21202,7 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
-                    "For most patients, also give a mechanical bowel preparation with oral neomycin plus oral erythromycin base or oral metronidazole."
+                    "For most patients, also give a mechanical bowel preparation, then oral neomycin plus oral erythromycin base or oral neomycin plus oral metronidazole (three doses over about 10 hours, the afternoon and evening before surgery)."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -21216,7 +21244,7 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
-                    "For most patients, also give a mechanical bowel preparation with oral neomycin plus oral erythromycin base or oral metronidazole."
+                    "For most patients, also give a mechanical bowel preparation, then oral neomycin plus oral erythromycin base or oral neomycin plus oral metronidazole (three doses over about 10 hours, the afternoon and evening before surgery)."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -21677,7 +21705,10 @@
                       ]
                     }
                   ],
-                  "star": true
+                  "star": true,
+                  "notes": [
+                    "The guideline says: “Clindamycin is a reasonable alternative in patients with a documented β-lactam allergy. The addition of an aminoglycoside to clindamycin may be appropriate when there is an increased likelihood of gram-negative contamination of the surgical site.”"
+                  ]
                 }
               }
             ]
@@ -21756,7 +21787,8 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says: “Clindamycin is a reasonable alternative in patients with a documented β-lactam allergy. The addition of an aminoglycoside to clindamycin may be appropriate when there is an increased likelihood of gram-negative contamination of the surgical site.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -21841,7 +21873,8 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says: “Clindamycin is a reasonable alternative in patients with a documented β-lactam allergy. The addition of an aminoglycoside to clindamycin may be appropriate when there is an increased likelihood of gram-negative contamination of the surgical site.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -22070,6 +22103,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "Periop Signal note: these agents are for other clean-contaminated procedures. For adenoidectomy or septoplasty the guideline says “antimicrobial prophylaxis did not lower infection risk in randomized controlled trials of patients undergoing adenoidectomy, tonsillectomy, and septoplasty, and systematic reviews have not recommended prophylaxis for these procedures.”"
                   ]
                 },
                 "allergy": {
@@ -22086,7 +22122,10 @@
                       ]
                     }
                   ],
-                  "star": true
+                  "star": true,
+                  "notes": [
+                    "Periop Signal note: these agents are for other clean-contaminated procedures. For adenoidectomy or septoplasty the guideline says “antimicrobial prophylaxis did not lower infection risk in randomized controlled trials of patients undergoing adenoidectomy, tonsillectomy, and septoplasty, and systematic reviews have not recommended prophylaxis for these procedures.”"
+                  ]
                 }
               }
             ]
@@ -22636,6 +22675,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "The guideline recommends prophylaxis for intrathecal pump placement (Table 2). It also says: “There are minimal published trial data regarding appropriate prophylaxis for intrathecal pump procedures. It has been suggested that prophylaxis for intrathecal pump procedures be managed similarly to prophylaxis for CSF-shunting procedures.”"
                   ]
                 },
                 "allergy": {
@@ -22661,7 +22703,10 @@
                       ]
                     }
                   ],
-                  "star": true
+                  "star": true,
+                  "notes": [
+                    "The guideline recommends prophylaxis for intrathecal pump placement (Table 2). It also says: “There are minimal published trial data regarding appropriate prophylaxis for intrathecal pump procedures. It has been suggested that prophylaxis for intrathecal pump procedures be managed similarly to prophylaxis for CSF-shunting procedures.”"
+                  ]
                 }
               }
             ]
@@ -22692,7 +22737,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline recommends prophylaxis for intrathecal pump placement (Table 2). It also says: “There are minimal published trial data regarding appropriate prophylaxis for intrathecal pump procedures. It has been suggested that prophylaxis for intrathecal pump procedures be managed similarly to prophylaxis for CSF-shunting procedures.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -22721,7 +22767,8 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline recommends prophylaxis for intrathecal pump placement (Table 2). It also says: “There are minimal published trial data regarding appropriate prophylaxis for intrathecal pump procedures. It has been suggested that prophylaxis for intrathecal pump procedures be managed similarly to prophylaxis for CSF-shunting procedures.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -22973,7 +23020,8 @@
                     }
                   ],
                   "notes": [
-                    "The guideline's recommendation is for vaginal or abdominal hysterectomy, using an open or laparoscopic approach. It says no placebo-controlled studies have been conducted to evaluate the efficacy of antimicrobial prophylaxis when used for laparoscopic hysterectomy."
+                    "The guideline's recommendation is for vaginal or abdominal hysterectomy, using an open or laparoscopic approach. It says no placebo-controlled studies have been conducted to evaluate the efficacy of antimicrobial prophylaxis when used for laparoscopic hysterectomy.",
+                    "If aztreonam is used, the guideline's background text says “aztreonam (with clindamycin only)”, for patients with a history of immediate hypersensitivity to penicillin; its recommendation paragraph lists aztreonam with either clindamycin or vancomycin."
                   ]
                 }
               }
@@ -23082,7 +23130,8 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
-                    "The guideline's recommendation is for vaginal or abdominal hysterectomy, using an open or laparoscopic approach. It says no placebo-controlled studies have been conducted to evaluate the efficacy of antimicrobial prophylaxis when used for laparoscopic hysterectomy."
+                    "The guideline's recommendation is for vaginal or abdominal hysterectomy, using an open or laparoscopic approach. It says no placebo-controlled studies have been conducted to evaluate the efficacy of antimicrobial prophylaxis when used for laparoscopic hysterectomy.",
+                    "If aztreonam is used, the guideline's background text says “aztreonam (with clindamycin only)”, for patients with a history of immediate hypersensitivity to penicillin; its recommendation paragraph lists aztreonam with either clindamycin or vancomycin."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -23189,7 +23238,8 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
-                    "The guideline's recommendation is for vaginal or abdominal hysterectomy, using an open or laparoscopic approach. It says no placebo-controlled studies have been conducted to evaluate the efficacy of antimicrobial prophylaxis when used for laparoscopic hysterectomy."
+                    "The guideline's recommendation is for vaginal or abdominal hysterectomy, using an open or laparoscopic approach. It says no placebo-controlled studies have been conducted to evaluate the efficacy of antimicrobial prophylaxis when used for laparoscopic hysterectomy.",
+                    "If aztreonam is used, the guideline's background text says “aztreonam (with clindamycin only)”, for patients with a history of immediate hypersensitivity to penicillin; its recommendation paragraph lists aztreonam with either clindamycin or vancomycin."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -23396,6 +23446,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ]
                 },
                 "allergy": {
@@ -23421,7 +23474,10 @@
                       ]
                     }
                   ],
-                  "star": true
+                  "star": true,
+                  "notes": [
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
+                  ]
                 }
               }
             ],
@@ -23475,7 +23531,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -23504,7 +23561,8 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -23541,7 +23599,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -23570,7 +23629,8 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -23608,7 +23668,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -23637,7 +23698,8 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -23673,7 +23735,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -23702,7 +23765,8 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says antimicrobial prophylaxis “is recommended due to the associated morbidity and assumed costs of SSIs,” despite “the lack of comparative studies evaluating prophylaxis for spinal procedures with and without instrumentation.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -23795,6 +23859,10 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ]
                 },
                 "allergy": {
@@ -23820,7 +23888,11 @@
                       ]
                     }
                   ],
-                  "star": true
+                  "star": true,
+                  "notes": [
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
+                  ]
                 }
               }
             ],
@@ -23874,7 +23946,9 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -23903,7 +23977,9 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -23940,7 +24016,9 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -23969,7 +24047,9 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -24007,7 +24087,9 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -24036,7 +24118,9 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -24073,7 +24157,9 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -24102,7 +24188,9 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "For open fractures, the guideline says available guidelines recommend handling prophylaxis in grade I and II “similarly to other clean orthopedic procedures”, and that grade III open fractures “are routinely managed with empirical antimicrobial treatment and surgical debridement, for which guidelines have been published separately.”",
+                    "The guideline's text recommends cefazolin for “hip fracture repair or other orthopedic procedures involving internal fixation” and grades it “Strength of evidence for prophylaxis = A.” Periop Signal note: Table 2, shown in this row, grades it C."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -25038,6 +25126,10 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "Applies only to heart transplant recipients with an active VAD driveline infection: the guideline says they “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
+                    "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
                   ]
                 },
                 "allergy": {
@@ -25063,7 +25155,11 @@
                       ]
                     }
                   ],
-                  "star": true
+                  "star": true,
+                  "notes": [
+                    "Applies only to heart transplant recipients with an active VAD driveline infection: the guideline says they “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
+                    "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
+                  ]
                 }
               }
             ],
@@ -25096,6 +25192,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
                   ]
                 },
                 "allergy": {
@@ -25121,7 +25220,10 @@
                       ]
                     }
                   ],
-                  "star": true
+                  "star": true,
+                  "notes": [
+                    "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
+                  ]
                 }
               }
             ],
@@ -25157,7 +25259,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -25186,7 +25289,8 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 }
@@ -25231,6 +25335,9 @@
                         }
                       ]
                     }
+                  ],
+                  "notes": [
+                    "The guideline says “For patients at high risk of Candida infection, fluconazole adjusted for renal function may be considered.” Its background says antifungal prophylaxis is “generally reserved for patients with two or more” risk factors, such as reoperation or renal failure."
                   ]
                 },
                 "allergy": {
@@ -25302,7 +25409,8 @@
                     }
                   ],
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "The guideline says “For patients at high risk of Candida infection, fluconazole adjusted for renal function may be considered.” Its background says antifungal prophylaxis is “generally reserved for patients with two or more” risk factors, such as reoperation or renal failure."
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -27158,7 +27266,11 @@
                 "evidence": "B",
                 "recommended": {
                   "text": "Topical neomycin–polymyxin B–gramicidin, or a fourth-generation topical fluoroquinolone (gatifloxacin or moxifloxacin), 1 drop every 5–15 min for 5 doses. Optional at the end of the procedure: cefazolin 100 mg subconjunctival, or intracameral cefazolin 1–2.5 mg or cefuroxime 1 mg",
-                  "kind": "text"
+                  "kind": "text",
+                  "notes": [
+                    "This is the guideline's Table 2 regimen. The guideline also says “Due to the lack of robust data from trials, specific recommendations cannot be made regarding choice, route, or duration of prophylaxis,” and that no agent is FDA-approved for this indication.",
+                    "The guideline says the topical agents are “given as one drop every 5–15 minutes for five doses within the hour before the start of the procedure”. It also says “Preoperative antisepsis with povidone–iodine is recommended, based on available evidence.”"
+                  ]
                 },
                 "allergy": {
                   "text": "None",
@@ -27196,7 +27308,9 @@
                   "text": "Topical neomycin–polymyxin B–gramicidin, or a fourth-generation topical fluoroquinolone (gatifloxacin or moxifloxacin), 1 drop every 5–15 min for 5 doses. Optional at the end of the procedure: cefazolin 100 mg subconjunctival, or intracameral cefazolin 1–2.5 mg or cefuroxime 1 mg",
                   "kind": "text",
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "This is the guideline's Table 2 regimen. The guideline also says “Due to the lack of robust data from trials, specific recommendations cannot be made regarding choice, route, or duration of prophylaxis,” and that no agent is FDA-approved for this indication.",
+                    "The guideline says the topical agents are “given as one drop every 5–15 minutes for five doses within the hour before the start of the procedure”. It also says “Preoperative antisepsis with povidone–iodine is recommended, based on available evidence.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
@@ -27231,7 +27345,9 @@
                   "text": "Topical neomycin–polymyxin B–gramicidin, or a fourth-generation topical fluoroquinolone (gatifloxacin or moxifloxacin), 1 drop every 5–15 min for 5 doses. Optional at the end of the procedure: cefazolin 100 mg subconjunctival, or intracameral cefazolin 1–2.5 mg or cefuroxime 1 mg",
                   "kind": "text",
                   "notes": [
-                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
+                    "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol.",
+                    "This is the guideline's Table 2 regimen. The guideline also says “Due to the lack of robust data from trials, specific recommendations cannot be made regarding choice, route, or duration of prophylaxis,” and that no agent is FDA-approved for this indication.",
+                    "The guideline says the topical agents are “given as one drop every 5–15 minutes for five doses within the hour before the start of the procedure”. It also says “Preoperative antisepsis with povidone–iodine is recommended, based on available evidence.”"
                   ],
                   "flag": "Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."
                 },
