@@ -33,7 +33,7 @@
    "impact": 2,
    "trialName": "",
    "firstAuthor": "Wang",
-   "title": "Opioid‐free vs. opioid‐inclusive anaesthesia in laparoscopic cholecystectomy: a multicentre randomised controlled trial",
+   "title": "Opioid‐free vs. opioid‐inclusive anaesthesia in laparoscopic cholecystectomy: a multicentre randomised controlled trial*",
    "glance": {
     "design": "Multicentre RCT, 3 academic hospitals in China, blinded patients and assessors",
     "n": "315 adults (ASA 1-3) having elective laparoscopic cholecystectomy",
@@ -56,6 +56,22 @@
     "seconds": 221,
     "bytes": 1765868,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Opioid‐free vs. opioid‐inclusive anaesthesia in laparoscopic cholecystectomy: a multicentre randomised controlled trial*",
+    "authors": [
+     "Wang D",
+     "Han L",
+     "Li Y",
+     "Hu J",
+     "Jin J",
+     "Guo W",
+     "Ji F",
+     "Peng K"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70462",
+    "year": 2026
    }
   },
   {
@@ -97,6 +113,25 @@
     "seconds": 171,
     "bytes": 1365548,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Anesthetic Technique and Hospital Length of Stay in Modern Transcatheter Aortic Valve Replacement: A Randomized Controlled Trial",
+    "authors": [
+     "Whitener GB",
+     "Francis LR",
+     "Steinberg TB",
+     "Whitener SK",
+     "Carroll DB",
+     "Wolf BJ",
+     "Pope NH",
+     "Amoroso NS",
+     "Zeigler SM",
+     "Katz MR",
+     "Steinberg DH"
+    ],
+    "journal": "Anesthesia &amp; Analgesia",
+    "doi": "10.1213/ane.0000000000008395",
+    "year": 2026
    }
   },
   {
@@ -148,6 +183,28 @@
     "seconds": 199,
     "bytes": 1595948,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Clinical practical advice for anaesthetic management of adults with congenital heart disease undergoing non-cardiac surgery: A clinical consensus statement of the ESC Working Group on Adult Congenital Heart Disease, the European Society of Anaesthesiology and Intensive Care, the European Association of Cardiothoracic Anaesthesiology and Intensive Care and the International Society of Adult Congenital Heart Disease",
+    "authors": [
+     "Dos-Subirà L",
+     "Rijs K",
+     "Ribas-Ball M",
+     "Brida M",
+     "Clift P",
+     "Diller G",
+     "Gatzoulis M",
+     "Heggie J",
+     "Longrois D",
+     "Meier S",
+     "Prieto-Arévalo R",
+     "Ranucci M"
+    ],
+    "journal": "European Heart Journal - Valvular and Structural Heart Disease",
+    "doi": "10.1093/ehjvshd/xwaf005",
+    "year": 2026,
+    "volume": "2",
+    "issue": "1"
    }
   },
   {
