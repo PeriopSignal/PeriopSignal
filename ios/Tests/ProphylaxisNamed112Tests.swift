@@ -3,9 +3,10 @@ import XCTest
 
 /// Ben, Nov 19: "How come no valve or aortic surgery options ... What if pt is coming for simple aortic valve repair? Please update
 /// this calculator to avoid confusion for all procedures." Each surgery group lists its operations by name, each following the
-/// guideline's table row its text puts it under; operations the guideline says need no routine prophylaxis are named too. Only what
-/// the guideline's own text names is here: an operation it does not name (a valve replacement, aortic surgery) still selects the group
-/// only, until Ben has approved the reading.
+/// guideline's table row its text puts it under; operations the guideline says need no routine prophylaxis are named too. Nov 23: Ben
+/// approved ("approve all") listing the operations the guideline does not name (a valve replacement, aortic surgery), each showing the
+/// result of the row it belongs with and flagged as Periop Signal's reading; these tests followed the data. The reading rows have their
+/// own tests in ProphylaxisReading115Tests.
 final class ProphylaxisNamed112Tests: XCTestCase {
 
     private var bundleFile: ReferenceBundle!
@@ -56,11 +57,19 @@ final class ProphylaxisNamed112Tests: XCTestCase {
         }
     }
 
-    func testAnOperationTheGuidelineDoesNotNameStillSelectsTheGroupOnly() throws {
-        // A valve replacement and aortic surgery are not named by the guideline's text: no row until the reading is approved.
-        for id in ["avr", "mvr", "bentall", "ascending-aorta", "tavr"] where ProcedureCatalog.byID(id) != nil {
+    func testAnOperationTheGuidelineDoesNotNameOpensItsRowSinceTheReadingWasApproved() throws {
+        // Before Nov 23 a valve replacement and aortic surgery selected the group only ("no row until the reading is approved").
+        // Ben approved it, so each opens a row of its own (a flagged reading, or for TAVR a text with no agents).
+        let rows: [String: String] = [
+            "avr": "x-valve-replacement-surgical-avr-mvr-t", "mvr": "x-valve-replacement-surgical-avr-mvr-t",
+            "bentall": "x-aortic-root-with-valve-bentall-ross", "ascending-aorta": "x-thoracic-aortic-surgery-without-valv",
+            "tavr": "x-tavr-and-other-transcatheter-valve-p",
+        ]
+        for (id, row) in rows {
+            XCTAssertNotNil(ProcedureCatalog.byID(id), id)
             let p = try prefill(id)
-            XCTAssertNil(p.procedure, id)
+            XCTAssertEqual(p.group, "cardiac", id)
+            XCTAssertEqual(p.procedure, row, id)
         }
     }
 
@@ -83,12 +92,16 @@ final class ProphylaxisNamed112Tests: XCTestCase {
     }
 
     func testEveryNamedOperationShowsTheAgentsOfTheRowItFollows() throws {
-        // Named operations share their row's result: the same table cell, the same evidence, the same agents.
+        // Named operations share their row's result: the same table cell, the same evidence, the same agents. Nov 23: an answer
+        // with no evidence grade is left out: the carotid "Patch or graft" answer shows the vascular agents with none by design
+        // (the guideline gives no data for it), and it is asserted here to be the only one.
         var byRow: [String: Set<String>] = [:]
+        var withoutEvidence: [String] = []
         for g in d.groups {
             for p in g.procedures {
                 for v in p.variants {
                     guard let table = v.table, let rec = v.recommended else { continue }
+                    if (v.evidence ?? "").isEmpty { withoutEvidence.append(g.id + "/" + p.id + "/" + v.id); continue }
                     let key = table.section + " / " + table.row
                     byRow[key, default: []].insert(rec.text + " | " + (v.allergy?.text ?? "") + " | " + (v.evidence ?? ""))
                 }
@@ -96,6 +109,7 @@ final class ProphylaxisNamed112Tests: XCTestCase {
         }
         for (row, results) in byRow { XCTAssertEqual(results.count, 1, row) }
         XCTAssertGreaterThan(byRow.count, 30)
+        XCTAssertEqual(withoutEvidence, ["vascular/carotid/patch"])
     }
 
     func testTheOtherGroupsNameTheirOperations() throws {
