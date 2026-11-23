@@ -929,6 +929,7 @@ enum PatientNote {
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
         out += [devicePlannedBefore, devicePlannedAfter, ivRoute, supportCue]
         out += [bareBlockerRx, blockerAloneRx, blockerContext, blockerThroughRx]
+        out += [addedDeviceCue, addedCapsCue, addedHistoryBefore, addedHistoryAfter]
         out += [deviceCue, tubeCue, deviceSettingCue, ecmoPart, countRx, tubeSkip, tubeGone, intubatedRx, intubatedPast, ventCue, vtRx,
                 ventRateRx, peepRx, psRx, fio2Rx, roomAirRx, ncRx, hfncRx, nrbRx, venturiRx, faceMaskRx, nivRx, trachCollarRx, onLitersRx,
                 flowRx, percentRx, homeRx, currentRx, breathingPast, satBefore]
@@ -2502,11 +2503,11 @@ enum PatientNote {
     static let lowerFollowChildOpening = NoteRx(#"^(?:[ \t]+for\b(?![ \t]+(?:\d|drainage|retention|decompression|access|irrigation|suction|relief|each|every|exercise|pain|now|the\b))|[ \t]*,|[ \t]*$)"#)
     /// "36m s/p DES" is three years on, not a 36-year-old; a tube or a line named after an f, before any "for", makes it French.
     static let lowerSpFollows = NoteRx(#"^[ \t]+(?:s/p|status post)\b"#)
-    static let lowerDeviceAfter = NoteRx(#"\b(?:tubes?|drains?|introducers?|sheaths?|cannulas?|catheters?|caths?|foley|picc|cordis|dlt|swan|lines?|pigtail|jp|blake|coude|3-way|trocar|ng|og|ett|trach|cvc|pleurx|malecot)\b"#)
+    static let lowerDeviceAfter = NoteRx(#"\b(?:tubes?|drains?|introducers?|sheaths?|cannulas?|catheters?|caths?|foley|picc|cordis|dlt|swan|lines?|pigtail|jp|blake|coude|3-way|trocar|ng|og|ett|trach|cvc|pleurx|malecot|peg|g-?tube|gj-?tube|j-?tube|dobb?hoff|keofeed|hemovac|penrose|nephrostomy|neph|flexi-?seal)\b"#)
     static let lowerForWord = NoteRx(#"\bfor\b"#)
     /// Before it in the clause: a device or a size (the number is French); and in the item before a comma-separated one, a
     /// time, a drug, a symptom or a temperature (the number is minutes, months, meters or degrees).
-    static let lowerDeviceBefore = NoteRx(#"\b(?:ecmo|impella|iabp|vad|chest tubes?|dlt|picc|cvc|cordis|foley|ng|og|turp|lhc|rhc|sheaths?|cannulas?|pigtail|introducer|swan|pac|trach|ett|tubes?|drains?|caths?|catheters?|french|fr|size|sizes|mt)\b"#)
+    static let lowerDeviceBefore = NoteRx(#"\b(?:ecmo|impella|iabp|vad|chest tubes?|dlt|picc|cvc|cordis|foley|ng|og|turp|lhc|rhc|sheaths?|cannulas?|pigtail|introducer|swan|pac|trach|ett|tubes?|drains?|caths?|catheters?|french|fr|size|sizes|mt|peg|g-?tube|gj-?tube|j-?tube|dobb?hoff|keofeed|hemovac|penrose|nephrostomy|neph|flexi-?seal|jp|blake)\b"#)
     static let lowerItemBefore = NoteRx(#"\b(?:cpb|bypass|clamp|x-?clamp|cross-?clamp|pump|apnea|arrest|tourniquet|duration|lasting|lasted|ischemi\w*|run|time|on|x|for|since|every|q|hypotherm\w*|hypertherm\w*|febrile|afebrile|fever|temp\w*|pain|cp|sob|dyspnea|syncope|seizure|cpr|tol|tolerance|claudication|walks?|nyha|dialysis|pacu|rewarm\w*|hiv)\b"#)
     /// An age written out in the forms `ageRx` does not read: "68 years of age", "pt is 68".
     static let ageOfAgeRx = NoteRx(#"\b\d{1,3}\s*(?:years?|yrs?)\s+of\s+age\b"#)
@@ -3303,7 +3304,28 @@ enum PatientNote {
 
     /// A line or device the diagram knows (PatientDevices.parse reads the phrase): "PIV x2 18G", "R radial A-line",
     /// "RIJ TLC", "PAC/Swan", "Cordis", "HD catheter", "IABP 1:1", "Impella CP P8", "HM3 LVAD", "VA ECMO".
-    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline|foley|suprapubic catheter|urinary catheter|cerebral (?:oximetry|oximeter|ox|oxygenation)|nirs|invos|fore-?sight|tee probe|tee in (?:place|situ)|transesophageal (?:echo )?probe|zoll pads?|(?:external )?defib(?:rillat(?:or|ion))?(?:/pac(?:er|ing))?[ -]pads?|r2 pads?|external (?:pacing )?pads?|multi-?function pads?|(?<!knee )(?<!heel )(?<!ecg )(?<!ekg )(?<!lap )(?<!gel )(?<!foam )(?<!arm )(?<!eye )(?<!abd )(?<!elbow )(?<!gauze )(?<!shoulder )(?<!nipple )pads on|sed ?-?line|processed eeg|bis monitor|bronchial blockers?|(?:ez|uni|cohen|arndt)[ -]?blockers?|univent)\b|(?-i:\bIO\b|\bBIS\b)"#)
+    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline|foley|suprapubic catheter|urinary catheter|cerebral (?:oximetry|oximeter|ox|oxygenation)|nirs|invos|fore-?sight|tee probe|tee in (?:place|situ)|transesophageal (?:echo )?probe|zoll pads?|(?:external )?defib(?:rillat(?:or|ion))?(?:/pac(?:er|ing))?[ -]pads?|r2 pads?|external (?:pacing )?pads?|multi-?function pads?|(?<!knee )(?<!heel )(?<!ecg )(?<!ekg )(?<!lap )(?<!gel )(?<!foam )(?<!arm )(?<!eye )(?<!abd )(?<!elbow )(?<!gauze )(?<!shoulder )(?<!nipple )pads on|sed ?-?line|processed eeg|bis monitor|bronchial blockers?|(?:ez|uni|cohen|arndt)[ -]?blockers?|univent|(?:\#(addedDeviceWords))(?!\#(addedProcedureAfter)))\b|(?-i:\bIO\b|\bBIS\b|\#(addedCapsWords)(?!\#(addedProcedureAfter)))"#)
+
+    /// 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this I may have missed"): the
+    /// words of the new devices, longest phrases first. Never a bare "drain", "shunt", "port" or "stent" (a drain is the ECMO role, a shunt
+    /// a heart defect, a port a lot of things, a stent a coronary or vascular one), and never "pcn" (an allergy) or a bare "jp".
+    static let addedDeviceWords = #"ng tube|nasogastric tube|og tube|orogastric tube|salem sump|dobb?hoff|keofeed|nasoenteric tube|nj tube|peg tube|gj[ -]?tube|g[ -]?tube|j[ -]?tube|gastrostomy tube|jejunostomy tube|feeding tube|mic[ -]?key|colostomy|ileostomy|urostomy|ostomy|ileal conduit|mucous fistula|rectal tube|flexi[ -]?seal|fecal management system|nephrostomy(?: tube)?|neph tube|ureteral stent|jj stent|double[ -]j stent|jp drain|jackson[ -]pratt(?: drain)?|blake drain|penrose(?: drain)?|hemovac(?: drain)?|t[ -]tube|biliary drain|ptc drain|percutaneous drain|perc drain|surgical drain|wound ?vac(?:uum)?|npwt|negative pressure dressing|pd catheter|peritoneal dialysis catheter|tenckhoff|evd|external ventricular drain|ventriculostomy|lumbar drain|spinal drain|csf drain|vp shunt|ventriculoperitoneal shunt|port[ -]?a[ -]?cath|mediport|chemo port|implanted port|power port|chest port|(?:intrathecal )?baclofen pump|intrathecal pump|pain pump|spinal cord stimulator|deep brain stimulator|vagal nerve stimulator|sacral nerve stimulator|interstim|insulin pump|omnipod|dexcom|glucose sensor|cgm|freestyle libre"#
+    /// An operation on the device, not the device: "ileostomy closure", "PEG insertion", "(PEG) insertion", "EVD placement", "lumbar drain for
+    /// TEVAR". The new words are not read as a device before one of these (a line that opens with the procedure stays a procedure).
+    static let addedProcedureAfter = #"(?i:(?:\s+(?:tube|drain|catheter|stent|shunt|vac|pump|stimulator))?\)?\s+(?:closure|reversal|takedown|take-down|creation|revision|placement|insertion|exchange|replacement|repair|reconstruction|removal|change|application)\b|\s+for\s+(?:an?\s+)?(?:tevar|evar|taa\w*|thoracoabdominal|aortic|aneurysm)\b)"#
+    /// The abbreviations read only in capitals (PEG is also polyethylene glycol: "PEG 3350", a bowel prep).
+    static let addedCapsWords = #"(?:\bPEG\b(?![ -]*(?:3350|electrolyte|prep|solution|lavage|asparaginase))|\bDBS\b|\bSCS\b|\bVNS\b)"#
+    /// The same words as phrases, with the abdominal quadrants: the words of a piece that the device reader keeps whole ("NG tube",
+    /// "right lower quadrant").
+    static let addedDeviceCue = NoteRx(#"\b(?:\#(addedDeviceWords)|(?:right|left) (?:upper|lower) quadrant)\b"#)
+    static let addedCapsCue = NoteRx(addedCapsWords, caseSensitive: true)
+    /// Words of a site that come with the new devices; kept in a piece that names one of them ("L flank", "RLQ").
+    static let addedSiteWords: Set<String> = ["ruq", "luq", "rlq", "llq", "flank", "frontal", "groin", "neck", "abdomen", "abdominal", "sternum", "sternal",
+                                              "perineum", "perineal", "quadrant"]
+    /// A colostomy, PEG or shunt named as history, not as a device in place: "s/p colostomy 2019", "history of PEG", "colostomy reversed".
+    /// Surgical history is not read as a device (1.15).
+    static let addedHistoryBefore = NoteRx(#"\b(?:s/p|status post|history of|h/o|hx of|hx|prior|previous(?:ly)?|remote|reversal of|takedown of|removal of|removed|pulled)\b[^.;,]{0,25}$"#)
+    static let addedHistoryAfter = NoteRx(#"^\s*(?:\(?\s*(?:19|20)\d\d\s*\)?|(?:was |were |had been )?(?:removed|reversed|pulled|taken down|takedown|reversal)\b|in (?:19|20)\d\d\b|\d+\s*(?:years?|yrs?|months?|mos?) ago\b)"#)
     /// A bare "blocker" or "Arndt": the bronchial blocker only when the sentence is about the airway (a "beta blocker" is a drug,
     /// "Arndt" a name), never beside a drug class.
     static let bareBlockerRx = NoteRx(#"(?<![\w-])(?<!beta )(?<!channel )(?<!alpha )(?<!receptor )(?<!h2 )(?<!nerve )(?<!neuromuscular )(?<!node )(?<!selective )(?<!ace )(?<!arb )(?<!adrenergic )(?<!histamine )(?<!\d )(?:blockers?|arndt)\b"#)
@@ -3475,6 +3497,11 @@ enum PatientNote {
             guard let p = PatientDevices.parseMonitor(words, keepLeftovers: false) ?? PatientDevices.parse(deviceWords(words)),
                   p.confidence >= 0.35, p.kind != .other,
                   PatientDevice.lineKinds.contains(p.kind) || PatientDevice.supportKinds.contains(p.kind) else { continue }
+            // 1.15: a colostomy, PEG, shunt or the like named as surgical history ("s/p colostomy 2019") is not a device in place.
+            if DeviceKind.added115.contains(p.kind), addedHistoryBefore.first(before) != nil || addedHistoryAfter.first(after) != nil {
+                h.seen(target)
+                continue
+            }
             // A peripheral IV only with a gauge, a site, a count or the word PIV ("1 L IV" is a volume).
             if p.kind == .piv, !p.size.isEmpty, !["14", "16", "18", "20", "22", "24"].contains(p.size) { continue }
             if p.kind == .piv, p.size.isEmpty, (p.site ?? "").isEmpty, count < 2,
@@ -3536,10 +3563,17 @@ enum PatientNote {
     /// The words of a phrase the device parser reads; the rest ("pt has", "placed yesterday") would only lower its
     /// confidence and end up in the device's detail.
     private static func deviceWords(_ text: String) -> String {
+        // 1.15: the words of a new device's name ("NG tube", "peg tube", "right lower quadrant") pass whole, and with one of them in the
+        // piece so do the words of its site ("L flank", "RLQ"); without one the vocabulary below is all that passes, as before.
+        let named = addedDeviceCue.all(text).map(\.range) + addedCapsCue.all(text).map(\.range)
+        let ns = text as NSString
         var out: [String] = []
-        for raw in text.split(whereSeparator: { $0.isWhitespace }) {
-            let w = raw.trimmingCharacters(in: CharacterSet(charactersIn: ".,;:()[]\"'"))
-            if !w.isEmpty, isDeviceWord(w) { out.append(w) }
+        guard let words = try? NSRegularExpression(pattern: #"\S+"#) else { return "" }
+        for m in words.matches(in: text, range: NSRange(location: 0, length: ns.length)) {
+            let w = ns.substring(with: m.range).trimmingCharacters(in: CharacterSet(charactersIn: ".,;:()[]\"'"))
+            if w.isEmpty { continue }
+            let inName = named.contains { NSIntersectionRange($0, m.range).length > 0 }
+            if isDeviceWord(w) || inName || (!named.isEmpty && addedSiteWords.contains(w.lowercased())) { out.append(w) }
         }
         return out.joined(separator: " ")
     }

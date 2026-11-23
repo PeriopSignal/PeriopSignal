@@ -55,11 +55,14 @@ final class PatientDiagram19Tests: XCTestCase {
         let lPocket = try XCTUnwrap(DeviceSite.site(id: "generator-left"))
         XCTAssertLessThan(rPocket.anchor.x, 0.5)
         XCTAssertGreaterThan(lPocket.anchor.x, 0.5)
-        XCTAssertEqual(rPocket.kinds, [.cied])
+        // 1.15 (Ben, Nov 23: a port is right or left chest, a nerve stimulator's generator chest or abdomen): the pocket site holds a port and a
+        // stimulator as well; the pacemaker or ICD stays first.
+        XCTAssertEqual(rPocket.kinds, [.cied, .port, .neurostimulator])
         let block = try XCTUnwrap(DeviceSite.site(id: "infraclavicular-right"))
         XCTAssertGreaterThan(rPocket.distance(to: block.anchor), 6, "the pocket is its own place, not the block site")
         XCTAssertFalse(block.kinds.contains(.cied))
-        XCTAssertEqual(DeviceSite.site(id: "lateral-chest-left")?.kinds, [.chestTube])
+        // 1.15 (Ben, Nov 23): a surgical drain goes through the lateral chest wall too; the chest tube stays first.
+        XCTAssertEqual(DeviceSite.site(id: "lateral-chest-left")?.kinds, [.chestTube, .surgicalDrain])
         XCTAssertEqual(DeviceSite.site(id: "lateral-chest-right")?.region, "chest")
         // Fistulas at the wrist, forearm, upper arm; catheters at the IJ, subclavian and femoral vein.
         for base in ["wrist", "forearm", "upper-arm"] {

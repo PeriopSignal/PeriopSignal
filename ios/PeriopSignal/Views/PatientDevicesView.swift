@@ -75,7 +75,36 @@ enum PatientDiagramModel {
             let t = d.detail.lowercased()
             return t == "bis" ? "BIS" : (t == "sedline" ? "SedLine" : "BIS/SedLine")
         case .bronchialBlocker: return "Blocker" + (d.blockerSide.map { $0 == "left" ? " L" : " R" } ?? "")
-        default: return d.kind.label + size
+        default: return addedTag(d, size) ?? d.kind.label + size
+        }
+    }
+
+    /// 1.15: the tags of the new tubes, drains and implanted devices, in the label column's 15 characters ("NG tube 16Fr", "PEG 20Fr",
+    /// "Colostomy", "JP drain", "SCS"). The type picks the words; a drain's size is left to the list and the handoff.
+    private static func addedTag(_ d: PatientDevice, _ size: String) -> String? {
+        let type = d.detail.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        switch d.kind {
+        case .gastricTube: return (["ng": "NG tube", "og": "OG tube", "dobhoff": "Dobhoff"][type] ?? "NG/OG tube") + size
+        case .feedingTube: return (["peg": "PEG", "g-tube": "G-tube", "gj-tube": "GJ-tube", "j-tube": "J-tube"][type] ?? "PEG/G-tube") + size
+        case .ostomy: return ["colostomy": "Colostomy", "ileostomy": "Ileostomy", "urostomy": "Urostomy", "mucous fistula": "Mucous fistula"][type] ?? "Ostomy"
+        case .rectalTube: return "Rectal tube"
+        case .nephrostomy: return "Neph tube" + size
+        case .ureteralStent: return "Ureteral stent"
+        case .surgicalDrain:
+            return ["jp": "JP drain", "blake": "Blake drain", "penrose": "Penrose", "hemovac": "Hemovac", "biliary (t-tube)": "Biliary drain",
+                    "percutaneous": "Perc drain"][type] ?? "Drain"
+        case .woundVac: return "Wound vac"
+        case .pdCatheter: return "PD cath"
+        case .evd: return "EVD"
+        case .lumbarDrain: return "Lumbar drain"
+        case .vpShunt: return "VP shunt"
+        case .port: return "Port"
+        case .intrathecalPump: return "IT pump"
+        case .neurostimulator:
+            return ["spinal cord stimulator": "SCS", "deep brain stimulator": "DBS", "vagal nerve stimulator": "VNS",
+                    "sacral nerve stimulator": "SNS"][type] ?? "Stimulator"
+        case .insulinPump: return type == "glucose sensor" ? "CGM" : "Insulin pump"
+        default: return nil
         }
     }
 
@@ -229,6 +258,26 @@ enum PatientDiagramModel {
                 }
             case .teeProbe, .bronchialBlocker:
                 item.marker = .dot
+            // 1.15 (Ben, Nov 23: "Draw them"): in the style each colour role already has. The tubes, drains and the wound vac are dots
+            // in the drain brown, a feeding tube goes in and down from the abdominal wall as a chest tube does, an ostomy is the small
+            // ring the tracheostomy has, a port is a central line to the SVC, the implanted generators are the can the pacemaker
+            // has and the rest are dots or squares in the monitors' olive. A flank or lumbar mark is a back site, drawn at its height.
+            case .gastricTube, .rectalTube, .nephrostomy, .surgicalDrain, .woundVac, .pdCatheter, .evd, .lumbarDrain, .vpShunt, .ureteralStent:
+                item.marker = .dot
+            case .feedingTube:
+                item.marker = .dot
+                item.course = [CGPoint(x: a.x + (left ? 8 : -8), y: a.y + 8)]
+                item.width = 2.4
+            case .ostomy:
+                item.marker = .stoma
+            case .port:
+                item.marker = .dot
+                item.course = [svc]
+                item.width = 2
+            case .intrathecalPump, .neurostimulator:
+                item.marker = .generator
+            case .insulinPump:
+                item.marker = .square
             case .processedEEG:
                 item.marker = .square
             case .defibPads:
@@ -552,6 +601,14 @@ struct PatientDevicesEditor: View {
             if LaunchSeed.bool("ps.devices.picker"), !supportOnly {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { showPicker = true }
             }
+            // 1.15: -ps.devices.add ostomy (or feedingTube:J-tube) adds that kind (with its type) and opens its details.
+            let addSeed = LaunchSeed.string("ps.devices.add")
+            if !addSeed.isEmpty, !supportOnly {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    let parts = addSeed.split(separator: ":", maxSplits: 1).map(String.init)
+                    if let k = DeviceKind(rawValue: parts[0]) { addKind(k, detail: parts.count > 1 ? parts[1] : "") }
+                }
+            }
             if LaunchSeed.bool("ps.devices.dlt"), !supportOnly {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                     var d = PatientDevice(kind: .ett, site: "mouth", size: "37", detail: "Left DLT", placedIntraop: placedIntraop)
@@ -566,7 +623,7 @@ struct PatientDevicesEditor: View {
             pickedEntry = nil
             choose(e)
         }) {
-            // Full height: the seven groups and their 26 rows are the point of the list, so it opens showing as many as fit.
+            // Full height: the eleven groups and their 43 rows are the point of the list (1.15 added the Access, GI, Urinary, Drains and Neuro groups), so it opens showing as many as fit.
             DeviceTypePicker { pickedEntry = $0 }
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
@@ -688,16 +745,19 @@ struct PatientDevicesEditor: View {
         if e.kind == .ett, !e.detail.isEmpty {
             dltDraft = PatientDevice(kind: .ett, site: "mouth", detail: e.detail, placedIntraop: placedIntraop)
         } else {
-            addKind(e.kind)
+            // 1.15: "J-tube" is a feeding tube that starts with its type.
+            addKind(e.kind, detail: e.detail)
         }
     }
 
-    private func addKind(_ k: DeviceKind, open: Bool = true) {
-        // A generator is most often on the left (1.9); the side of anything else is a guess the clinician moves.
-        let site = PatientDevices.defaultSite(for: k).flatMap { def in
-            DeviceSite.find(def.site, side: DeviceSite.isPaired(def.site) ? (k == .cied ? "left" : "right") : nil)
+    /// `detail`: the type the device starts with (the J-tube row's "J-tube"). A generator is most often on the left (1.9), a feeding tube
+    /// in the left upper abdomen and an ostomy on the side its type says (1.15); the side of anything else is a guess the clinician moves.
+    private func addKind(_ k: DeviceKind, detail: String = "", open: Bool = true) {
+        let site = PatientDevices.defaultSite(for: k, type: detail).flatMap { def in
+            DeviceSite.find(def.site, side: DeviceSite.isPaired(def.site)
+                                ? (PatientDevices.defaultSide(for: k, type: detail) ?? (k == .cied ? "left" : "right")) : nil)
         }
-        add([PatientDevice(kind: k, site: site?.id ?? "", side: site?.side, settings: k.defaultSettings, placedIntraop: placedIntraop)], open: open)
+        add([PatientDevice(kind: k, site: site?.id ?? "", side: site?.side, detail: detail, settings: k.defaultSettings, placedIntraop: placedIntraop)], open: open)
     }
 
     // MARK: Mechanical support
@@ -1100,13 +1160,14 @@ struct DeviceDetailSheet: View {
 // MARK: - The grouped type picker (1.12)
 
 /// The list behind "Other": every kind the buttons do not offer, under short headings (Airway, Monitors, Pacing & pads, Support,
-/// Regional, Access & drains, Other), so a clinician finds a thing by what it is. A row adds its device and closes the list.
+/// Regional, Access, GI, Urinary, Drains, Neuro, Other), so a clinician finds a thing by what it is. A row adds its device and closes the list.
 struct DeviceTypePicker: View {
     var onPick: (DevicePickerEntry) -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             List {
                 ForEach(DeviceKind.pickerGroups) { group in
                     Section {
@@ -1132,6 +1193,16 @@ struct DeviceTypePicker: View {
             }
             .scrollContentBackground(.hidden)
             .background(FeedBackground())
+            .onAppear {
+                #if DEBUG
+                // 1.15: -ps.devices.picker.scroll "GI" scrolls the list to the start of that group, for the screenshots.
+                let g = LaunchSeed.string("ps.devices.picker.scroll")
+                if let first = DeviceKind.pickerGroups.first(where: { $0.title == g })?.entries.first {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { proxy.scrollTo(first.id, anchor: .top) }
+                }
+                #endif
+            }
+            }
             .navigationTitle("Add a device")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Cancel") { dismiss() }.tint(PS.action) } }
