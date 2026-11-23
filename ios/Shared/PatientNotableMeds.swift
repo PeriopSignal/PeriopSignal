@@ -4,7 +4,9 @@ import Foundation
 //
 // The Intraoperative tab's "Antibiotics & Notable Medications" row and its page. The chips are the drugs Ben named,
 // each with an optional dose typed beside it once chosen: Milrinone bolus, Inhaled milrinone, TXA, Amicar (aminocaproic
-// acid), PCC (Kcentra), Fibrinogen concentrate, Factor VIIa (NovoSeven), Cyanokit (hydroxocobalamin), Methylene blue.
+// acid), PCC (Kcentra), Fibrinogen concentrate, Factor VIIa (NovoSeven), Cyanokit (hydroxocobalamin), Methylene blue, and
+// (Ben, Nov 23: "add methadone to notable intraop meds") Methadone, last in the list. Methadone on the home medication list
+// (MedicationCatalogData) is a different thing and is not touched.
 // No default dose and no dose suggestion anywhere: what is printed is what was typed. A milrinone bolus or inhaled
 // milrinone is NOT an infusion and never goes to the infusion list; dobutamine is an infusion only (no chip).
 //
@@ -48,6 +50,8 @@ struct PatientNotableMeds: Codable, Hashable {
         Option("factorVIIa", "Factor VIIa", full: "Factor VIIa (NovoSeven)"),
         Option("cyanokit", "Cyanokit", full: "Cyanokit (hydroxocobalamin)"),
         Option("methyleneBlue", "Methylene blue"),
+        // Ben, Nov 23: "add methadone to notable intraop meds". Like the others: no default dose, no dose suggestion.
+        Option("methadone", "Methadone"),
     ]
 
     static func option(_ id: String) -> Option? { options.first { $0.id == id } }

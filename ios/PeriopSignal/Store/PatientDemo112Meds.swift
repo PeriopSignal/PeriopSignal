@@ -7,6 +7,7 @@ import Foundation
 ///     antibiotic, the cardiovascular medications and the rest.
 ///   demo-112-meds-abx: the Intraoperative row and page: Case Timers' antibiotics (cefazolin on time, vancomycin with no
 ///     routine redose), notable medication chips with doses typed beside them, and free text.
+///   demo-112-methadone: the same page with the Methadone chip chosen and a dose typed beside it (Ben, Nov 23), shots 1430-1439.
 ///   demo-112-meds-overdue: the same with the cefazolin redose overdue (red).
 ///   demo-112-meds-deleted: a preop drip taken off the case's list in the room: gone from the handoff's infusions, still
 ///     in the Preprocedure Summary and the preop box.
@@ -17,6 +18,7 @@ enum PatientDemo112Meds {
         case "demo-112-meds-abx": return intraop(cefazolinGivenMinutesAgo: 40)
         case "demo-112-meds-overdue": return intraop(cefazolinGivenMinutesAgo: 300)
         case "demo-112-meds-deleted": return deleted
+        case "demo-112-methadone": return methadone
         default: return nil
         }
     }
@@ -50,6 +52,15 @@ enum PatientDemo112Meds {
         r.notableMeds.toggle("methyleneBlue")
         r.medsGiven = "Methylprednisolone 500 mg"
         r.airwayAtEnd = "intubated"
+        return r
+    }
+
+    /// Ben, Nov 23 ("add methadone to notable intraop meds"): Methadone chosen with a dose typed beside it, among another chip.
+    private static var methadone: PatientRecord {
+        var r = base()
+        r.notableMeds.toggle("txa"); r.notableMeds.setDose("txa", "1 g")
+        r.notableMeds.toggle("methadone"); r.notableMeds.setDose("methadone", "10 mg")
+        r.medsGiven = "Methylprednisolone 500 mg"
         return r
     }
 
