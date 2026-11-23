@@ -1076,7 +1076,7 @@ jobs:
           shot 1210-proph-biliary-high-light 14 -ps.ref prophylaxis -ps.proph.group biliary -ps.proph.procedure lap -ps.proph.variant high -ps.proph.weight 90 -ps.forceAppearance light
           shot 1211-proph-gastro-not-high-light 14 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure no-entry -ps.proph.variant not-high -ps.proph.weight 90 -ps.forceAppearance light
           shot 1212-proph-liver-transplant-light 14 -ps.ref prophylaxis -ps.proph.group transplant -ps.proph.procedure liver -ps.proph.weight 90 -ps.forceAppearance light
-          shot 1213-proph-ophthalmic-light 14 -ps.ref prophylaxis -ps.proph.group ophthalmic -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1213-proph-ophthalmic-light 14 -ps.ref prophylaxis -ps.proph.group ophthalmic -ps.proph.procedure ophthalmic -ps.proph.weight 90 -ps.forceAppearance light
           shot 1214-proph-info-about-light 14 -ps.ref prophylaxis -ps.proph.info about -ps.forceAppearance light
           shot 1215-proph-info-allergy-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.info allergy -ps.forceAppearance light
           shot 1216-proph-info-mrsa-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.info mrsa -ps.forceAppearance light
@@ -1099,7 +1099,7 @@ jobs:
           shot 1233-proph-full-table-light 16 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.proph.table 1 -ps.forceAppearance light
           shot 1234-proph-case-prefilled-dark 22 -ps.tab patient -ps.patient demo-112-proph-cabg -ps.patient.open prophylaxis -ps.forceAppearance dark
           shot 1235-proph-cabg-90-dark 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.weight 90 -ps.forceAppearance dark
-          shot 1236-proph-ophthalmic-allergy-light 14 -ps.ref prophylaxis -ps.proph.group ophthalmic -ps.proph.allergy 1 -ps.proph.weight 90 -ps.forceAppearance light
+          shot 1236-proph-ophthalmic-allergy-light 14 -ps.ref prophylaxis -ps.proph.group ophthalmic -ps.proph.procedure ophthalmic -ps.proph.allergy 1 -ps.proph.weight 90 -ps.forceAppearance light
           shot 1237-proph-appendectomy-question-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.weight 90 -ps.forceAppearance light
           shot 1238-proph-appendectomy-complicated-light 14 -ps.ref prophylaxis -ps.proph.group lowergi -ps.proph.procedure appendectomy -ps.proph.variant complicated -ps.proph.weight 90 -ps.forceAppearance light
           shot 1239-proph-weight-outside-light 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure cabg -ps.proph.allergy 1 -ps.proph.weight 9 -ps.forceAppearance light
@@ -1419,6 +1419,34 @@ jobs:
           shot 1359-mcs-lvad-table-verify-light 18 -ps.ref mcs -ps.mcs.device lvad -ps.mcs.table 1 -ps.forceAppearance light
           shot 1360-mcs-lvad-dark-375 18 -ps.ref mcs -ps.mcs.device lvad -ps.patient.width 375 -ps.forceAppearance dark
           shot 1361-mcs-lvad-large-text-dark-375 18 -ps.ref mcs -ps.mcs.device lvad -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 1410-proph-reading-valve-light-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure x-valve-replacement-surgical-avr-mvr-t -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1411-proph-reading-valve-dark-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure x-valve-replacement-surgical-avr-mvr-t -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1412-proph-reading-valve-large-text 16 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure x-valve-replacement-surgical-avr-mvr-t -ps.proph.weight 90 -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1413-proph-reading-notelink-light-375 14 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure x-revisional-bariatric-surgery -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1414-proph-reading-notelink-dark-375 14 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure x-revisional-bariatric-surgery -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1415-proph-reading-notelink-large-text 16 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure x-revisional-bariatric-surgery -ps.proph.weight 90 -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1416-proph-reading-notelink-info-light-375 14 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure x-revisional-bariatric-surgery -ps.proph.weight 90 -ps.proph.info result -ps.patient.width 375 -ps.forceAppearance light
+          shot 1417-proph-reading-notelink-info-dark-375 14 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure x-revisional-bariatric-surgery -ps.proph.weight 90 -ps.proph.info result -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1418-proph-reading-notelink-info-large-text 16 -ps.ref prophylaxis -ps.proph.group gastroduodenal -ps.proph.procedure x-revisional-bariatric-surgery -ps.proph.weight 90 -ps.proph.info result -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1419-proph-reading-two-notes-light-375 14 -ps.ref prophylaxis -ps.proph.group transplant -ps.proph.procedure x-pancreas-after-kidney-transplant -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1420-proph-reading-two-notes-info-light-375 14 -ps.ref prophylaxis -ps.proph.group transplant -ps.proph.procedure x-pancreas-after-kidney-transplant -ps.proph.weight 90 -ps.proph.info result -ps.patient.width 375 -ps.forceAppearance light
+          shot 1421-proph-carotid-question-light-375 14 -ps.ref prophylaxis -ps.proph.group vascular -ps.proph.procedure carotid -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1422-proph-carotid-patch-light-375 14 -ps.ref prophylaxis -ps.proph.group vascular -ps.proph.procedure carotid -ps.proph.variant patch -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1423-proph-carotid-none-light-375 14 -ps.ref prophylaxis -ps.proph.group vascular -ps.proph.procedure carotid -ps.proph.variant none -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1424-proph-tavr-light-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.procedure x-tavr-and-other-transcatheter-valve-p -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1425-proph-biliary-list-notlisted-light-375 14 -ps.ref prophylaxis -ps.proph.group biliary -ps.proph.weight 90 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1426-proph-case-notlisted-light-375 22 -ps.tab patient -ps.patient demo-112-proph-notlisted -ps.patient.open prophylaxis -ps.patient.width 375 -ps.forceAppearance light
+          shot 1427-proph-cardiac-list-top-light-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.patient.width 375 -ps.forceAppearance light
+          shot 1428-proph-cardiac-list-end-light-375 14 -ps.ref prophylaxis -ps.proph.group cardiac -ps.proph.scroll bottom -ps.patient.width 375 -ps.forceAppearance light
+          shot 1429-proph-case-notlisted-dark-375 22 -ps.tab patient -ps.patient demo-112-proph-notlisted -ps.patient.open prophylaxis -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1430-methadone-page-light-375 18 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1431-methadone-page-dark-375 18 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1432-methadone-page-large-text-375-light 18 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.open intraop:meds -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1433-methadone-page-large-text-375-dark 18 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.open intraop:meds -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 1434-methadone-intraop-row-light-375 20 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1435-methadone-intraop-row-dark-375 20 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1436-methadone-handoff-full-light 16 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1437-methadone-handoff-short-light 16 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance light
           #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
