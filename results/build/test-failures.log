@@ -1,2 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:202: error: -[PeriopSignalTests.ProphylaxisReading115Tests testTextOnlyAndNoProphylaxisResultsKeepTheirTextVisible] : XCTAssertTrue failed
-Test Case '-[PeriopSignalTests.ProphylaxisReading115Tests testTextOnlyAndNoProphylaxisResultsKeepTheirTextVisible]' failed (4.826 seconds).
