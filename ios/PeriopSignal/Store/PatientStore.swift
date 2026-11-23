@@ -34,6 +34,9 @@ final class PatientStore {
     private(set) var loaded = false
     /// The current case has a change to undo (the Undo buttons show).
     private(set) var canUndo = false
+    /// How many times the current case's patient was replaced in place (Clear, a patient received from a colleague, and the
+    /// Undo of each). Not saved. With the current case's id it says which patient a calculator was filled for (CaseScope).
+    private(set) var patientEpoch = 0
 
     private let url: URL?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
@@ -48,6 +51,7 @@ final class PatientStore {
         #if DEBUG
         if let seed = PatientStore.debugCases() {
             self.init(url: nil, seed: seed)
+            scheduleDebugCaseSwitch()
             return
         }
         #endif
@@ -147,6 +151,7 @@ final class PatientStore {
         replaced = record.isEmpty ? nil : record
         cleared = nil
         record = r
+        patientEpoch += 1
         syncUndo()
         scheduleSave(immediately: true)
     }
@@ -155,6 +160,7 @@ final class PatientStore {
         guard let p = replaced else { return }
         if history.top(book.currentID) == p { _ = history.pop(book.currentID) }
         record = p
+        patientEpoch += 1
         replaced = nil
         syncUndo()
         scheduleSave(immediately: true)
@@ -167,6 +173,7 @@ final class PatientStore {
         cleared = record
         replaced = nil
         record = PatientRecord()
+        patientEpoch += 1
         syncUndo()
         dirty = true
         write()
@@ -176,6 +183,7 @@ final class PatientStore {
         guard let c = cleared else { return }
         if history.top(book.currentID) == c { _ = history.pop(book.currentID) }
         record = c
+        patientEpoch += 1
         cleared = nil
         syncUndo()
         scheduleSave(immediately: true)

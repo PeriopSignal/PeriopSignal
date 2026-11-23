@@ -62,6 +62,11 @@ struct ObEmergencyView: View {
                 Button("Done") { Keyboard.dismiss() }
             }
         }
+        // Ben, Nov 23: another case becomes current: the mother's weight and the newborn's go (the mother's is the new case's, when
+        // it has one and is a woman's). The ticked steps and the arrest clock stay: a running event is not undone by a switch.
+        .onCaseChange {
+            weights = ["": myPatient.sex == .female ? CaseScope.weightText(myPatient.weightKg) : "", "newborn": ""]
+        }
     }
 
     private func doneCount(_ ev: ObEvent) -> Int { (done[ev.id] ?? [:]).values.reduce(0) { $0 + $1.count } }
@@ -170,6 +175,7 @@ struct ObEmergencyView: View {
                             prompt: wf?.prompt ?? WeightField.perKgPrompt,
                             title: wf?.title ?? "Patient Weight",
                             patientWeight: key.isEmpty && myPatient.sex == .female ? myPatient.weightKg : nil)
+                    .caseScoped()
             }
             if tooHigh {
                 Label(wf?.maxText ?? "Check the weight.", systemImage: "exclamationmark.triangle.fill")

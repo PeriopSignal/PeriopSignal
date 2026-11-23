@@ -275,10 +275,18 @@ struct SurgicalProphylaxisView: View {
             Button("Start") { confirmStart() }
             Button("Cancel", role: .cancel) { pending = nil }
         } message: {
-            Text(pending.map { ProphylaxisEngine.startMessage(hasRedose: $0.hasRedose) } ?? "")
+            Text(startMessageText)
         }
         .onAppear(perform: setUp)
         .onChange(of: refs.prophylaxis != nil) { _, _ in setUp() }
+    }
+
+    /// The Start question's message; with more than one case it ends with the case the dose is logged in (Ben, Nov 23).
+    private var startMessageText: String {
+        guard let p = pending else { return "" }
+        let message = ProphylaxisEngine.startMessage(hasRedose: p.hasRedose)
+        guard let target = CaseScope.writeCaption("In", in: myPatient.book) else { return message }
+        return message + " " + target + "."
     }
 
     private var pendingBinding: Binding<Bool> {
@@ -438,7 +446,8 @@ struct SurgicalProphylaxisView: View {
     }
 
     private func captionText(_ s: String) -> some View {
-        Text(s).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+        // Ben, Nov 23: with more than one case, "From the case: ..." names the case ("From OR 12: ...").
+        Text(CaseScope.named(s, lead: ProphylaxisEngine.captionLead, in: myPatient.book)).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder private func surgeryBlock(_ data: ProphylaxisData) -> some View {
@@ -579,7 +588,7 @@ struct SurgicalProphylaxisView: View {
                     Spacer(minLength: 8)
                     if let w = r.weightKg, w > 0 {
                         Text(NumText.short(w) + " kg").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                        Text("From the case").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                        Text(CaseScope.fromCaption("From the case", in: myPatient.book)).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
                     } else {
                         Text("Not recorded in the case").font(PS.sys(size: 13.5, weight: .medium)).foregroundStyle(PS.fg2)
                     }
@@ -672,6 +681,8 @@ struct SurgicalProphylaxisView: View {
             // The headline is the card's title (titleText).
             notesLink(a)
         case .regimens:
+            // Ben, Nov 23: with more than one case, the case a Start below logs its dose in.
+            if canStartHere { CaseWriteCaption(lead: "Start logs a dose in") }
             // What changes how every dose below is read comes first.
             if let weightLine = a.weightLine { leadLine(weightLine) }
             if let childLine = a.childLine { leadLine(childLine) }

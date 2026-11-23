@@ -212,6 +212,8 @@ struct TeeCompanionView: View {
                         handedOff = (before, patient.record)
                     } label: { Label("Add a draft to My Patient", systemImage: "square.and.arrow.down") }
                     .buttonStyle(GhostButtonStyle())
+                    // Ben, Nov 23: with more than one case, the case the draft goes to.
+                    CaseWriteCaption(lead: "Adds to")
                     if let n = d.handoff?.note { InfoCaptionText(text: n, font: PS.sys(size: 12)) }
                 }
             }
