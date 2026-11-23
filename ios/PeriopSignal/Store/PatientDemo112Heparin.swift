@@ -54,7 +54,7 @@ enum PatientDemo112Heparin {
         h.acts.append(TimedEntry(time: ago(34), value: 468))
         h.doses.append(TimedEntry(time: ago(32), value: 5000))
         h.acts.append(TimedEntry(time: ago(9), value: 545))
-        h.bypassOn = ago(50)
+        h.bypassRuns = [BypassRun(start: ago(50))]
         if reminderOn { h.actStart = ago(62) } else { h.actOff = true }
         r.timers.heparin = h
         return r
@@ -95,7 +95,7 @@ enum PatientDemo112Heparin {
 
     private static func protamine() -> PatientRecord {
         var r = bypass()
-        r.timers.heparin?.bypassOff = Date().addingTimeInterval(-8 * 60)
+        r.timers.heparin?.endRun(.bypass, at: Date().addingTimeInterval(-8 * 60))
         r.timers.heparin?.protamine = [TimedEntry(time: Date().addingTimeInterval(-4 * 60), value: 150)]
         return r
     }
