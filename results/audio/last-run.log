@@ -1,3 +1,9 @@
-1 post(s) to synthesize with kokoro:af_heart
-  ats-2026-postoperative-delirium-cardiac-surgery-consensus: 192 s, 1502 KB, 52 s to make
-synthesized 1, failed 0, 2747 characters, 1 min
+[0;93m2026-11-23 09:09:22.269149844 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+6 post(s) to synthesize with kokoro:af_heart
+  anaesthesia-2026-ofa-laparoscopic-cholecystectomy-obas: 221 s, 1724 KB, 85 s to make
+  aa-2026-tavr-mac-vs-general-anesthesia-length-of-stay: 171 s, 1333 KB, 65 s to make
+  ehjvshd-2026-achd-noncardiac-surgery-anaesthesia-consensus: 199 s, 1558 KB, 75 s to make
+  asa-2026-statement-cardiac-critical-care: 175 s, 1368 KB, 67 s to make
+  asa-2026-epidural-catheter-management-cesarean-statement: 156 s, 1219 KB, 59 s to make
+  fda-2026-bbraun-caresite-luer-access-valve-early-alert: 151 s, 1180 KB, 58 s to make
+synthesized 6, failed 0, 14224 characters, 7 min
