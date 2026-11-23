@@ -1,0 +1,4 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-23 18:44:34.338 Df PeriopSignal[77865:2f795] [org.periopsignal.app:shots] root appear tab=intraop
+2026-11-23 18:44:34.401 Df PeriopSignal[77865:2f795] [org.periopsignal.app:shots] PatientView appear
+2026-11-23 18:44:39.267 Df PeriopSignal[77865:2f795] [org.periopsignal.app:shots] ready
