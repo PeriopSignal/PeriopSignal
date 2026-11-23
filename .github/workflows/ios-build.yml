@@ -1447,6 +1447,34 @@ jobs:
           shot 1435-methadone-intraop-row-dark-375 20 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
           shot 1436-methadone-handoff-full-light 16 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
           shot 1437-methadone-handoff-short-light 16 -ps.tab patient -ps.patient demo-112-methadone -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1440-q-lines-a-light-375 20 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.open devices:preop -ps.patient.width 375 -ps.forceAppearance light
+          shot 1441-q-lines-a-dark-375 20 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.open devices:preop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1442-q-lines-a-large-text-light-375 20 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.open devices:preop -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1443-q-lines-b-light-375 20 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.open devices:preop -ps.patient.width 375 -ps.forceAppearance light
+          shot 1444-q-lines-b-dark-375 20 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.open devices:preop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1445-q-lines-b-large-text-dark-375 20 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.open devices:preop -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 1446-q-lines-a-list-light-375 20 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.patient.width 375 -ps.forceAppearance light
+          shot 1447-q-lines-a-list-dark-375 20 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1448-q-picker-gi-urinary-drains-light-375 20 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.open devices:intraop -ps.devices.picker 1 -ps.devices.picker.scroll GI -ps.patient.width 375 -ps.forceAppearance light
+          shot 1449-q-picker-drains-neuro-dark-375 20 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.open devices:intraop -ps.devices.picker 1 -ps.devices.picker.scroll Drains -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1450-q-picker-top-light-375 20 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.open devices:intraop -ps.devices.picker 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1451-q-add-ostomy-types-light-375 20 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.open devices:intraop -ps.devices.add ostomy -ps.devices.large 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1452-q-add-ostomy-types-dark-375 20 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.open devices:intraop -ps.devices.add ostomy -ps.devices.large 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1453-q-add-jtube-light-375 20 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.open devices:intraop -ps.devices.add feedingTube:J-tube -ps.devices.large 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1454-q-handoff-lines-a-light-375 24 -ps.tab patient -ps.patient demo-115-devices-a -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance light
+          shot 1455-q-handoff-lines-b-dark-375 24 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1456-q-typed-jp-light-375 20 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "JP drain RLQ" -ps.patient.width 375 -ps.forceAppearance light
+          shot 1457-q-typed-peg-dark-375 20 -ps.tab patient -ps.patient demo-115-devices-b -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "PEG 20 Fr LUQ" -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1470-caseswitch-peds-before-light-375 14 -ps.ref peds -ps.patient demo-switch-peds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1471-caseswitch-peds-after-light-375 28 -ps.ref peds -ps.patient demo-switch-peds -ps.case.switchAfter 12 -ps.case.switchTo 2 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1472-caseswitch-proph-before-light 22 -ps.tab patient -ps.patient demo-switch -ps.patient.open prophylaxis -ps.forceAppearance light
+          shot 1473-caseswitch-proph-after-light 30 -ps.tab patient -ps.patient demo-switch -ps.patient.open prophylaxis -ps.case.switchAfter 14 -ps.case.switchTo 2 -ps.forceAppearance light
+          shot 1474-caseswitch-score-saves-to-two-cases-light-375 14 -ps.ref score:rcri -ps.patient demo-switch -ps.patient.width 375 -ps.forceAppearance light
+          shot 1475-caseswitch-score-after-light-375 28 -ps.ref score:rcri -ps.patient demo-switch -ps.case.switchAfter 12 -ps.case.switchTo 2 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1476-caseswitch-score-one-case-no-caption-light-375 14 -ps.ref score:rcri -ps.patient demo-112-proph-cabg -ps.patient.width 375 -ps.forceAppearance light
+          shot 1477-caseswitch-score-saves-to-dark-375 14 -ps.ref score:rcri -ps.patient demo-switch -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1478-caseswitch-score-saves-to-large-text-light-375 14 -ps.ref score:rcri -ps.patient demo-switch -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance light
+          shot 1479-caseswitch-peds-after-dark-375 28 -ps.ref peds -ps.patient demo-switch-peds -ps.case.switchAfter 12 -ps.case.switchTo 2 -ps.patient.width 375 -ps.forceAppearance dark
           #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
