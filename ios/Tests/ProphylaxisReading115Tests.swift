@@ -8,9 +8,8 @@ import XCTest
 /// the card says how many there are. A planned operation that no row names opens on "Operation not listed".
 final class ProphylaxisReading115Tests: XCTestCase {
 
-    // Nov 23 check: the label says "the 2013 guideline's table" (it said "the 2013 guideline"). Ten rows that carried it now carry a
-    // "Periop Signal note: ..." instead, seven flagged rows were removed and one added, so 65 rows (134 results) are flagged, where 81 rows
-    // (166 results) were.
+    // Nov 23 check: the label says "the 2013 guideline's table" (it said "the 2013 guideline"). Rows the guideline's table or text
+    // does name carry a "Periop Signal note: ..." instead, and rows an existing named row covers were removed.
     static let notNamed = "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
 
     private var bundleFile: ReferenceBundle!

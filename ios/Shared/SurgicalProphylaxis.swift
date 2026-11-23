@@ -259,8 +259,8 @@ struct ProphylaxisResult: Codable, Hashable {
     /// What a "text" result shows in place of the cell when the cell alone would mislead (the ophthalmic row's "None" under
     /// β-lactam allergy means no alternative agent is listed, not that no prophylaxis is given). The cell stays in `text`.
     var display: String?
-    /// Ben, Nov 23 ("approve all"): set on the result of an operation the 2013 guideline does not name and Periop Signal reads as
-    /// the guideline row it belongs with ("Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."). The
+    /// Ben, Nov 23 ("approve all"): set on the result of an operation the 2013 guideline's table does not name and Periop Signal reads
+    /// as the guideline row it belongs with ("Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."). The
     /// same sentence is also the first of `notes`. Absent in older files.
     var flag: String?
 
@@ -449,8 +449,8 @@ struct ProphylaxisAnswer: Hashable {
     /// The text of an outside, text or none result.
     var body = ""
     var regimens: [ProphylaxisRegimenAnswer] = []
-    /// Ben, Nov 23: the caution line at the top of the card, for an operation the guideline does not name ("Not named in the 2013
-    /// guideline: Periop Signal's reading. Check your protocol."); nil for every other result.
+    /// Ben, Nov 23: the caution line at the top of the card, for an operation the guideline's table does not name ("Not named in the
+    /// 2013 guideline's table: Periop Signal's reading. Check your protocol."); nil for every other result.
     var flag: String?
     /// The result's guideline notes other than the flag sentence. They are not printed on the card (Ben, Nov 16: "explanations
     /// behind info link"): they are the first paragraphs of `info`, and the card says how many there are.
