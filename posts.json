@@ -50,6 +50,12 @@
     ],
     "answer": 2,
     "explanation": "OBAS was 2.2 vs 3.4 (adjusted difference -1.3), statistically significant but short of the prespecified 3-point threshold. Hypotension and PONV were lower with opioid-free anaesthesia, but those outcomes were exploratory and providers were unblinded."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/anaesthesia-2026-ofa-laparoscopic-cholecystectomy-obas.mp3",
+    "seconds": 221,
+    "bytes": 1765868,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -85,6 +91,12 @@
     "n": "170 patients having elective transfemoral TAVR",
     "outcome": "Hospital length of stay, 30-day mortality and ICU admission",
     "result": "LOS median difference 0.02 days (95% CI -0.09 to 0.15), P = 0.631; no 30-day deaths"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/aa-2026-tavr-mac-vs-general-anesthesia-length-of-stay.mp3",
+    "seconds": 171,
+    "bytes": 1365548,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -130,6 +142,12 @@
     ],
     "answer": 1,
     "explanation": "High-risk scenario patients require consultation with a specialized ACHD unit and a cardiac anaesthesiologist with ACHD expertise, and management in a centre with a multidisciplinary ACHD program. Immediate and urgent surgery should not be delayed. The advice rests on expert consensus rather than trial evidence."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ehjvshd-2026-achd-noncardiac-surgery-anaesthesia-consensus.mp3",
+    "seconds": 199,
+    "bytes": 1595948,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -159,7 +177,13 @@
    "url": "https://www.asahq.org/standards-and-practice-parameters/statement-on-cardiac-critical-care",
    "impact": 1,
    "trialName": "",
-   "firstAuthor": ""
+   "firstAuthor": "",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/asa-2026-statement-cardiac-critical-care.mp3",
+    "seconds": 175,
+    "bytes": 1401068,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "asa-2026-epidural-catheter-management-cesarean-statement",
@@ -197,6 +221,12 @@
     ],
     "answer": 3,
     "explanation": "The statement suggests a breakthrough-pain algorithm with clear replacement criteria, such as persistent inadequate analgesia after two physician-administered top-ups. Long duration and higher BMI are risk factors for failed conversion, not automatic replacement triggers. It is a committee statement without graded evidence."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/asa-2026-epidural-catheter-management-cesarean-statement.mp3",
+    "seconds": 156,
+    "bytes": 1249004,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -225,7 +255,13 @@
    "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/early-alert-b-braun-medical-inc-updates-use-instructions-caresite-micro-luer-access-device",
    "impact": 1,
    "trialName": "",
-   "firstAuthor": ""
+   "firstAuthor": "",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-bbraun-caresite-luer-access-valve-early-alert.mp3",
+    "seconds": 151,
+    "bytes": 1208876,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "ats-2026-postoperative-delirium-cardiac-surgery-consensus",
