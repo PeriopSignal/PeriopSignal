@@ -499,9 +499,9 @@ enum PatientBriefs {
             lines.append("Antibiotics: " + antibiotics.map(\.handoffText).joined(separator: "; "))
             marks += antibiotics.filter(\.overdue).map(\.handoffText)
         }
-        // 1.12 follow-up (Ben, Nov 12): the heparin doses of Case Timers' one Heparin & ACT log, with their total. The ACT and protamine
-        // entries of that log are not printed here (the handoff has never printed them).
-        if let heparin = CaseHeparin.text(r, now: now) { lines.append(heparin) }
+        // Ben, Nov 23: "Heparin should not be added to handoff". The heparin doses of Case Timers' Heparin & ACT log were listed here
+        // from Nov 12; they stay on the Intraoperative tab's row, the medications page and in Case Timers, and are no longer handed
+        // off. A heparin infusion still running is a drip and is listed with the infusions above, as before.
         var meds = PatientNotableMeds.lines(c)
         let factors = trimmed(c.factors)
         if !factors.isEmpty { meds.append(factors) }

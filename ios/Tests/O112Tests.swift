@@ -589,16 +589,14 @@ final class O112Tests: XCTestCase {
     }
 
     func testTheHandoffPrintsNoACTOrProtamineAndTheSummaryNothingAboutHeparin() {
-        // 1.12 Nov 12: the handoff now lists the heparin DOSES (IntraopHeparin: "Heparin 26,000 U 08:10; 5,000 U 08:52 (31,000 U total)",
-        // P112Tests); a log of ACTs and protamine, however long, still changes no line, and the Preprocedure Summary none at all.
+        // Nov 23 (Ben: "Heparin should not be added to handoff"): the handoff lists no heparin doses either (it did from Nov 12); a
+        // log of doses, ACTs and protamine, however long, changes no line of it, and none of the Preprocedure Summary.
         var with = adult()
         with.setProcedures(PlannedProcedure.parse("CABG x3"))
         let without = with
         with.timers.heparin = fullLog()
         XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(with)), PatientBriefs.plainText(PatientBriefs.preop(without)))
-        var acts = with
-        acts.timers.heparin?.doses = []
-        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(acts, now: at(10, 0))),
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(with, now: at(10, 0))),
                        PatientBriefs.plainText(PatientBriefs.handoff(without, now: at(10, 0))))
     }
 }
