@@ -1,0 +1,14 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:111:9: error: expected 'func' keyword in instance method declaration
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:111:30: error: unnamed parameters must be written with the empty name '_'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:111:39: error: expected parameter type following ':'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:112:9: error: expected 'func' keyword in instance method declaration
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:112:30: error: unnamed parameters must be written with the empty name '_'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:112:37: error: expected parameter type following ':'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:436:1: error: extraneous '}' at top level
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:111:9: error: Expected 'func' keyword in instance method declaration
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:111:30: error: Unnamed parameters must be written with the empty name '_'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:111:39: error: Expected parameter type following ':'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:112:9: error: Expected 'func' keyword in instance method declaration
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:112:30: error: Unnamed parameters must be written with the empty name '_'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:112:37: error: Expected parameter type following ':'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ProphylaxisReading115Tests.swift:436:1: error: Extraneous '}' at top level
