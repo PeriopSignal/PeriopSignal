@@ -17343,7 +17343,7 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Periop Signal note: for children, the guideline's text says “Therefore, the efficacy of antimicrobial prophylaxis is extrapolated from adult studies and should be considered the standard of care for pediatric cardiac surgery patients.”"
+                    "Periop Signal note: for children, the guideline's text says the efficacy of antimicrobial prophylaxis “is extrapolated from adult studies and should be considered the standard of care for pediatric cardiac surgery patients.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
@@ -17373,7 +17373,7 @@
                   "star": true,
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Periop Signal note: for children, the guideline's text says “Therefore, the efficacy of antimicrobial prophylaxis is extrapolated from adult studies and should be considered the standard of care for pediatric cardiac surgery patients.”"
+                    "Periop Signal note: for children, the guideline's text says the efficacy of antimicrobial prophylaxis “is extrapolated from adult studies and should be considered the standard of care for pediatric cardiac surgery patients.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 }
@@ -17983,7 +17983,7 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's table row names thoracotomy, “Noncardiac procedures, including lobectomy, pneumonectomy, lung resection, and thoracotomy”, and its text says “Antimicrobial prophylaxis recommendations in this section refer to both open thoracotomy and VATS procedures.” The placebo-controlled trial the text describes was of thoracic procedures “excluding those involving the esophagus and exploratory thoracotomies”."
+                    "Periop Signal note: the guideline's table row names thoracotomy, “Noncardiac procedures, including lobectomy, pneumonectomy, lung resection, and thoracotomy”, and its text says “Antimicrobial prophylaxis recommendations in this section refer to both open thoracotomy and VATS procedures.” The placebo-controlled trial the text describes enrolled pulmonary resection, persistent pneumothorax and nonpulmonary thoracic procedures, “excluding those involving the esophagus and exploratory thoracotomies”."
                   ]
                 },
                 "allergy": {
@@ -18058,8 +18058,10 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's table names lung resection, and these operations are lung resections: “Noncardiac procedures, including lobectomy, pneumonectomy, lung resection, and thoracotomy”. For a thoracoscopic approach, see the video-assisted thoracoscopic surgery row."
-                  ]
+                    "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
+                    "The guideline's table row names lung resection: “Noncardiac procedures, including lobectomy, pneumonectomy, lung resection, and thoracotomy”. Periop Signal reads these operations as lung resections. For a thoracoscopic approach, see the video-assisted thoracoscopic surgery row."
+                  ],
+                  "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
                 "allergy": {
                   "text": "Clindamycin*, vancomycin*",
@@ -18086,8 +18088,10 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Periop Signal note: the guideline's table names lung resection, and these operations are lung resections: “Noncardiac procedures, including lobectomy, pneumonectomy, lung resection, and thoracotomy”. For a thoracoscopic approach, see the video-assisted thoracoscopic surgery row."
-                  ]
+                    "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
+                    "The guideline's table row names lung resection: “Noncardiac procedures, including lobectomy, pneumonectomy, lung resection, and thoracotomy”. Periop Signal reads these operations as lung resections. For a thoracoscopic approach, see the video-assisted thoracoscopic surgery row."
+                  ],
+                  "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 }
               }
             ],
@@ -19924,7 +19928,7 @@
           },
           {
             "id": "x-open-bile-duct-exploration-and-chole",
-            "name": "Bile duct exploration and choledochoduodenostomy",
+            "name": "Open bile duct exploration and choledochoduodenostomy",
             "variants": [
               {
                 "id": "only",
@@ -21343,14 +21347,14 @@
                   "text": "None",
                   "kind": "none",
                   "notes": [
-                    "Periop Signal note: the guideline's table names tympanostomy tubes only in its prosthesis row, which says “(excludes tympanostomy tubes)”. That is why this row shows the clean-procedure result."
+                    "Periop Signal note: the guideline's table names tympanostomy tubes only to leave them out of its prosthesis row, “Clean with placement of prosthesis (excludes tympanostomy tubes)”. Periop Signal reads that as the clean-procedure result."
                   ]
                 },
                 "allergy": {
                   "text": "None",
                   "kind": "none",
                   "notes": [
-                    "Periop Signal note: the guideline's table names tympanostomy tubes only in its prosthesis row, which says “(excludes tympanostomy tubes)”. That is why this row shows the clean-procedure result."
+                    "Periop Signal note: the guideline's table names tympanostomy tubes only to leave them out of its prosthesis row, “Clean with placement of prosthesis (excludes tympanostomy tubes)”. Periop Signal reads that as the clean-procedure result."
                   ]
                 }
               }
@@ -23192,7 +23196,7 @@
           },
           {
             "id": "x-ganglion-foot-neuroma-plantar-fascia",
-            "name": "Ganglion, foot neuroma, plantar fascia, popliteal cyst, cheilectomy",
+            "name": "Foot neuroma, plantar fascia, popliteal cyst, cheilectomy",
             "variants": [
               {
                 "id": "only",
@@ -24378,7 +24382,7 @@
               {
                 "id": "no-risk",
                 "label": "No risk factors",
-                "outside": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol. The guideline's table has no row for this: its recommendation is for lower tract instrumentation with risk factors for infection. Its text says no antimicrobial prophylaxis is recommended for clean urologic procedures in patients without risk factors for postoperative infections."
+                "outside": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol. The guideline's table has no row for this: its recommendation is for lower tract instrumentation with risk factors for infection. Its text says no antimicrobial prophylaxis is recommended for clean urologic procedures in patients without risk factors for postoperative infections. Periop Signal note: a urinary stone is one of the guideline's listed risk factors, so this answer does not fit an operation for a bladder stone."
               }
             ],
             "catalog": [
@@ -24869,8 +24873,10 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's table has no cystectomy row. This row shows its clean-contaminated result because the text says “For clean-contaminated procedures of the urinary tract (often entering the gastrointestinal tract), antimicrobials as recommended for elective colorectal surgery are recommended.” The text also says “There are no studies of antimicrobial prophylaxis in major open or laparoscopic procedures (cystectomy, radical prostatectomy, and nephrectomy); therefore, data have been extrapolated from other major intraabdominal procedures.”"
-                  ]
+                    "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
+                    "The guideline's text says “There are no studies of antimicrobial prophylaxis in major open or laparoscopic procedures (cystectomy, radical prostatectomy, and nephrectomy); therefore, data have been extrapolated from other major intraabdominal procedures.” It also says “For clean-contaminated procedures of the urinary tract (often entering the gastrointestinal tract), antimicrobials as recommended for elective colorectal surgery are recommended.” Periop Signal reads cystectomy with a bowel diversion as such a procedure."
+                  ],
+                  "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
                 "allergy": {
                   "text": "Fluoroquinolone, aminoglycoside + metronidazole or clindamycin",
@@ -24902,8 +24908,10 @@
                     }
                   ],
                   "notes": [
-                    "Periop Signal note: the guideline's table has no cystectomy row. This row shows its clean-contaminated result because the text says “For clean-contaminated procedures of the urinary tract (often entering the gastrointestinal tract), antimicrobials as recommended for elective colorectal surgery are recommended.” The text also says “There are no studies of antimicrobial prophylaxis in major open or laparoscopic procedures (cystectomy, radical prostatectomy, and nephrectomy); therefore, data have been extrapolated from other major intraabdominal procedures.”"
-                  ]
+                    "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
+                    "The guideline's text says “There are no studies of antimicrobial prophylaxis in major open or laparoscopic procedures (cystectomy, radical prostatectomy, and nephrectomy); therefore, data have been extrapolated from other major intraabdominal procedures.” It also says “For clean-contaminated procedures of the urinary tract (often entering the gastrointestinal tract), antimicrobials as recommended for elective colorectal surgery are recommended.” Periop Signal reads cystectomy with a bowel diversion as such a procedure."
+                  ],
+                  "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 }
               }
             ],
@@ -24993,7 +25001,7 @@
                     }
                   ],
                   "notes": [
-                    "Applies only to heart transplant recipients with an active VAD driveline infection: the guideline says they “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
+                    "If the recipient has an active VAD driveline infection: the guideline says such patients “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
                     "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
                   ]
                 },
@@ -25022,7 +25030,7 @@
                   ],
                   "star": true,
                   "notes": [
-                    "Applies only to heart transplant recipients with an active VAD driveline infection: the guideline says they “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
+                    "If the recipient has an active VAD driveline infection: the guideline says such patients “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
                     "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
                   ]
                 }
@@ -25059,7 +25067,7 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Applies only to heart transplant recipients with an active VAD driveline infection: the guideline says they “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
+                    "If the recipient has an active VAD driveline infection: the guideline says such patients “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
                     "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
@@ -25090,7 +25098,7 @@
                   "star": true,
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Applies only to heart transplant recipients with an active VAD driveline infection: the guideline says they “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
+                    "If the recipient has an active VAD driveline infection: the guideline says such patients “should be given appropriate antimicrobials specifically for the treatment of that infection”, which “will usually determine the actual perioperative prophylaxis regimen”.",
                     "Chest not primarily closed: the guideline says “The optimal duration of antimicrobial prophylaxis for patients who do not have their chest primarily closed is unclear. No recommendation is made for these patients.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
@@ -25383,7 +25391,7 @@
           },
           {
             "id": "pancreas",
-            "name": "Pancreas (including pancreas after kidney) or pancreas–kidney transplant",
+            "name": "Pancreas or pancreas–kidney transplant",
             "variants": [
               {
                 "id": "only",
@@ -26503,7 +26511,7 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Periop Signal note: for facial and nasal procedures the guideline's text says: “Guidelines also support no antimicrobial prophylaxis in patients undergoing clean facial or nasal procedures without an implant. For patients undergoing facial or nasal procedures with an implant, antimicrobial prophylaxis should be considered.”"
+                    "Periop Signal note: for facial and nasal procedures with an implant the guideline's text says “For patients undergoing facial or nasal procedures with an implant, antimicrobial prophylaxis should be considered.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
@@ -26533,7 +26541,7 @@
                   "star": true,
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Periop Signal note: for facial and nasal procedures the guideline's text says: “Guidelines also support no antimicrobial prophylaxis in patients undergoing clean facial or nasal procedures without an implant. For patients undergoing facial or nasal procedures with an implant, antimicrobial prophylaxis should be considered.”"
+                    "Periop Signal note: for facial and nasal procedures with an implant the guideline's text says “For patients undergoing facial or nasal procedures with an implant, antimicrobial prophylaxis should be considered.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
@@ -26586,7 +26594,7 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Periop Signal note: the guideline's text says “Most placebo-controlled and retrospective studies for many clean plastic surgery procedures have found that antimicrobial prophylaxis does not significantly decrease the risk of infection.” The procedures it lists as studied include “augmentation mammoplasty using periareolar submuscular technique” and “breast procedures (reduction mammoplasty, lumpectomy, mastectomy, axillary node dissection)”. Implants are a listed risk factor: “factors that increase the risk of postoperative infectious complications for plastic surgery procedures include implants, skin irradiation before the procedure, and procedures below the waist.”"
+                    "Periop Signal note: implants are a listed risk factor: “factors that increase the risk of postoperative infectious complications for plastic surgery procedures include implants, skin irradiation before the procedure, and procedures below the waist.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
@@ -26616,7 +26624,7 @@
                   "star": true,
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Periop Signal note: the guideline's text says “Most placebo-controlled and retrospective studies for many clean plastic surgery procedures have found that antimicrobial prophylaxis does not significantly decrease the risk of infection.” The procedures it lists as studied include “augmentation mammoplasty using periareolar submuscular technique” and “breast procedures (reduction mammoplasty, lumpectomy, mastectomy, axillary node dissection)”. Implants are a listed risk factor: “factors that increase the risk of postoperative infectious complications for plastic surgery procedures include implants, skin irradiation before the procedure, and procedures below the waist.”"
+                    "Periop Signal note: implants are a listed risk factor: “factors that increase the risk of postoperative infectious complications for plastic surgery procedures include implants, skin irradiation before the procedure, and procedures below the waist.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
@@ -26753,7 +26761,7 @@
                   ],
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Periop Signal note: for facial and nasal procedures the guideline's text says: “Guidelines also support no antimicrobial prophylaxis in patients undergoing clean facial or nasal procedures without an implant. For patients undergoing facial or nasal procedures with an implant, antimicrobial prophylaxis should be considered.”"
+                    "Periop Signal note: for facial and nasal procedures with an implant the guideline's text says “For patients undergoing facial or nasal procedures with an implant, antimicrobial prophylaxis should be considered.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
@@ -26783,7 +26791,7 @@
                   "star": true,
                   "notes": [
                     "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol.",
-                    "Periop Signal note: for facial and nasal procedures the guideline's text says: “Guidelines also support no antimicrobial prophylaxis in patients undergoing clean facial or nasal procedures without an implant. For patients undergoing facial or nasal procedures with an implant, antimicrobial prophylaxis should be considered.”"
+                    "Periop Signal note: for facial and nasal procedures with an implant the guideline's text says “For patients undergoing facial or nasal procedures with an implant, antimicrobial prophylaxis should be considered.”"
                   ],
                   "flag": "Not named in the 2013 guideline's table: Periop Signal's reading. Check your protocol."
                 },
