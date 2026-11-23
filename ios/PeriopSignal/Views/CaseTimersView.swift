@@ -50,6 +50,7 @@ struct CaseTimersPresentation: ViewModifier {
         return content
             .sheet(isPresented: $ui.open) {
                 CaseTimersView()
+                    .caseScoped()
                     .environment(patient)
                     .environment(refs)
                     .presentationDetents([.large])
@@ -510,7 +511,8 @@ struct CaseTimersView: View {
                 if let d = refs.caseTimers {
                     VStack(alignment: .leading, spacing: 18) {
                         DraftBanner(section: "caseTimers")
-                        if !inSheet {
+                        // Ben, Nov 23: the sheet from My Patient names the case too once there is more than one.
+                        if !inSheet || CaseScope.showsName(patient.book) {
                             // From Reference: the timers belong to My Patient's open case.
                             Label("For \(patient.currentCase.label), the open case in My Patient", systemImage: "person.text.rectangle")
                                 .font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2)

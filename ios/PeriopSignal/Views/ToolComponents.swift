@@ -233,6 +233,8 @@ struct ToolHeader: View {
 
 /// "82 kg · From My Patient · Change": a value the tool took from My Patient, in one line instead of a question.
 struct FromPatientLine: View {
+    /// Ben, Nov 23: with more than one case the line names the case the values came from ("From OR 12").
+    @Environment(PatientStore.self) private var patient
     var values: [String]
     /// What the values are, for VoiceOver ("weight", "age, sex, height and weight").
     var what: String
@@ -247,7 +249,7 @@ struct FromPatientLine: View {
                 .font(PS.sys(size: 15, weight: .semibold))
                 .foregroundStyle(PS.fg)
                 .lineLimit(2)
-            Text("From My Patient")
+            Text(CaseScope.fromCaption("From My Patient", in: patient.book))
                 .font(PS.sys(size: 11.5))
                 .foregroundStyle(PS.fg3)
             Spacer(minLength: 6)
@@ -260,7 +262,7 @@ struct FromPatientLine: View {
         .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.accent2.opacity(0.35), lineWidth: 1))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(what) from My Patient: \(values.joined(separator: ", "))")
+        .accessibilityLabel("\(what) from \(CaseScope.source("My Patient", in: patient.book)): \(values.joined(separator: ", "))")
     }
 }
 

@@ -34,6 +34,8 @@ struct ScoreCalculatorView: View {
         .scrollContentBackground(.hidden)
         .navigationTitle(def.short)
         .navigationBarTitleDisplayMode(.inline)
+        // Screenshot runs only: -ps.patient.width 375 (nothing in a release build).
+        .modifier(DebugContentWidth())
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Reset") { withAnimation(.snappy) { selection = ScoreSelection(); origin = nil } }
@@ -86,6 +88,8 @@ struct ScoreCalculatorView: View {
                     .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
                 Text(origin == "record" && !isSaved ? "Check each answer before you save it." : (isSaved ? "Change an answer to update it." : "Save this result to the patient's record."))
                     .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                // Ben, Nov 23: with more than one case, the case the result goes to.
+                CaseWriteCaption(lead: isSaved ? "Saved to" : "Saves to")
             }
             Spacer(minLength: 6)
             if isSaved {

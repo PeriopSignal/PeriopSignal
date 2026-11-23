@@ -284,6 +284,8 @@ extension PatientStore {
                            select n: Int = LaunchSeed.int("ps.patient.case", default: 1)) -> PatientDemo.Seed? {
         switch seed {
         case "demo-rooms": return PatientDemo.rooms(select: n)
+        // 1.15 (CaseScope): two cases for the calculators that refill on a switch; -ps.case.switchAfter changes the case later.
+        case "demo-switch", "demo-switch-peds": return PatientDemo.caseSwitch(seed, select: n)
         case "empty": return PatientDemo.Seed(book: PatientCaseBook(), archived: [], rooms: [])
         default: break
         }

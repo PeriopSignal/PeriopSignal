@@ -68,6 +68,9 @@ struct QuickRefView: View {
             }
         }
         .sensoryFeedback(.success, trigger: copied)
+        // Ben, Nov 23: another case becomes current: the weight typed or filled for the last patient goes, and the new case's weight
+        // (or none) takes its place. The ticked checklist stays: an emergency card in use is not undone by a switch.
+        .onCaseChange { weightText = CaseScope.weightText(myPatient.weightKg) }
     }
 
     /// The head of the card (1.8.1): a one- or two-word eyebrow and a short title on one line. The society and year
@@ -125,6 +128,7 @@ struct QuickRefView: View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "Doses for this patient", color: tint)
             WeightField(text: $weightText, focus: $focused, prompt: WeightField.perKgPrompt, patientWeight: myPatient.weightKg)
+                .caseScoped()
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(doses.enumerated()), id: \.element.id) { i, d in
                     HStack(alignment: .firstTextBaseline, spacing: 12) {
