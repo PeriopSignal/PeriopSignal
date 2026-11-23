@@ -22,9 +22,23 @@ struct ProphylaxisInfoContent: Identifiable, Hashable {
     /// A quieter note under the paragraphs.
     var footnote: String? = nil
     var asList = false
+    /// Ben, Nov 23: a result's ⓘ lists the guideline notes first. This many of the first paragraphs are notes: they sit under
+    /// "Guideline notes", and the rest under "About this result". 0 for every other sheet (no headings).
+    var noteCount = 0
 
     /// A long text opens full height.
     var isLong: Bool { paragraphs.joined().count > 420 }
+
+    static let notesHeading = "Guideline notes"
+    static let aboutHeading = "About this result"
+
+    /// The short heading that stands above paragraph `index`, if one does.
+    func heading(at index: Int) -> String? {
+        guard noteCount > 0 else { return nil }
+        if index == 0 { return Self.notesHeading }
+        if index == noteCount, index < paragraphs.count { return Self.aboutHeading }
+        return nil
+    }
 }
 
 struct ProphylaxisInfoSheet: View {
@@ -35,15 +49,23 @@ struct ProphylaxisInfoSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    ForEach(Array(content.paragraphs.enumerated()), id: \.offset) { _, paragraph in
-                        if content.asList {
-                            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                Text("•").font(PS.sys(size: 15)).foregroundStyle(PS.fg3)
+                    ForEach(Array(content.paragraphs.enumerated()), id: \.offset) { index, paragraph in
+                        VStack(alignment: .leading, spacing: 8) {
+                            if let heading = content.heading(at: index) {
+                                Eyebrow(text: heading)
+                                    .padding(.top, index == 0 ? 0 : 6)
+                                    .accessibilityAddTraits(.isHeader)
+                            }
+                            if content.asList {
+                                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                    Text("•").font(PS.sys(size: 15)).foregroundStyle(PS.fg3)
+                                    paragraphText(paragraph)
+                                }
+                            } else {
                                 paragraphText(paragraph)
                             }
-                        } else {
-                            paragraphText(paragraph)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if let footnote = content.footnote, !footnote.isEmpty {
                         Text(footnote)
@@ -144,7 +166,27 @@ private struct ProphylaxisCaseCaption: ViewModifier {
     }
 }
 
+/// Screenshot runs only (-ps.proph.scroll bottom): scrolls the page to its end, to see the end of a long list and the footer. In a
+/// release build the page is left as it is.
+private struct ProphylaxisLaunchScroll: ViewModifier {
+    var proxy: ScrollViewProxy
+    var bottomID: String
+
+    @ViewBuilder func body(content: Content) -> some View {
+        #if DEBUG
+        content.onAppear {
+            guard LaunchSeed.string("ps.proph.scroll") == "bottom" else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { proxy.scrollTo(bottomID, anchor: .bottom) }
+        }
+        #else
+        content
+        #endif
+    }
+}
+
 struct SurgicalProphylaxisView: View {
+    static let bottomID = "prophylaxis.bottom"
+
     @Environment(ReferenceStore.self) private var refs
     @Environment(PatientStore.self) private var myPatient
     @Environment(\.dismiss) private var dismiss
@@ -194,16 +236,19 @@ struct SurgicalProphylaxisView: View {
 
     var body: some View {
         ToolScroll {
-            VStack(alignment: .leading, spacing: 14) {
-                if let data, let timers {
-                    content(data, timers)
-                } else {
-                    ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This tool arrives with the next refresh."))
+            ScrollViewReader { proxy in
+                VStack(alignment: .leading, spacing: 14) {
+                    if let data, let timers {
+                        content(data, timers)
+                    } else {
+                        ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This tool arrives with the next refresh."))
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 6)
+                .padding(.bottom, 30)
+                .modifier(ProphylaxisLaunchScroll(proxy: proxy, bottomID: Self.bottomID))
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 6)
-            .padding(.bottom, 30)
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
@@ -260,7 +305,7 @@ struct SurgicalProphylaxisView: View {
     /// -ps.proph.weight 90 (the typed weight of the standalone tool), -ps.proph.change 1 (the Surgery picker reopened),
     /// -ps.proph.info about|allergy|mrsa|result|question|group, -ps.proph.table 1 ("Full guideline table" opened),
     /// -ps.proph.confirm <drug> (the Start question),
-    /// -ps.proph.start <drug> (Start tapped).
+    /// -ps.proph.start <drug> (Start tapped), -ps.proph.scroll bottom (the page scrolled to its end: the end of a long list).
     private func applyLaunchSeeds(_ data: ProphylaxisData) {
         let g = LaunchSeed.string("ps.proph.group")
         if !g.isEmpty { input.chooseGroup(g, data: data) }
@@ -331,7 +376,8 @@ struct SurgicalProphylaxisView: View {
 
     private func resultContent(_ a: ProphylaxisAnswer) -> ProphylaxisInfoContent? {
         guard !a.info.isEmpty else { return nil }
-        return ProphylaxisInfoContent(id: "result", title: a.title.isEmpty ? "About this result" : a.title, paragraphs: a.info)
+        return ProphylaxisInfoContent(id: "result", title: a.title.isEmpty ? "About this result" : a.title, paragraphs: a.info,
+                                      noteCount: a.notes.count)
     }
 
     // MARK: Content
@@ -344,7 +390,7 @@ struct SurgicalProphylaxisView: View {
         resultCard(answer, r, timers)
         // Wherever an agent of this result has a course in the case (started here or in Case Timers), never from memory alone.
         if canStartHere, answer.allLines.contains(where: { r.timers.course($0.agent) != nil }) { openCaseTimersLink }
-        footer(data)
+        footer(data).id(Self.bottomID)
     }
 
     private var card: RoundedRectangle { RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous) }
@@ -563,6 +609,8 @@ struct SurgicalProphylaxisView: View {
             plainCard { Text("Answer the question above to see the agents.").font(PS.sys(size: 15)).foregroundStyle(PS.fg3) }
         default:
             VStack(alignment: .leading, spacing: 12) {
+                // Ben, Nov 23: an operation the guideline does not name says so first, in the app's caution style.
+                if let flag = a.flag { CautionLine(text: flag, strong: true) }
                 resultHeader(a)
                 resultBody(a, r, timers)
             }
@@ -619,17 +667,17 @@ struct SurgicalProphylaxisView: View {
         switch a.state {
         case .outside, .text, .allergyQuestion:
             Text(a.body).font(PS.sys(size: 15)).foregroundStyle(PS.fg).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
-            notes(a)
+            notesLink(a)
         case .none:
             // The headline is the card's title (titleText).
-            notes(a)
+            notesLink(a)
         case .regimens:
             // What changes how every dose below is read comes first.
             if let weightLine = a.weightLine { leadLine(weightLine) }
             if let childLine = a.childLine { leadLine(childLine) }
             if let hint = a.allergyHint { allergyHintLine(hint) }
             regimens(a, r, timers)
-            notes(a)
+            notesLink(a)
             if a.mrsa != nil || a.mrsaNote != nil {
                 VStack(alignment: .leading, spacing: 8) {
                     Hairline()
@@ -671,10 +719,28 @@ struct SurgicalProphylaxisView: View {
         }
     }
 
-    /// The result's notes, in full.
-    @ViewBuilder private func notes(_ a: ProphylaxisAnswer) -> some View {
-        ForEach(Array(a.notes.enumerated()), id: \.offset) { _, n in
-            Text(n).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+    /// Ben, Nov 16: "explanations behind info link". The result's guideline notes are not printed on the card: one quiet line says
+    /// how many there are and opens the same sheet as the result's ⓘ, where they come first.
+    @ViewBuilder private func notesLink(_ a: ProphylaxisAnswer) -> some View {
+        if !a.notes.isEmpty, let c = resultContent(a) {
+            Button {
+                Haptics.light()
+                sheet = c
+            } label: {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "info.circle").font(PS.sys(size: 12, weight: .semibold)).accessibilityHidden(true)
+                    Text(ProphylaxisEngine.notesLinkText(a.notes.count)).font(PS.sys(size: 13, weight: .medium))
+                        .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+                .foregroundStyle(PS.fg3)
+                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(ProphylaxisEngine.notesLinkText(a.notes.count))
+            .accessibilityHint("Opens the explanation")
         }
     }
 

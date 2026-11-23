@@ -153,7 +153,8 @@ final class ProphylaxisReview112Tests: XCTestCase {
         XCTAssertEqual(shown.text, "None")
         let plain = try JSONDecoder().decode(ProphylaxisResult.self, from: Data(#"{"text":"A cell","kind":"text"}"#.utf8))
         XCTAssertNil(plain.display)
-        // In the data only the ophthalmic row's alternative uses it, and every "none" result's cell really is "None".
+        // In the data only the ophthalmic group's alternatives use it (the ophthalmic row and, since Nov 23, the two flagged ophthalmic
+        // rows that follow it), and every "none" result's cell really is "None".
         var withDisplay: [String] = []
         for g in d.groups { for p in g.procedures { for v in p.variants {
             for res in [v.recommended, v.allergy].compactMap({ $0 }) {
@@ -162,7 +163,8 @@ final class ProphylaxisReview112Tests: XCTestCase {
                 if res.kind == .none { XCTAssertEqual(v.recommended?.kind, ProphylaxisResult.Kind.none, "no prophylaxis is never shown beside recommended agents: " + g.id + "/" + p.id) }
             }
         } } }
-        XCTAssertEqual(withDisplay, ["ophthalmic/ophthalmic"])
+        XCTAssertEqual(Set(withDisplay), ["ophthalmic/ophthalmic", "ophthalmic/x-silicone-oil-removal", "ophthalmic/x-cyclophotocoagulation-or-angle-surge"])
+        XCTAssertEqual(withDisplay.count, 3)
     }
 
     // MARK: How a combination reads

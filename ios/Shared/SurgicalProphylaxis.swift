@@ -259,10 +259,15 @@ struct ProphylaxisResult: Codable, Hashable {
     /// What a "text" result shows in place of the cell when the cell alone would mislead (the ophthalmic row's "None" under
     /// β-lactam allergy means no alternative agent is listed, not that no prophylaxis is given). The cell stays in `text`.
     var display: String?
+    /// Ben, Nov 23 ("approve all"): set on the result of an operation the 2013 guideline does not name and Periop Signal reads as
+    /// the guideline row it belongs with ("Not named in the 2013 guideline: Periop Signal's reading. Check your protocol."). The
+    /// same sentence is also the first of `notes`. Absent in older files.
+    var flag: String?
 
     init(text: String = "", kind: Kind = .text, regimens: [ProphylaxisRegimen] = [], star: Bool = false, notes: [String] = [],
-         display: String? = nil) {
+         display: String? = nil, flag: String? = nil) {
         self.text = text; self.kind = kind; self.regimens = regimens; self.star = star; self.notes = notes; self.display = display
+        self.flag = flag
     }
 
     init(from decoder: Decoder) throws {
@@ -274,6 +279,7 @@ struct ProphylaxisResult: Codable, Hashable {
         star = (try? c.decodeIfPresent(Bool.self, forKey: .star)) ?? false
         notes = (try? c.decodeIfPresent([String].self, forKey: .notes)) ?? []
         display = try? c.decodeIfPresent(String.self, forKey: .display)
+        flag = try? c.decodeIfPresent(String.self, forKey: .flag)
     }
 }
 
@@ -443,6 +449,11 @@ struct ProphylaxisAnswer: Hashable {
     /// The text of an outside, text or none result.
     var body = ""
     var regimens: [ProphylaxisRegimenAnswer] = []
+    /// Ben, Nov 23: the caution line at the top of the card, for an operation the guideline does not name ("Not named in the 2013
+    /// guideline: Periop Signal's reading. Check your protocol."); nil for every other result.
+    var flag: String?
+    /// The result's guideline notes other than the flag sentence. They are not printed on the card (Ben, Nov 16: "explanations
+    /// behind info link"): they are the first paragraphs of `info`, and the card says how many there are.
     var notes: [String] = []
     var mrsaTitle: String?
     /// In place of the vancomycin line when vancomycin is already among the result's choices: it is named once, with one Start.
@@ -453,7 +464,7 @@ struct ProphylaxisAnswer: Hashable {
     var childLine: String?
     /// "9 kg is outside 35–200 kg: check the weight. Doses are shown as written, not worked out for this weight."
     var weightLine: String?
-    /// What the result's ⓘ opens: paragraphs, none twice.
+    /// What the result's ⓘ opens: paragraphs, none twice. The first `notes.count` of them are the notes.
     var info: [String] = []
     var alternative = false
     /// On the alternative for a β-lactam allergy, above the agents: a penicillin-only allergy may still allow a cephalosporin.
@@ -507,6 +518,13 @@ enum ProphylaxisEngine {
     static let noRedose = "No routine redose"
     static let fluoroquinoloneClass = "fluoroquinolone"
     static let ampicillinSulbactam = "ampicillin-sulbactam"
+    /// The row every group ends with: an operation the group does not list.
+    static let notListedID = "not-listed"
+
+    /// "1 guideline note" / "3 guideline notes": the quiet line under the agents that opens the result's ⓘ.
+    static func notesLinkText(_ count: Int) -> String {
+        count == 1 ? "1 guideline note" : "\(count) guideline notes"
+    }
 
     // MARK: Output
 
@@ -547,12 +565,17 @@ enum ProphylaxisEngine {
         a.alternative = input.betaLactamAllergy
         a.title = input.betaLactamAllergy ? allergyTitle : recommendedTitle
         a.evidence = v.evidence.flatMap { $0.isEmpty ? nil : "Evidence " + $0 }
-        a.notes = res.notes
+        // The flag is the card's caution line; the other notes go first behind the ⓘ, and the card says how many.
+        var flag: String?
+        if let f = res.flag?.trimmingCharacters(in: .whitespacesAndNewlines), !f.isEmpty { flag = f }
+        a.flag = flag
+        var info = InfoBuilder()
+        for n in res.notes where n.trimmingCharacters(in: .whitespacesAndNewlines) != flag { info.add(n) }
+        a.notes = info.paragraphs
         let child = CaseTimerEngine.isChild(r)
         let dosing = dosingRecord(r, timers: timers)
         let dr = dosing.record
 
-        var info = InfoBuilder()
         info.add(data.info.evidence)
         info.add(tableLead + " " + res.text)
 
@@ -735,8 +758,10 @@ enum ProphylaxisEngine {
     }
 
     /// The prefill for a case: the first planned procedure whose id a table procedure lists selects that procedure (never an answer:
-    /// the question is always the user's); failing that, the first whose specialty a group lists selects the group only. The allergy
-    /// and the MRSA screen are read as the Allergies row and the Labs screen hold them.
+    /// the question is always the user's); failing that, the first whose specialty a group lists selects the group and, when the
+    /// group has one, its "Operation not listed" row (Ben, Nov 23: every group ends with it, so a planned operation no row names
+    /// opens on that honest answer, not on a bare list). The allergy and the MRSA screen are read as the Allergies row and the
+    /// Labs screen hold them.
     static func prefill(record r: PatientRecord, data: ProphylaxisData) -> ProphylaxisPrefill {
         var out = ProphylaxisPrefill()
         let items = planned(r)
@@ -758,6 +783,7 @@ enum ProphylaxisEngine {
                 guard let specialty = item.catalog?.specialty else { continue }
                 for g in data.groups where g.specialties.contains(specialty) {
                     out.group = g.id
+                    if let row = g.procedure(notListedID) { out.procedure = row.id }
                     out.procedureCaption = captionLead + item.title
                     break outer
                 }
