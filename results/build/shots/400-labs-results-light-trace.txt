@@ -1,4 +1,0 @@
-Timestamp               Ty Process[PID:TID]
-2026-11-23 17:21:06.609 Df PeriopSignal[41251:1bfe0] [org.periopsignal.app:shots] open begin editor(PeriopSignal.PatientEditor.workup("labs"))
-2026-11-23 17:21:13.807 Df PeriopSignal[41251:1bfe0] [org.periopsignal.app:shots] push (pushed before: false)
-2026-11-23 17:21:14.229 Df PeriopSignal[41251:1bfe0] [org.periopsignal.app:shots] path 0 -> 1
