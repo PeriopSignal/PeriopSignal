@@ -379,7 +379,9 @@ final class PatientDevicesTests: XCTestCase {
         XCTAssertLessThan(mouth.anchor.y, DeviceSite.site(id: "trach")?.anchor.y ?? 0, "head at the top")
         XCTAssertLessThan(DeviceSite.site(id: "radial-right")?.anchor.x ?? 1, DeviceSite.site(id: "wrist-right")?.anchor.x ?? 0,
                           "the radial artery is on the thumb side")
-        XCTAssertEqual(Set(all.filter(\.back).map(\.base)), ["esp", "thoracic-spine", "lumbar-spine", "popliteal"])
+        // 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this I may have missed"): the flank, for
+        // the nephrostomy tube, is a back site like the ESP block.
+        XCTAssertEqual(Set(all.filter(\.back).map(\.base)), ["esp", "thoracic-spine", "lumbar-spine", "popliteal", "flank"])
         XCTAssertEqual(DeviceSite.find("radial", side: "left")?.id, "radial-left")
         XCTAssertNil(DeviceSite.find("radial", side: nil), "a paired site needs its side")
         XCTAssertNil(DeviceSite.find("nowhere", side: nil))
