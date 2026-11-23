@@ -107,7 +107,7 @@ final class ProphylaxisReading115Tests: XCTestCase {
                     plain += 1
                 }
             }
-        } } } }
+        } } }
         XCTAssertGreaterThan(flagged, 100)
         XCTAssertGreaterThan(plain, 50)
     }
