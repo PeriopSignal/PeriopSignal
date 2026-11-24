@@ -50,6 +50,7 @@ struct CaseTimersPresentation: ViewModifier {
         return content
             .sheet(isPresented: $ui.open) {
                 CaseTimersView()
+                    .caseScoped()
                     .environment(patient)
                     .environment(refs)
                     .presentationDetents([.large])
@@ -94,7 +95,7 @@ enum CaseTimersDemo {
             h.acts.append(TimedEntry(time: now.addingTimeInterval(-44 * 60), value: 468))
             h.doses.append(TimedEntry(time: now.addingTimeInterval(-42 * 60), value: 5000))
             h.acts.append(TimedEntry(time: now.addingTimeInterval(-38 * 60 + 25), value: 545))
-            h.bypassOn = now.addingTimeInterval(-70 * 60)
+            h.bypassRuns = [BypassRun(start: now.addingTimeInterval(-70 * 60))]
             t.heparin = h
             t.checks["glucose"] = LabCheckCourse(every: 30, started: now.addingTimeInterval(-70 * 60),
                                                  done: [TimedEntry(time: now.addingTimeInterval(-26 * 60 + 13), value: 196)])
@@ -387,7 +388,7 @@ private struct AbxTimeEdit {
     var armed = false
 }
 
-private extension View {
+extension View {
     /// The box an entry or a row being changed opens in: a quiet action tint, so the value field (the chip fill) shows inside it.
     func entryBox() -> some View {
         padding(12)
@@ -397,14 +398,15 @@ private extension View {
 }
 
 /// "Time" on the 24-hour clock for a timeline entry: now (kept current) for a new one, the row's own time for an edit, until
-/// the user picks one.
-private struct EntryTimeRow: View {
+/// the user picks one. 1.15: a bypass run's editor uses it for its "Start" and "End".
+struct EntryTimeRow: View {
+    var title = "Time"
     var base: Date?
     @Binding var picked: Date?
 
     var body: some View {
         TimelineView(.everyMinute) { ctx in
-            DatePicker("Time", selection: Binding(get: { picked ?? base ?? ctx.date }, set: { picked = $0 }),
+            DatePicker(title, selection: Binding(get: { picked ?? base ?? ctx.date }, set: { picked = $0 }),
                        displayedComponents: [.hourAndMinute])
                 .font(PS.sys(size: 14.5, weight: .medium))
                 .foregroundStyle(PS.fg)
@@ -467,6 +469,8 @@ struct CaseTimersView: View {
     /// The entry being added under the timeline, and the row opened in place (1.12 follow-up); at most one of the two.
     @State private var draft: HeparinDraft?
     @State private var rowEdit: HeparinRowEdit?
+    /// 1.15: the bypass or cross-clamp run opened for change (BypassRunViews.swift); one at a time.
+    @State private var runEdit: BypassRunEdit?
     @State private var protamineMg: Double?
     @State private var protamineArmed = false
     @State private var weightEntry: Double?
@@ -510,7 +514,8 @@ struct CaseTimersView: View {
                 if let d = refs.caseTimers {
                     VStack(alignment: .leading, spacing: 18) {
                         DraftBanner(section: "caseTimers")
-                        if !inSheet {
+                        // Ben, Nov 23: the sheet from My Patient names the case too once there is more than one.
+                        if !inSheet || CaseScope.showsName(patient.book) {
                             // From Reference: the timers belong to My Patient's open case.
                             Label("For \(patient.currentCase.label), the open case in My Patient", systemImage: "person.text.rectangle")
                                 .font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2)
@@ -656,6 +661,7 @@ struct CaseTimersView: View {
             let e = h.timeline[i]
             rowEdit = HeparinRowEdit(id: e.id, kind: e.kind, value: e.value, shown: e.time)
         }
+        applyRunSeed()
         // -ps.timers.abx.pending.dose "3 g": a dose typed for the first pending pick; -ps.timers.abx.dose <drug>: that drug's dose field
         // open; -ps.timers.abx.time <drug>:<dose, from 0, oldest first>[:log]: that dose's time editor open (in the log with ":log").
         let pendingDose = LaunchSeed.string("ps.timers.abx.pending.dose")
@@ -672,6 +678,18 @@ struct CaseTimersView: View {
         }
         let scroll = LaunchSeed.string("ps.timers.scroll")
         if !scroll.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { scrollTarget = scroll } }
+    }
+
+    /// -ps.timers.run.edit <bypass|clamp>:<run, from 0, oldest first>[:refuse]: that run's editor open; with ":refuse" an end picked
+    /// before the start, so the editor shows the reason it is refused for.
+    private func applyRunSeed() {
+        let seed = LaunchSeed.string("ps.timers.run.edit").split(separator: ":").map(String.init)
+        guard seed.count >= 2, let h = t.heparin, let kind = BypassRunKind(rawValue: seed[0]), let i = Int(seed[1]),
+              h.runs(kind).indices.contains(i) else { return }
+        let run = h.runs(kind)[i]
+        var ed = BypassRunEdit(kind: kind, id: run.id, shownStart: run.start, shownEnd: run.end)
+        if seed.count > 2, seed[2] == "refuse", run.end != nil { ed.pickedEnd = run.start.addingTimeInterval(-10 * 60) }
+        runEdit = ed
     }
     #endif
 
@@ -1417,7 +1435,9 @@ struct CaseTimersView: View {
         logSummary(h, p)
         Hairline()
         reminderRow(h, p, d).id("heparin.timer")
-        if p.isBypass && !h.reversed && !h.doses.isEmpty { bypassRow(h) }
+        // The bypass and cross-clamp rows stay after protamine (they were hidden then): the total is wanted at the end of the case,
+        // a time may need correcting, and a patient can go back on bypass (Ben, Nov 23: "have ability to add new bypass run too").
+        if p.isBypass && !h.doses.isEmpty { bypassRuns(h).id("heparin.bypass") }
     }
 
     /// One row per event, oldest first; a tap opens the row in place. The order is read from the log, so an edit re-sorts
@@ -1687,19 +1707,24 @@ struct CaseTimersView: View {
     }
 
 
-    @ViewBuilder private func bypassRow(_ h: HeparinCourse) -> some View {
-        HStack(spacing: 10) {
-            if h.onBypass {
-                Text("On bypass since \(ClockText.time(h.bypassOn!))").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.accent2)
-                Spacer()
-                Button("Bypass off") { edit { $0.heparin?.bypassOff = Date() } }.buttonStyle(CapsuleButtonStyle(prominent: false))
-            } else {
-                if let off = h.bypassOff { Text("Off bypass \(ClockText.time(off))").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2) }
-                Spacer()
-                Button("Bypass on") { edit { $0.heparin?.bypassOn = Date(); $0.heparin?.bypassOff = nil } }
-                    .buttonStyle(CapsuleButtonStyle(prominent: false))
+    /// Ben, Nov 23: "Have ability to change bypass start time. And add total bypass time to handoff (have ability to add new bypass run too)".
+    /// The bypass runs, then the aortic cross-clamp's, under the log (BypassRunViews.swift).
+    @ViewBuilder private func bypassRuns(_ h: HeparinCourse) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(BypassRunKind.allCases, id: \.self) { kind in
+                BypassRunSection(kind: kind, course: h, editing: $runEdit, actions: runActions(kind))
             }
         }
+    }
+
+    /// What the run buttons and the editor write, each one Undo step. A change refused by the course's own check (the editor shows
+    /// the reason and turns Save off) changes nothing.
+    private func runActions(_ kind: BypassRunKind) -> BypassRunActions {
+        BypassRunActions(
+            start: { edit { $0.heparin?.startRun(kind, at: Date()) } },
+            end: { edit { $0.heparin?.endRun(kind, at: Date()) } },
+            save: { id, start, end in edit { $0.heparin?.changeRun(kind, id: id, start: start, end: end, now: Date()) } },
+            delete: { id in edit { $0.heparin?.deleteRun(kind, id: id) } })
     }
 
     /// Method (c): the suggestion from the initial dose with its cap, and the current ACT beside it.

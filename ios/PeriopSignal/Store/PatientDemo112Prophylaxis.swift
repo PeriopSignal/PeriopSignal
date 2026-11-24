@@ -10,7 +10,10 @@ import Foundation
 ///   demo-112-proph-ceph: the same man at 92 kg, CABG x3, a ceftriaxone rash (a cephalosporin: the allergy is still prefilled Yes).
 ///   demo-112-proph-plain: the same man at 82 kg with no allergy and no MRSA screen (the Start confirmation, "Started").
 ///   demo-112-proph-running: as plain, with a cefazolin course already running (40 minutes ago).
-///   demo-112-proph-avr: an aortic valve replacement planned (it selects the Cardiac group only), 80 kg.
+///   demo-112-proph-avr: an aortic valve replacement planned, 80 kg. Since Ben's Nov 23 approval it opens the "Valve replacement,
+///     surgical" row (Periop Signal's reading, with the caution line); before it selected the Cardiac group only (shot 1227).
+///   demo-112-proph-notlisted: a revision total knee planned, 80 kg: no row names it, so the Orthopedic group opens on its
+///     "Operation not listed" row, with the "From the case" caption (shots 1410-1429).
 ///   demo-112-proph-child: an 8-year-old girl, 28 kg, a laparoscopic appendectomy: adult doses only, no dose and no Start.
 ///   demo-112-proph-noweight: as plain, with no weight recorded.
 enum PatientDemo112Prophylaxis {
@@ -21,6 +24,7 @@ enum PatientDemo112Prophylaxis {
         case "demo-112-proph-plain": return base(weight: 82)
         case "demo-112-proph-running": return running()
         case "demo-112-proph-avr": return avr()
+        case "demo-112-proph-notlisted": return notListed()
         case "demo-112-proph-child": return child()
         case "demo-112-proph-noweight": return base(weight: nil)
         default: return nil
@@ -59,6 +63,12 @@ enum PatientDemo112Prophylaxis {
     private static func avr() -> PatientRecord {
         var r = base(weight: 80)
         r.setProcedures(PlannedProcedure.parse("AVR"))
+        return r
+    }
+
+    private static func notListed() -> PatientRecord {
+        var r = base(weight: 80)
+        r.setProcedures(ProcedureCatalog.byID("revision-tka").map { [PlannedProcedure($0)] } ?? [])
         return r
     }
 

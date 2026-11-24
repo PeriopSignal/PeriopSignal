@@ -1041,8 +1041,11 @@ extension PatientDevice {
     /// The handoff's Lines: the Foley goes with them (1.8.1); so do the 1.9 kinds (epicardial wires, pacemaker/ICD generator, AV fistula, hemodialysis catheter, chest tube), which before were entered as "other".
     /// 1.12: the monitors and adjuncts (cerebral oximetry, TEE probe, defibrillator pads, BIS/SedLine, bronchial blocker) are listed with
     /// them, as devices in place; none is IV access, an arm line or a limb alert (those read their own kinds).
-    static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .foley, .epicardialWires, .cied, .avFistula, .dialysisCatheter, .chestTube, .other,
-                                             .cerebralOximetry, .teeProbe, .defibPads, .processedEEG, .bronchialBlocker]
+    /// 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this I may have missed"): the
+    /// sixteen tubes, stomas, drains and neuro and implanted devices (`DeviceKind.added115`) are listed with them too. None is IV access,
+    /// an arm line, a limb alert, temporary pacing or mechanical support (those read their own kinds).
+    static let lineKinds: Set<DeviceKind> = Set<DeviceKind>([.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .foley, .epicardialWires, .cied, .avFistula, .dialysisCatheter, .chestTube, .other,
+                                                             .cerebralOximetry, .teeProbe, .defibPads, .processedEEG, .bronchialBlocker]).union(DeviceKind.added115)
     static let supportKinds: Set<DeviceKind> = [.ecmoDrainage, .ecmoReturn, .lvad, .iabp, .impella, .protekDuo]
 }
 

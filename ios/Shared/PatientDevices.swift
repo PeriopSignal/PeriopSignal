@@ -29,6 +29,13 @@ import CoreGraphics
 //   teeProbe, defibPads (1.12): none; processedEEG (1.12): none, the type ("BIS" or "SedLine") is the device's detail
 //   Those five are monitors and adjuncts (1.12): the app records that the device is on and nothing else (no rSO2, no BIS
 //   number). They are not vascular lines (no IV access, no limb alert) and do not change the airway course text.
+//   The sixteen kinds of 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this
+//   I may have missed"): the type, where a kind has types, is the device's detail; the note (quick picks such as "to suction") is
+//   the "notes" setting when a kind has types and the detail when it has none.
+//   gastricTube: side ("Left" or "Right", the nare), notes; type NG, OG or Dobhoff     feedingTube: notes; type PEG, G-tube, GJ-tube, J-tube
+//   ostomy: notes; type Colostomy, Ileostomy, Urostomy, Mucous fistula                  surgicalDrain: notes; type JP, Blake, Penrose, ...
+//   neurostimulator, insulinPump: notes; the type is the detail                         the other nine: the note is the detail
+//   None of the sixteen is IV access, an arm line, a limb alert, temporary pacing or mechanical support.
 
 /// The color a device is drawn in; the figure maps each role to a color.
 enum DeviceColorRole: String, Codable, CaseIterable, Hashable {
@@ -54,10 +61,12 @@ enum DeviceColorRole: String, Codable, CaseIterable, Hashable {
     case pacing
     /// Dialysis access, an AV fistula or graft and a hemodialysis catheter (1.9): magenta.
     case access
-    /// Chest tubes (1.9): brown.
+    /// Chest tubes (1.9), and from 1.15 the other tubes, drains and stomas (NG/OG, PEG/G-tube, ostomy, rectal tube, nephrostomy,
+    /// surgical drain, wound vac, PD catheter, EVD, lumbar drain): brown.
     case drain
     /// Monitors and adjuncts (1.12): cerebral oximetry, the TEE probe, defibrillator pads and the processed EEG. Olive, a
-    /// colour no other role uses and not the red of an alert.
+    /// colour no other role uses and not the red of an alert. From 1.15 also the implanted devices that are not lines (VP shunt,
+    /// intrathecal pump, nerve stimulator, insulin pump or sensor, ureteral stent): devices in place, nothing to read from them.
     case monitor
 }
 
@@ -138,6 +147,19 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
     case processedEEG
     /// A bronchial blocker through a single-lumen tube, with its side.
     case bronchialBlocker
+    /// 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this I may have
+    /// missed"; he chose all four families and "Draw them"). An older build decodes any of these as `other`, as it does the 1.12
+    /// kinds, and does not keep the kind if it saves the record again.
+    /// Feeding and gastric tubes: an NG, OG or Dobhoff tube (the type is the detail), a PEG or other feeding tube, an ostomy and a
+    /// rectal tube.
+    case gastricTube, feedingTube, ostomy, rectalTube
+    /// Urinary tubes and stomas: a nephrostomy tube and a ureteral stent (a Foley is the 1.8.1 kind).
+    case nephrostomy, ureteralStent
+    /// Surgical drains: a drain (JP, Blake, Penrose, Hemovac, biliary, percutaneous), a wound vac and a PD catheter.
+    case surgicalDrain, woundVac, pdCatheter
+    /// Neuro and implanted devices: an EVD, a lumbar drain, a VP shunt, an intrathecal pump, a nerve stimulator, an implanted port
+    /// and an insulin pump or glucose sensor.
+    case evd, lumbarDrain, vpShunt, port, intrathecalPump, neurostimulator, insulinPump
     case other
 
     /// The type buttons, in order; "Other" opens the grouped picker (`pickerGroups`).
@@ -160,10 +182,22 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
                                       DevicePickerEntry("ProtekDuo", .protekDuo)]),
         DevicePickerGroup("Regional", [DevicePickerEntry("Epidural", .epidural), DevicePickerEntry("Spinal", .spinal),
                                        DevicePickerEntry("Single-shot block", .block), DevicePickerEntry("Perineural catheter", .perineuralCatheter)]),
-        DevicePickerGroup("Access & drains", [DevicePickerEntry("PICC", .picc), DevicePickerEntry("Intraosseous (IO)", .intraosseous),
-                                              DevicePickerEntry("HD catheter", .dialysisCatheter), DevicePickerEntry("AV fistula or graft", .avFistula),
-                                              DevicePickerEntry("Foley", .foley), DevicePickerEntry("Chest tube", .chestTube)]),
-        DevicePickerGroup("Other", [DevicePickerEntry("Other", .other)]),
+        // 1.15 (Ben, Nov 23): "Access & drains" is split into six groups so the new tubes, stomas, drains and implanted devices are found by
+        // what they are. "J-tube" is a feeding tube that starts with the J-tube type, the way "Double-lumen tube" is an ETT with DLT.
+        DevicePickerGroup("Access", [DevicePickerEntry("PICC", .picc), DevicePickerEntry("Intraosseous (IO)", .intraosseous),
+                                     DevicePickerEntry("HD catheter", .dialysisCatheter), DevicePickerEntry("AV fistula or graft", .avFistula),
+                                     DevicePickerEntry("Port", .port)]),
+        DevicePickerGroup("GI", [DevicePickerEntry("NG/OG tube", .gastricTube), DevicePickerEntry("PEG/G-tube", .feedingTube),
+                                 DevicePickerEntry("J-tube", .feedingTube, detail: "J-tube"), DevicePickerEntry("Ostomy", .ostomy),
+                                 DevicePickerEntry("Rectal tube", .rectalTube)]),
+        DevicePickerGroup("Urinary", [DevicePickerEntry("Foley", .foley), DevicePickerEntry("Nephrostomy tube", .nephrostomy),
+                                      DevicePickerEntry("Ureteral stent", .ureteralStent)]),
+        DevicePickerGroup("Drains", [DevicePickerEntry("Chest tube", .chestTube), DevicePickerEntry("Surgical drain", .surgicalDrain),
+                                     DevicePickerEntry("Wound vac", .woundVac), DevicePickerEntry("PD catheter", .pdCatheter)]),
+        DevicePickerGroup("Neuro", [DevicePickerEntry("EVD", .evd), DevicePickerEntry("Lumbar drain", .lumbarDrain),
+                                    DevicePickerEntry("VP shunt", .vpShunt), DevicePickerEntry("Intrathecal pump", .intrathecalPump),
+                                    DevicePickerEntry("Nerve stimulator", .neurostimulator)]),
+        DevicePickerGroup("Other", [DevicePickerEntry("Insulin pump/CGM", .insulinPump), DevicePickerEntry("Other", .other)]),
     ]
 
     /// The settings a new device of this kind starts with: a cerebral oximeter is bilateral until another side is chosen
@@ -202,6 +236,22 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .defibPads: return "Defib pads"
         case .processedEEG: return "BIS/SedLine"
         case .bronchialBlocker: return "Bronchial blocker"
+        case .gastricTube: return "NG/OG tube"
+        case .feedingTube: return "PEG/G-tube"
+        case .ostomy: return "Ostomy"
+        case .rectalTube: return "Rectal tube"
+        case .nephrostomy: return "Nephrostomy tube"
+        case .ureteralStent: return "Ureteral stent"
+        case .surgicalDrain: return "Drain"
+        case .woundVac: return "Wound vac"
+        case .pdCatheter: return "PD catheter"
+        case .evd: return "EVD"
+        case .lumbarDrain: return "Lumbar drain"
+        case .vpShunt: return "VP shunt"
+        case .port: return "Port"
+        case .intrathecalPump: return "Intrathecal pump"
+        case .neurostimulator: return "Nerve stimulator"
+        case .insulinPump: return "Insulin pump/CGM"
         case .other: return "Other"
         }
     }
@@ -238,6 +288,22 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .defibPads: return "External defibrillator pads"
         case .processedEEG: return "BIS/SedLine monitor"
         case .bronchialBlocker: return "Bronchial blocker"
+        case .gastricTube: return "Nasogastric or orogastric tube"
+        case .feedingTube: return "PEG or gastrostomy tube"
+        case .ostomy: return "Ostomy (stoma)"
+        case .rectalTube: return "Rectal tube"
+        case .nephrostomy: return "Nephrostomy tube"
+        case .ureteralStent: return "Ureteral stent"
+        case .surgicalDrain: return "Surgical drain"
+        case .woundVac: return "Wound vac (negative pressure)"
+        case .pdCatheter: return "Peritoneal dialysis catheter"
+        case .evd: return "External ventricular drain"
+        case .lumbarDrain: return "Lumbar drain"
+        case .vpShunt: return "Ventriculoperitoneal shunt"
+        case .port: return "Implanted port"
+        case .intrathecalPump: return "Intrathecal pump"
+        case .neurostimulator: return "Implanted nerve stimulator"
+        case .insulinPump: return "Insulin pump or glucose sensor"
         case .other: return "Other"
         }
     }
@@ -259,6 +325,12 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         // A bronchial blocker is an airway device (the airway's teal); the others are monitors and adjuncts.
         case .bronchialBlocker: return .airway
         case .cerebralOximetry, .teeProbe, .defibPads, .processedEEG: return .monitor
+        // 1.15: tubes, drains, stomas, the wound vac, the EVD and the lumbar drain are drawn as chest tubes are (brown); a port is a
+        // central line (dark blue); the implanted devices that are not lines, and the ureteral stent, are drawn in the monitors' olive.
+        case .gastricTube, .feedingTube, .ostomy, .rectalTube, .nephrostomy, .surgicalDrain, .woundVac, .pdCatheter, .evd, .lumbarDrain:
+            return .drain
+        case .port: return .central
+        case .ureteralStent, .vpShunt, .intrathecalPump, .neurostimulator, .insulinPump: return .monitor
         }
     }
 
@@ -267,9 +339,13 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         switch self {
         case .piv, .arterial, .intraosseous, .epidural, .spinal, .block, .perineuralCatheter: return "G"
         case .cvc, .pac, .picc, .ecmoDrainage, .ecmoReturn, .iabp, .impella, .protekDuo, .foley, .dialysisCatheter, .chestTube: return "Fr"
+        // 1.15: the sized tubes and drains (in Fr).
+        case .gastricTube, .feedingTube, .nephrostomy, .surgicalDrain: return "Fr"
         case .ett, .trach: return "mm ID"
         case .lvad, .other, .epicardialWires, .cied, .avFistula: return ""
         case .cerebralOximetry, .teeProbe, .defibPads, .processedEEG, .bronchialBlocker: return ""
+        case .ostomy, .rectalTube, .ureteralStent, .woundVac, .pdCatheter, .evd, .lumbarDrain, .vpShunt, .port, .intrathecalPump,
+             .neurostimulator, .insulinPump: return ""
         }
     }
 
@@ -371,10 +447,77 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
             return [detail("Type", ["BIS", "SedLine"])]
         case .bronchialBlocker:
             return [DeviceField("side", "Side", choices: ["Left", "Right"]), detail("Notes")]
+        // 1.15: a kind with types keeps the type in the detail and the note in the "notes" setting; one without keeps the note
+        // in the detail (as the chest tube does).
+        case .gastricTube:
+            return [size(["10", "12", "14", "16", "18"]), detail("Type", typeChoices), DeviceField("side", "Nare", choices: ["Left", "Right"]),
+                    DeviceField("notes", "Notes", choices: ["to suction", "clamped", "feeds"])]
+        case .feedingTube:
+            return [size(["14", "16", "18", "20", "24"]), detail("Type", typeChoices), DeviceField("notes", "Notes")]
+        case .ostomy:
+            return [detail("Type", typeChoices), DeviceField("notes", "Notes")]
+        case .rectalTube:
+            return [detail("Notes")]
+        case .nephrostomy:
+            return [size(["8", "10", "12"]), detail("Notes")]
+        case .ureteralStent:
+            return [detail("Notes")]
+        case .surgicalDrain:
+            return [size(["10", "15", "19"]), detail("Type", typeChoices), DeviceField("notes", "Notes", choices: ["to bulb suction", "to gravity"])]
+        case .woundVac:
+            return [detail("Notes")]
+        case .pdCatheter:
+            return [detail("Notes")]
+        case .evd:
+            return [detail("Notes", ["open", "clamped"])]
+        case .lumbarDrain:
+            return [detail("Notes", ["open", "clamped"])]
+        case .vpShunt:
+            return [detail("Notes", ["programmable"])]
+        case .port:
+            return [detail("Notes", ["accessed", "not accessed"])]
+        case .intrathecalPump:
+            return [detail("Notes", ["baclofen", "opioid"])]
+        case .neurostimulator:
+            return [detail("Type", typeChoices), DeviceField("notes", "Notes")]
+        case .insulinPump:
+            return [detail("Type", typeChoices), DeviceField("notes", "Notes")]
         case .other:
             return [detail("Device", ["LMA", "NG tube"]), DeviceField("size", "Size")]
         }
     }
+
+    /// 1.15: the types a kind offers (the device's detail), as the Type field lists them and the handoff reads them; none for a kind
+    /// without types.
+    var typeChoices: [String] {
+        switch self {
+        case .gastricTube: return ["NG", "OG", "Dobhoff"]
+        case .feedingTube: return ["PEG", "G-tube", "GJ-tube", "J-tube"]
+        case .ostomy: return ["Colostomy", "Ileostomy", "Urostomy", "Mucous fistula"]
+        case .surgicalDrain: return ["JP", "Blake", "Penrose", "Hemovac", "Biliary (T-tube)", "Percutaneous"]
+        case .neurostimulator: return ["Spinal cord stimulator", "Deep brain stimulator", "Vagal nerve stimulator", "Sacral nerve stimulator"]
+        case .insulinPump: return ["Insulin pump", "Glucose sensor"]
+        default: return []
+        }
+    }
+
+    /// 1.15: what each type is printed as in the handoff ("NG" is "NG tube", "JP" is "JP drain"); a type that is not listed here
+    /// prints as typed.
+    var typePrinted: [String: String] {
+        switch self {
+        case .gastricTube: return ["NG": "NG tube", "OG": "OG tube", "Dobhoff": "Dobhoff"]
+        case .surgicalDrain: return ["JP": "JP drain", "Blake": "Blake drain", "Penrose": "Penrose drain", "Hemovac": "Hemovac drain",
+                                     "Biliary (T-tube)": "Biliary drain", "Percutaneous": "Percutaneous drain"]
+        default: return Dictionary(uniqueKeysWithValues: typeChoices.map { ($0, $0) })
+        }
+    }
+
+    /// 1.15: the sixteen kinds Ben asked for on Nov 23 (feeding and gastric tubes; urinary tubes and stomas; surgical drains; neuro and
+    /// implanted devices). They go with the lines in the handoff and are none of IV access, an arm line, a limb alert, temporary pacing
+    /// or mechanical support.
+    static let added115: [DeviceKind] = [.gastricTube, .feedingTube, .ostomy, .rectalTube, .nephrostomy, .ureteralStent, .surgicalDrain,
+                                         .woundVac, .pdCatheter, .evd, .lumbarDrain, .vpShunt, .port, .intrathecalPump, .neurostimulator,
+                                         .insulinPump]
 
     /// The `settings` keys this kind's fields use.
     var settingKeys: [String] { fields.map(\.id).filter { $0 != "size" && $0 != "detail" } }
@@ -684,48 +827,73 @@ extension DeviceSite {
         Spec("forehead-eeg", "forehead (BIS/SedLine)", "forehead", nil, "head", 100, 21, false, false, [.processedEEG]),
         Spec("mouth-tee", "mouth (TEE probe)", "oral", nil, "head", 93, 45, false, false, [.teeProbe]),
         Spec("mouth-blocker", "mouth (bronchial blocker)", "oral", nil, "head", 107, 45, false, false, [.bronchialBlocker]),
+        // 1.15: the NG and Dobhoff tube go in by the nose and the OG tube by the mouth, each beside the ETT's marker (6.7 and 7 figure
+        // units from it, so no marker is on another). The frontal scalp, where an EVD or a VP shunt's catheter goes in, is at the top
+        // of the head, 6 units from the forehead anchor and 6.7 from the oximeter's sensor.
+        Spec("nose-gastric", "nose (NG or Dobhoff tube)", "nasal", nil, "head", 94, 36, false, false, [.gastricTube]),
+        Spec("mouth-og", "mouth (OG tube)", "oral", nil, "head", 100, 49, false, false, [.gastricTube]),
+        Spec("frontal", "frontal scalp (EVD, shunt)", "frontal", nil, "head", 96, 8.5, true, false, [.evd, .vpShunt]),
         Spec("interscalene", "interscalene", "interscalene", nil, "neck", 92, 54, true, false, [.block, .perineuralCatheter]),
         Spec("ej", "external jugular vein", "EJ", nil, "neck", 92.5, 57, true, false, [.piv, .cvc]),
         Spec("ij", "internal jugular vein", "IJ", nil, "neck", 95.5, 61, true, false, [.cvc, .pac, .ecmoReturn, .ecmoDrainage, .impella, .protekDuo, .dialysisCatheter]),
         Spec("trach", "tracheostomy stoma", "stoma", nil, "neck", 100, 62, false, false, [.trach]),
+        // 1.15: a drain in the side of the neck, above the supraclavicular site (6 units from it).
+        Spec("neck", "lateral neck (drain)", "neck", nil, "neck", 88, 64, true, false, [.surgicalDrain]),
         Spec("supraclavicular", "supraclavicular", "supraclavicular", nil, "chest", 84, 68.5, true, false, [.block, .perineuralCatheter]),
         Spec("subclavian", "subclavian vein", "subclavian", nil, "chest", 88, 76, true, false, [.cvc, .pac, .dialysisCatheter]),
         Spec("infraclavicular", "infraclavicular", "infraclavicular", nil, "chest", 76, 80, true, false, [.block, .perineuralCatheter]),
         // The pacemaker or ICD pocket (1.9), below the clavicle and medial to the infraclavicular block site.
-        Spec("generator", "pacemaker/ICD pocket (infraclavicular)", "pectoral", nil, "chest", 84, 88, true, false, [.cied]),
+        // 1.15: a port and a nerve stimulator's generator sit in the same pocket (Ben, Nov 23); a port reads "R chest" in the handoff.
+        Spec("generator", "chest pocket (pacemaker/ICD, port, stimulator)", "pectoral", nil, "chest", 84, 88, true, false, [.cied, .port, .neurostimulator]),
         Spec("aorta", "ascending aorta (central)", "aorta", nil, "chest", 101, 86, false, false, [.ecmoReturn]),
         Spec("parasternal", "parasternal (PIFB)", "parasternal", nil, "chest", 94, 90, true, false, [.block, .perineuralCatheter]),
         // 1.12: the defibrillator pads, drawn as two (below the right clavicle and at the apex); this is the first.
         Spec("defib-pads", "chest (defibrillator pads)", "chest", nil, "chest", 87, 99, false, false, [.defibPads]),
         Spec("pecs", "PECS/serratus plane", "PECS", nil, "chest", 73, 100, true, false, [.block, .perineuralCatheter]),
         // Chest tubes go in the lateral chest wall, about the fifth interspace (1.9).
-        Spec("lateral-chest", "lateral chest wall (chest tube)", "lateral chest", "chest", "chest", 71, 118, true, false, [.chestTube]),
+        // 1.15: a surgical drain goes through the lateral chest wall too.
+        Spec("lateral-chest", "lateral chest wall (chest tube, drain)", "lateral chest", "chest", "chest", 71, 118, true, false, [.chestTube, .surgicalDrain]),
         Spec("right-atrium", "right atrium (central)", "RA", nil, "chest", 95, 104, false, false, [.ecmoDrainage]),
         Spec("heart", "heart (LV apex)", "LV apex", nil, "chest", 112, 114, false, false, [.lvad]),
+        // 1.15: the midline of the chest, for a wound vac on a sternal wound.
+        Spec("sternum", "sternum (midline chest)", "sternum", nil, "chest", 100, 110, false, false, [.woundVac]),
         // Where epicardial pacing wires leave the chest, below the sternum (1.9).
         Spec("epicardial-exit", "epicardial wire exit (below the sternum)", "subxiphoid", nil, "chest", 100, 134, false, false, [.epicardialWires]),
         Spec("humeral-io", "proximal humerus (IO)", "humerus", nil, "arm", 53, 92, true, false, [.intraosseous]),
         Spec("axillary-artery", "axillary artery", "axillary artery", "axillary", "arm", 64, 98, true, false, [.arterial, .impella, .ecmoReturn, .iabp]),
         Spec("axillary-block", "axillary brachial plexus", "axillary", nil, "arm", 57, 114, true, false, [.block, .perineuralCatheter]),
-        Spec("upper-arm", "upper arm", "upper arm", nil, "arm", 55, 128, true, false, [.picc, .piv, .avFistula]),
+        Spec("upper-arm", "upper arm", "upper arm", nil, "arm", 55, 128, true, false, [.picc, .piv, .avFistula, .insulinPump]),
         Spec("brachial", "brachial artery", "brachial", nil, "arm", 51, 150, true, false, [.arterial]),
         Spec("antecubital", "antecubital fossa", "AC", nil, "arm", 46, 157, true, false, [.piv, .picc]),
         Spec("forearm", "forearm", "forearm", nil, "arm", 42, 182, true, false, [.piv, .avFistula]),
         Spec("wrist", "wrist", "wrist", nil, "arm", 40, 205, true, false, [.piv, .avFistula]),
         Spec("radial", "radial artery", "radial", nil, "arm", 32.5, 208, true, false, [.arterial]),
         Spec("hand", "hand (dorsum)", "hand", nil, "arm", 35, 229, true, false, [.piv]),
+        // 1.15: the abdomen. The four quadrants (RUQ, LUQ, RLQ, LLQ: `make` prints them as the abbreviations) and the midline, above
+        // and below the navel (y 150) and 6 or more units from the TAP site and the others.
+        Spec("upper-abdomen", "upper abdomen", "RUQ", nil, "abdomen", 80, 140, true, false, [.feedingTube, .surgicalDrain, .ostomy, .woundVac]),
+        Spec("abdomen", "abdomen (midline)", "abdomen", nil, "abdomen", 100, 162, false, false, [.woundVac, .ostomy, .feedingTube]),
         Spec("tap", "transversus abdominis plane", "TAP", nil, "abdomen", 72, 162, true, false, [.block, .perineuralCatheter]),
+        Spec("lower-abdomen", "lower abdomen", "RLQ", nil, "abdomen", 80, 174, true, false,
+             [.ostomy, .surgicalDrain, .pdCatheter, .woundVac, .insulinPump, .intrathecalPump, .neurostimulator, .feedingTube]),
+        // The flank, on the back view (like the ESP site, drawn on the front figure at its height): a nephrostomy tube, a ureteral stent
+        // (inside the body, drawn here) or a stimulator's generator.
+        Spec("flank", "flank (back)", "flank", nil, "back", 76, 148, true, true, [.nephrostomy, .ureteralStent, .neurostimulator]),
         Spec("esp", "erector spinae plane (back)", "ESP", nil, "back", 94, 112, true, true, [.block, .perineuralCatheter]),
         Spec("thoracic-spine", "thoracic spine (back)", "thoracic", nil, "back", 100, 118, false, true, [.epidural]),
-        Spec("lumbar-spine", "lumbar spine (back)", "lumbar", nil, "back", 100, 180, false, true, [.epidural, .spinal]),
+        Spec("lumbar-spine", "lumbar spine (back)", "lumbar", nil, "back", 100, 180, false, true, [.epidural, .spinal, .lumbarDrain]),
+        // 1.15: a drain or wound vac in the groin, lateral to the femoral sites (8.7 units from the femoral nerve's).
+        Spec("groin", "groin (drain, wound vac)", "groin", nil, "groin", 70, 186, true, false, [.surgicalDrain, .woundVac]),
         Spec("femoral-block", "femoral nerve", "femoral", nil, "groin", 73.5, 194, true, false, [.block, .perineuralCatheter]),
         Spec("femoral-artery", "femoral artery", "femoral artery", "femoral", "groin", 79, 199, true, false, [.arterial, .iabp, .impella, .ecmoReturn]),
         Spec("femoral-vein", "femoral vein", "femoral vein", "femoral", "groin", 84, 202, true, false, [.cvc, .ecmoDrainage, .pac, .impella, .dialysisCatheter]),
         // A thigh graft for dialysis access (1.9).
-        Spec("thigh", "thigh", "thigh", nil, "leg", 84, 236, true, false, [.avFistula]),
+        Spec("thigh", "thigh", "thigh", nil, "leg", 84, 236, true, false, [.avFistula, .woundVac]),
         // The bladder, midline at the pelvis: suprapubic above the symphysis, urethral below it (1.8.1).
         Spec("suprapubic", "suprapubic", "suprapubic", nil, "pelvis", 100, 194, false, false, [.foley]),
         Spec("urethral", "urethral", "urethral", nil, "pelvis", 100, 213, false, false, [.foley]),
+        // 1.15: the rectal tube, below the urethral site (8 units).
+        Spec("perineum", "perineum (rectal tube)", "perineal", nil, "pelvis", 100, 221, false, false, [.rectalTube]),
         Spec("adductor-canal", "adductor canal", "adductor canal", nil, "leg", 90, 262, true, false, [.block, .perineuralCatheter]),
         Spec("popliteal", "popliteal (back of the knee)", "popliteal", nil, "leg", 73, 293, true, true, [.block, .perineuralCatheter]),
         Spec("tibial-io", "proximal tibia (IO)", "tibia", nil, "leg", 86, 321, true, false, [.intraosseous]),
@@ -734,12 +902,23 @@ extension DeviceSite {
         Spec("foot", "foot (dorsum)", "foot", nil, "leg", 79, 404, true, false, [.piv]),
     ]
 
+    /// The abdominal quadrants and what each prints as (1.15, Ben, Nov 23: "RUQ", "LUQ", "RLQ", "LLQ").
+    private static let quadrantShort: [String: (right: String, left: String)] = [
+        "upper-abdomen": ("RUQ", "LUQ"), "lower-abdomen": ("RLQ", "LLQ"),
+    ]
+
     private static func make(_ sp: Spec, _ side: String?) -> DeviceSite {
         let right = side == "right", left = side == "left"
         let pre = right ? "R " : (left ? "L " : "")
         let name: String
         if right { name = "Right " + sp.name } else if left { name = "Left " + sp.name } else { name = sp.name.prefix(1).uppercased() + sp.name.dropFirst() }
         let x = left ? 200 - sp.x : sp.x
+        // 1.15: the four abdominal quadrants print as the abbreviations ("RUQ", "LUQ", "RLQ", "LLQ"), not "R RUQ".
+        if let q = quadrantShort[sp.base], let side {
+            let abbreviation = side == "right" ? q.right : q.left
+            return DeviceSite(id: sp.base + "-" + side, base: sp.base, name: name, short: abbreviation, brief: abbreviation, region: sp.region,
+                              side: side, anchor: CGPoint(x: x / 200, y: sp.y / 420), back: sp.back, kinds: sp.kinds)
+        }
         return DeviceSite(id: side.map { sp.base + "-" + $0 } ?? sp.base, base: sp.base, name: name, short: pre + sp.short,
                           brief: pre + (sp.brief ?? sp.short), region: sp.region, side: side,
                           anchor: CGPoint(x: x / 200, y: sp.y / 420), back: sp.back, kinds: sp.kinds)
@@ -913,8 +1092,13 @@ enum PatientDevices {
     /// - No site, a guess (lowers the confidence, and the side stays unknown): A-line → radial, CVL and PAC → IJ,
     ///   PICC → upper arm, IO → tibia, IABP and Impella → femoral artery, ECMO drainage → femoral vein.
     ///
+    /// - 1.15: an NG or Dobhoff tube goes in by the nose and an OG tube by the mouth (`type` is the device's detail, "OG" for the
+    ///   mouth); a feeding tube, an ostomy, a drain, a PD catheter, a pump and a stimulator have an abdominal or chest site that is a
+    ///   guess; a rectal tube, a lumbar drain have one place each; the nephrostomy tube and the ureteral stent go at the flank, the EVD
+    ///   and the VP shunt at the frontal scalp, a port in the chest pocket.
+    ///
     /// Returns the side-less site and whether the default is sure.
-    static func defaultSite(for kind: DeviceKind, limb: DeviceLimb? = nil, level: String? = nil) -> (site: String, sure: Bool)? {
+    static func defaultSite(for kind: DeviceKind, limb: DeviceLimb? = nil, level: String? = nil, type: String = "") -> (site: String, sure: Bool)? {
         switch limb {
         case .upper?:
             switch kind {
@@ -922,6 +1106,7 @@ enum PatientDevices {
             case .arterial: return ("radial", true)
             case .intraosseous: return ("humeral-io", true)
             case .picc: return ("upper-arm", true)
+            case .insulinPump: return ("upper-arm", true)
             // A fistula in "the arm" is drawn at the forearm, where most are made (1.9).
             case .avFistula: return ("forearm", false)
             default: return nil
@@ -952,6 +1137,16 @@ enum PatientDevices {
         case .teeProbe: return ("mouth-tee", true)
         case .bronchialBlocker: return ("mouth-blocker", true)
         case .defibPads: return ("defib-pads", true)
+        // 1.15 (Ben, Nov 23): see the list above.
+        case .gastricTube: return (type.lowercased().hasPrefix("og") ? "mouth-og" : "nose-gastric", true)
+        case .feedingTube: return ("upper-abdomen", false)
+        case .ostomy, .surgicalDrain, .pdCatheter, .intrathecalPump, .insulinPump: return ("lower-abdomen", false)
+        case .rectalTube: return ("perineum", true)
+        case .nephrostomy, .ureteralStent: return ("flank", false)
+        case .woundVac: return ("abdomen", false)
+        case .evd, .vpShunt: return ("frontal", false)
+        case .lumbarDrain: return ("lumbar-spine", true)
+        case .port, .neurostimulator: return ("generator", false)
         case .cied: return ("generator", true)
         case .chestTube: return ("lateral-chest", true)
         case .dialysisCatheter: return ("ij", false)
@@ -967,6 +1162,23 @@ enum PatientDevices {
         case .iabp, .impella: return ("femoral-artery", false)
         case .ecmoDrainage: return ("femoral-vein", false)
         default: return nil
+        }
+    }
+
+    /// The side a new device of this kind starts on when its type says one (1.15, Ben, Nov 23): a PEG or other feeding tube in the left
+    /// upper abdomen, a colostomy in the left lower abdomen, an ileostomy or a urostomy in the right lower. nil for any other kind or
+    /// type, whose side the clinician chooses.
+    static func defaultSide(for kind: DeviceKind, type: String = "") -> String? {
+        switch kind {
+        case .feedingTube:
+            return "left"
+        case .ostomy:
+            let t = type.trimmingCharacters(in: .whitespaces).lowercased()
+            if t == "colostomy" { return "left" }
+            if t == "ileostomy" || t == "urostomy" { return "right" }
+            return nil
+        default:
+            return nil
         }
     }
 
@@ -1084,10 +1296,81 @@ enum PatientDevices {
             return typed + paren(["bis", "sedline"].contains(t) ? "" : detail, gone)
         case .bronchialBlocker:
             return "Bronchial blocker" + paren(d.blockerSide ?? "", detail, gone)
+        // 1.15 (Ben, Nov 23): the type (or the label) first, the size in Fr if any, the site in its short form, then the note in
+        // parentheses: "NG tube 16 Fr (to suction)", "PEG 20 Fr LUQ", "Colostomy LLQ", "JP drain RLQ (to bulb suction)", "Nephrostomy
+        // tube 10 Fr L flank", "EVD R frontal (open at 10)", "Lumbar drain (open)", "Port R chest (accessed)", "Spinal cord stimulator",
+        // "Insulin pump". A kind with types keeps the note in the "notes" setting; text in its detail that is none of its types is
+        // shown in the parentheses too (a product name, say).
+        case .gastricTube:
+            let t = typeWords(d)
+            // The nare ("L nare") is shown when one was recorded, for a tube by the nose.
+            var nare = ""
+            if site?.base != "mouth-og", let s = sideWord(val("side")) { nare = s + " nare" }
+            return spaced(t.name ?? "NG/OG tube", sized, nare) + paren(val("notes"), t.extra, gone)
+        case .feedingTube:
+            let t = typeWords(d)
+            return spaced(t.name ?? "PEG/G-tube", sized, short) + paren(val("notes"), t.extra, gone)
+        case .ostomy:
+            let t = typeWords(d)
+            return spaced(t.name ?? "Ostomy", short) + paren(val("notes"), t.extra, gone)
+        case .rectalTube:
+            return "Rectal tube" + paren(detail, gone)
+        case .nephrostomy:
+            return spaced("Nephrostomy tube", sized, short) + paren(detail, gone)
+        case .ureteralStent:
+            return spaced("Ureteral stent", short) + paren(detail, gone)
+        case .surgicalDrain:
+            let t = typeWords(d)
+            return spaced(t.name ?? "Drain", sized, short) + paren(val("notes"), t.extra, gone)
+        case .woundVac:
+            return spaced("Wound vac", short) + paren(detail, gone)
+        case .pdCatheter:
+            return spaced("PD catheter", short) + paren(detail, gone)
+        case .evd:
+            return spaced("EVD", short) + paren(detail, gone)
+        case .lumbarDrain:
+            return "Lumbar drain" + paren(detail, gone)
+        case .vpShunt:
+            return spaced("VP shunt", short) + paren(detail, gone)
+        case .port:
+            return spaced("Port", chestPocket(site)) + paren(detail, gone)
+        case .intrathecalPump:
+            return spaced("Intrathecal pump", short) + paren(detail, gone)
+        case .neurostimulator:
+            let t = typeWords(d)
+            return spaced(t.name ?? "Nerve stimulator", chestPocket(site)) + paren(val("notes"), t.extra, gone)
+        case .insulinPump:
+            let t = typeWords(d)
+            return spaced(t.name ?? "Insulin pump/CGM", short) + paren(val("notes"), t.extra, gone)
         case .other:
             let airway = ["mouth", "nose", "trach"].contains(site?.base ?? "")
             return spaced(detail.isEmpty ? "Other" : detail, size, airway ? "" : brief) + paren(gone)
         }
+    }
+
+    /// The device's type as the handoff prints it ("NG" as "NG tube"), and any detail text that is none of the kind's types. A type
+    /// is matched whatever its case; no detail has no name ("NG/OG tube" is then the kind's label).
+    private static func typeWords(_ d: PatientDevice) -> (name: String?, extra: String) {
+        let detail = d.detail.trimmingCharacters(in: .whitespacesAndNewlines)
+        if detail.isEmpty { return (nil, "") }
+        for (type, printed) in d.kind.typePrinted where type.caseInsensitiveCompare(detail) == .orderedSame { return (printed, "") }
+        return (nil, detail)
+    }
+
+    /// "L" or "R" for a side typed or chosen ("Left", "right", "L"); nil when none was given.
+    private static func sideWord(_ v: String) -> String? {
+        let t = v.trimmingCharacters(in: .whitespaces).lowercased()
+        if t.hasPrefix("l") { return "L" }
+        if t.hasPrefix("r") { return "R" }
+        return nil
+    }
+
+    /// The site of a port or a stimulator's generator: "R chest" for the chest pocket (the pacemaker's own words are "pectoral"), the
+    /// short form of any other site.
+    private static func chestPocket(_ site: DeviceSite?) -> String {
+        guard let site else { return "" }
+        if site.base == "generator" { return spaced(site.side == "right" ? "R" : (site.side == "left" ? "L" : ""), "chest") }
+        return site.short
     }
 
     /// An ETT from the device editor sets the record's airway (it is not a device of the list): on arrival, the current
@@ -1446,7 +1729,11 @@ extension PatientDevices {
     private static let introducers: Set<String> = ["introducer", "MAC introducer", "Cordis", "sheath"]
     private static let arterialKinds: Set<DeviceKind> = [.arterial, .iabp, .impella, .ecmoReturn]
     private static let venousKinds: Set<DeviceKind> = [.cvc, .pac, .picc, .ecmoDrainage, .protekDuo, .dialysisCatheter]
-    private static let priority: [DeviceKind] = [.protekDuo, .pac, .impella, .iabp, .lvad, .epicardialWires, .cied, .chestTube, .avFistula,
+    private static let priority: [DeviceKind] = [.protekDuo, .pac, .impella, .iabp, .lvad, .epicardialWires, .cied, .chestTube,
+                                                 // 1.15: the new kinds, whose words are phrases of their own ("NG tube", "JP drain").
+                                                 .gastricTube, .feedingTube, .ostomy, .rectalTube, .nephrostomy, .ureteralStent, .surgicalDrain,
+                                                 .woundVac, .pdCatheter, .evd, .lumbarDrain, .vpShunt, .port, .intrathecalPump, .neurostimulator,
+                                                 .insulinPump, .avFistula,
                                                  .dialysisCatheter, .ett, .trach, .epidural, .spinal, .picc,
                                                  .intraosseous, .cvc, .arterial, .piv, .ecmoDrainage, .ecmoReturn, .foley, .other]
     private static let textSettings: Set<String> = ["timing", "issues", "position"]
@@ -1610,6 +1897,20 @@ extension PatientDevices {
             }
             i += 1
         }
+        // 1.15: "drain" and "tube" next to one of the new devices' words are part of its name ("Blake drain", "Dobhoff tube"), not the
+        // ECMO drainage role or an ETT. Beside nothing of theirs they keep their meaning ("ECMO drainage R femoral vein").
+        func isAdded(_ j: Int) -> Bool {
+            guard j >= 0, j < out.count, case .kind(let k, _) = out[j].tok else { return false }
+            return DeviceKind.added115.contains(k)
+        }
+        for j in out.indices where isAdded(j - 1) || isAdded(j + 1) {
+            let raw = out[j].raw.lowercased()
+            if case .role("drainage") = out[j].tok, raw == "drain" || raw == "drainage" || raw == "draining" {
+                out[j].tok = .filler
+            } else if case .kind(.ett, .none) = out[j].tok, raw == "tube" {
+                out[j].tok = .filler
+            }
+        }
         return out
     }
 
@@ -1715,6 +2016,13 @@ extension PatientDevices {
         if kind == .cied, ["chest", "infraclavicular", "subclavian"].contains(base) { return ("generator", 1) }
         if kind == .chestTube, base == "chest" { return ("lateral-chest", 1) }
         if kind == .epicardialWires, base == "chest" { return ("epicardial-exit", 1) }
+        // 1.15: the new devices have their own places by the nose, the mouth, the chest and the scalp (marks never sit on the ETT's).
+        if kind == .gastricTube, base == "nose" { return ("nose-gastric", 1) }
+        if kind == .gastricTube, base == "mouth" { return ("mouth-og", 1) }
+        if kind == .surgicalDrain, base == "chest" { return ("lateral-chest", 1) }
+        if kind == .woundVac, base == "chest" { return ("sternum", 1) }
+        if kind == .port || kind == .neurostimulator, base == "chest" { return ("generator", 1) }
+        if kind == .evd || kind == .vpShunt, base == "scalp" { return ("frontal", 1) }
         // A fistula or graft is in the limb, not in the femoral vessels: FA is the forearm, femoral the thigh (as
         // PatientDeviceFills.readAccessSite reads them).
         if kind == .avFistula, base == "fa" { return ("forearm", 1) }
@@ -1761,7 +2069,24 @@ extension PatientDevices {
         }
     }
 
-    private static func parseSingle(_ t: [DeviceToken]) -> DeviceParse? {
+    /// 1.15: the sites that came with the new devices. Their words ("neck", "groin", "flank", "RLQ") mean a site only for a device that
+    /// goes there: beside another device they are left as words, as they were before ("CVL neck" is still a CVL with "neck" in its
+    /// detail, not a drain site).
+    private static let addedSiteBases: Set<String> = ["upper-abdomen", "lower-abdomen", "abdomen", "flank", "frontal", "groin", "neck", "sternum", "perineum"]
+
+    private static func parseSingle(_ tokens: [DeviceToken]) -> DeviceParse? {
+        var t = tokens
+        let named: [DeviceKind] = t.compactMap { tok -> DeviceKind? in
+            if case .kind(let k, _) = tok.tok { return k }
+            return nil
+        }
+        if let explicit = priority.first(where: { named.contains($0) }) {
+            for i in t.indices {
+                if case .site(let b, _) = t[i].tok, addedSiteBases.contains(b), !DeviceSite.kinds(forBase: b).contains(explicit) {
+                    t[i] = DeviceToken(tok: .word, raw: t[i].raw)
+                }
+            }
+        }
         let n = t.count
         var used = Array(repeating: false, count: n)
         var settings: [String: String] = [:]
@@ -1876,8 +2201,11 @@ extension PatientDevices {
             penalty += 0.15
         }
         if base == nil {
-            if let d = defaultSite(for: kind, limb: limbs.first?.limb, level: settings["level"]) {
+            // 1.15: the type typed ("OG", "Colostomy") says where a tube goes and, for a feeding tube or an ostomy, which side.
+            let typed = kinds.compactMap { $0.detail }.first ?? ""
+            if let d = defaultSite(for: kind, limb: limbs.first?.limb, level: settings["level"], type: typed) {
                 base = d.site
+                if side == nil, let ds = defaultSide(for: kind, type: typed) { side = ds }
                 if !d.sure { penalty += 0.15 }
             } else if kind != .other {
                 penalty += 0.3
@@ -1950,6 +2278,7 @@ extension PatientDevices {
         p.detail = details.joined(separator: ", ")
         p.size = size
         p.settings = settings
+        tidyAdded(&p, side: side)
         p.confidence = score(1 - penalty)
 
         // Alternatives: the other readings of an ambiguous site word, then each side when the side is missing.
@@ -1989,6 +2318,40 @@ extension PatientDevices {
         }
         return p
     }
+
+    /// What the new kinds of 1.15 keep where: the type is the detail and the rest of the words are the note ("NG tube 16 Fr to suction"
+    /// is the type NG and the note "to suction"); a kind with no types keeps the words as its note (the detail). A kind without a size
+    /// has none (a year typed beside "colostomy" is not one), and an "at" number is the EVD's or lumbar drain's "open at 10". A tube by the
+    /// nose keeps the nare typed ("L nare") as its side. `side`: the side word read.
+    private static func tidyAdded(_ p: inout DeviceParse, side: String?) {
+        let kind = p.kind
+        guard DeviceKind.added115.contains(kind) else { return }
+        if kind.sizeUnit.isEmpty { p.size = "" }
+        if kind == .evd || kind == .lumbarDrain, let depth = p.settings["depth"] {
+            p.settings["depth"] = nil
+            p.detail = p.detail.isEmpty ? "at " + depth : p.detail + " at " + depth
+        }
+        if kind == .gastricTube {
+            p.settings["depthAt"] = nil
+            if let s = side, s == "left" || s == "right" { p.settings["side"] = s == "left" ? "Left" : "Right" }
+        }
+        let types = kind.typeChoices
+        guard !types.isEmpty else { return }
+        var type = ""
+        var notes: [String] = []
+        for part in p.detail.split(separator: ",").map({ $0.trimmingCharacters(in: .whitespaces) }) where !part.isEmpty {
+            if type.isEmpty, let match = types.first(where: { $0.caseInsensitiveCompare(part) == .orderedSame }) {
+                type = match
+            } else {
+                notes.append(noteWords[part.lowercased()] ?? part)
+            }
+        }
+        p.detail = type
+        if !notes.isEmpty { p.settings["notes"] = notes.joined(separator: ", ") }
+    }
+
+    /// The quick-pick notes of the new kinds as they are typed without their "to" ("suction" is "to suction").
+    private static let noteWords: [String: String] = ["suction": "to suction", "bulb suction": "to bulb suction", "gravity": "to gravity"]
 
     // MARK: ECMO
 
@@ -2275,6 +2638,48 @@ private enum Lexicon {
         v("suprapubic", .site("suprapubic", nil))
         v("urethral", .site("urethral", nil))
         v("coude|coudé", .detail("coudé"))
+        // 1.15 (Ben, Nov 23): feeding and gastric tubes, stomas, urinary tubes, surgical drains and neuro and implanted devices. A bare
+        // "drain", "shunt", "port" or "stent" is none of them ("drain" is the ECMO drainage role; a stent is a vessel's), and "pcn",
+        // "dbs", "scs", "vns", "jp" are read here only, by the device reader (the allergy readers are their own).
+        v("ngt", .kind(.gastricTube, "NG"))
+        v("ogt", .kind(.gastricTube, "OG"))
+        v("dobhoff|dobbhoff|keofeed", .kind(.gastricTube, "Dobhoff"))
+        v("peg", .kind(.feedingTube, "PEG"))
+        v("gtube|mickey", .kind(.feedingTube, "G-tube"))
+        v("jtube", .kind(.feedingTube, "J-tube"))
+        v("colostomy", .kind(.ostomy, "Colostomy"))
+        v("ileostomy", .kind(.ostomy, "Ileostomy"))
+        v("urostomy", .kind(.ostomy, "Urostomy"))
+        v("ostomy", .kind(.ostomy, nil))
+        v("flexiseal", .kind(.rectalTube, nil))
+        v("nephrostomy|pcn", .kind(.nephrostomy, nil))
+        v("jp", .kind(.surgicalDrain, "JP"))
+        v("blake", .kind(.surgicalDrain, "Blake"))
+        v("penrose", .kind(.surgicalDrain, "Penrose"))
+        v("hemovac", .kind(.surgicalDrain, "Hemovac"))
+        v("ttube", .kind(.surgicalDrain, "Biliary (T-tube)"))
+        v("woundvac|npwt", .kind(.woundVac, nil))
+        v("tenckhoff", .kind(.pdCatheter, nil))
+        v("evd|ventriculostomy", .kind(.evd, nil))
+        v("portacath|mediport", .kind(.port, nil))
+        v("baclofen", .detail("baclofen"))
+        v("scs", .kind(.neurostimulator, "Spinal cord stimulator"))
+        v("dbs", .kind(.neurostimulator, "Deep brain stimulator"))
+        v("vns", .kind(.neurostimulator, "Vagal nerve stimulator"))
+        v("interstim", .kind(.neurostimulator, "Sacral nerve stimulator"))
+        v("omnipod", .kind(.insulinPump, "Insulin pump"))
+        v("cgm|dexcom|libre", .kind(.insulinPump, "Glucose sensor"))
+        v("ruq", .site("upper-abdomen", "right"))
+        v("luq", .site("upper-abdomen", "left"))
+        v("rlq", .site("lower-abdomen", "right"))
+        v("llq", .site("lower-abdomen", "left"))
+        v("flank", .site("flank", nil))
+        v("frontal", .site("frontal", nil))
+        v("groin", .site("groin", nil))
+        v("neck", .site("neck", nil))
+        v("abdomen|abdominal", .site("abdomen", nil))
+        v("sternum|sternal", .site("sternum", nil))
+        v("perineum|perineal", .site("perineum", nil))
         v("protekduo|protek|oxyrvad", .kind(.protekDuo, nil))
         v("epidural|epi", .kind(.epidural, nil))
         v("tea|tec", .kind(.epidural, nil), .site("thoracic-spine", nil))
@@ -2377,6 +2782,46 @@ private enum Lexicon {
         v("suprapubic catheter", .kind(.foley, nil), .site("suprapubic", nil))
         v("on arrival")
         v("right atrium", .site("right-atrium", nil))
+        // 1.15 (Ben, Nov 23): the phrases of the new devices. A hyphenated word is split first, so "g-tube", "t-tube", "mic-key",
+        // "flexi-seal", "jackson-pratt", "port-a-cath" and "double-j" read as "g tube", "t tube", ...
+        v("ng tube|nasogastric tube|salem sump", .kind(.gastricTube, "NG"))
+        v("og tube|orogastric tube", .kind(.gastricTube, "OG"))
+        v("nasoenteric tube|nj tube", .kind(.gastricTube, "Dobhoff"))
+        v("peg tube", .kind(.feedingTube, "PEG"))
+        v("g tube|gastrostomy tube|mic key", .kind(.feedingTube, "G-tube"))
+        v("gj tube|peg j", .kind(.feedingTube, "GJ-tube"))
+        v("j tube|jejunostomy tube", .kind(.feedingTube, "J-tube"))
+        v("feeding tube", .kind(.feedingTube, nil))
+        v("ileal conduit", .kind(.ostomy, "Urostomy"))
+        v("mucous fistula", .kind(.ostomy, "Mucous fistula"))
+        v("rectal tube|flexi seal|fecal management system", .kind(.rectalTube, nil))
+        v("nephrostomy tube|neph tube", .kind(.nephrostomy, nil))
+        v("ureteral stent|jj stent|double j stent", .kind(.ureteralStent, nil))
+        v("jp drain|jackson pratt|jackson pratt drain", .kind(.surgicalDrain, "JP"))
+        v("blake drain", .kind(.surgicalDrain, "Blake"))
+        v("penrose drain", .kind(.surgicalDrain, "Penrose"))
+        v("hemovac drain", .kind(.surgicalDrain, "Hemovac"))
+        v("t tube|t tube drain|biliary drain|ptc drain", .kind(.surgicalDrain, "Biliary (T-tube)"))
+        v("percutaneous drain|perc drain", .kind(.surgicalDrain, "Percutaneous"))
+        v("surgical drain", .kind(.surgicalDrain, nil))
+        v("wound vac|wound vacuum|negative pressure dressing", .kind(.woundVac, nil))
+        v("pd catheter|pd cath|peritoneal dialysis catheter", .kind(.pdCatheter, nil))
+        v("external ventricular drain", .kind(.evd, nil))
+        v("lumbar drain|spinal drain|csf drain", .kind(.lumbarDrain, nil))
+        v("vp shunt|ventriculoperitoneal shunt", .kind(.vpShunt, nil))
+        v("port a cath|chemo port|implanted port|power port|chest port", .kind(.port, nil))
+        v("intrathecal pump|pain pump", .kind(.intrathecalPump, nil))
+        v("baclofen pump|intrathecal baclofen pump", .kind(.intrathecalPump, "baclofen"))
+        v("spinal cord stimulator", .kind(.neurostimulator, "Spinal cord stimulator"))
+        v("deep brain stimulator", .kind(.neurostimulator, "Deep brain stimulator"))
+        v("vagal nerve stimulator", .kind(.neurostimulator, "Vagal nerve stimulator"))
+        v("sacral nerve stimulator", .kind(.neurostimulator, "Sacral nerve stimulator"))
+        v("insulin pump", .kind(.insulinPump, "Insulin pump"))
+        v("glucose sensor", .kind(.insulinPump, "Glucose sensor"))
+        v("right upper quadrant", .site("upper-abdomen", "right"))
+        v("left upper quadrant", .site("upper-abdomen", "left"))
+        v("right lower quadrant", .site("lower-abdomen", "right"))
+        v("left lower quadrant", .site("lower-abdomen", "left"))
         return d
     }()
 

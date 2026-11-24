@@ -808,7 +808,12 @@ struct RefDestination: View {
     /// Opened from My Patient's stack: the calculators that can work on the case (the prophylaxis one) are bound to it.
     var caseBound = false
 
+    /// Ben, Nov 23: a calculator is rebuilt, and so refilled from the case, when the current case changes (CaseScope says which).
     var body: some View {
+        tool.caseScoped(CaseScope.resetsOnCaseChange(route))
+    }
+
+    @ViewBuilder private var tool: some View {
                 switch route {
                 case .quickref(let id):
                     if let ref = refs.quickref(id) {

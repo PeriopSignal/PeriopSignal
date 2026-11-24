@@ -670,7 +670,8 @@ final class P112Tests: XCTestCase {
         XCTAssertNil(CaseHeparin.text(r, now: at(10, 0)))
     }
 
-    @MainActor func testTheTabRowThePageAndTheHandoffListHeparinFromTheOneLogAndNoACTOrProtamine() throws {
+    /// Ben, Nov 23: "Heparin should not be added to handoff". The tab's row still lists the doses; the handoff no longer does.
+    @MainActor func testTheTabRowListsHeparinFromTheOneLogAndTheHandoffDoesNot() throws {
         let d = try data()
         var r = adult()
         r.setProcedures(PlannedProcedure.parse("CABG x3"))
@@ -682,17 +683,21 @@ final class P112Tests: XCTestCase {
         let text = "Heparin 26,000 U 08:10; 5,000 U 08:46 (31,000 U total)"
         let row = IntraopNotableMedicationLink.lines(r, antibiotics: CaseAntibiotics.lines(r, data: d, now: at(10, 0)), now: at(10, 0))
         XCTAssertEqual(row.map(\.text), [text])
-        let b = try XCTUnwrap(PatientBriefs.handoff(r, now: at(10, 0)).first { $0.key == "infusions" })
-        XCTAssertTrue(b.lines.contains(text), "\(b.lines)")
-        XCTAssertFalse(b.lines.joined(separator: "\n").contains("ACT"))
-        XCTAssertFalse(b.lines.joined(separator: "\n").contains("rotamine"), "the handoff has never printed protamine")
-        // Antibiotics first, then heparin, in the same block.
+        // The doses appear nowhere in the handoff.
+        let all = PatientBriefs.plainText(PatientBriefs.handoff(r, now: at(10, 0)))
+        XCTAssertFalse(all.contains("26,000 U"), all)
+        XCTAssertFalse(all.contains("31,000 U total"), all)
+        // With an antibiotic charted the block is there, and still says nothing about heparin.
         r.timers.antibiotics = [recordOnly("cefazolin", doses: [TimedEntry(time: at(8, 5), given: "2 g")])]
         let both = try XCTUnwrap(PatientBriefs.handoff(r, now: at(10, 0)).first { $0.key == "infusions" })
-        let lines = both.lines
-        let a = try XCTUnwrap(lines.firstIndex { $0.hasPrefix("Antibiotics: ") })
-        let h = try XCTUnwrap(lines.firstIndex(of: text))
-        XCTAssertLessThan(a, h)
+        XCTAssertTrue(both.lines.contains { $0.hasPrefix("Antibiotics: ") }, "\(both.lines)")
+        XCTAssertFalse(both.lines.contains { $0.contains("Heparin") }, "\(both.lines)")
+        XCTAssertFalse(both.lines.joined(separator: "\n").contains("ACT"))
+        XCTAssertFalse(both.lines.joined(separator: "\n").contains("rotamine"), "the handoff has never printed protamine")
+        // The same case with and without the heparin log hands off the same text.
+        var without = r
+        without.timers.heparin = nil
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(r, now: at(10, 0))), PatientBriefs.plainText(PatientBriefs.handoff(without, now: at(10, 0))))
     }
 
     // MARK: Typed heparin

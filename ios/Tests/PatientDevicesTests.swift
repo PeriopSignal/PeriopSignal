@@ -339,7 +339,10 @@ final class PatientDevicesTests: XCTestCase {
         let all = DeviceSite.all
         // 1.12 (helper N) deliberately added five sites for the monitors and adjuncts: two on the forehead, the mouth beside the tube
         // for the TEE probe and for the blocker, and the chest for the defibrillator pads (49 sites, 33 of them on both sides).
-        XCTAssertEqual(all.count, 82, "49 sites, 33 of them on both sides (1.9 added the generator pocket, lateral chest and thigh, and the epicardial wire exit; 1.12 five single sites for the monitors)")
+        // 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this I may have missed", and he chose
+        // "Draw them") added eleven sites: single ones for the NG and OG tubes, the sternum, the midline abdomen and the perineum, and paired
+        // ones for the frontal scalp, the neck, the upper and lower abdomen, the groin and the flank (60 sites, 39 of them on both sides).
+        XCTAssertEqual(all.count, 99, "60 sites, 39 of them on both sides (1.9 added the generator pocket, lateral chest and thigh, and the epicardial wire exit; 1.12 five single sites for the monitors; 1.15 eleven for the new tubes, drains and implanted devices)")
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "ids are unique")
         for s in all {
             XCTAssertTrue((0...1).contains(s.anchor.x) && (0...1).contains(s.anchor.y), "\(s.id) sits inside the figure box")
@@ -350,7 +353,12 @@ final class PatientDevicesTests: XCTestCase {
                 XCTAssertEqual(Double(s.anchor.x + other.anchor.x), 1, accuracy: 1e-9, "\(s.id) mirrors its other side")
                 XCTAssertEqual(s.anchor.y, other.anchor.y)
                 XCTAssertTrue(s.name.hasPrefix(side == "right" ? "Right " : "Left "), s.name)
-                XCTAssertTrue(s.short.hasPrefix(side == "right" ? "R " : "L "), s.short)
+                // 1.15 (Ben, Nov 23): the four abdominal quadrants print as the abbreviations (RUQ, LUQ, RLQ, LLQ), not "R RUQ".
+                if ["upper-abdomen", "lower-abdomen"].contains(s.base) {
+                    XCTAssertEqual(s.short, ["upper-abdomen-right": "RUQ", "upper-abdomen-left": "LUQ", "lower-abdomen-right": "RLQ", "lower-abdomen-left": "LLQ"][s.id], s.id)
+                } else {
+                    XCTAssertTrue(s.short.hasPrefix(side == "right" ? "R " : "L "), s.short)
+                }
                 XCTAssertEqual(s.id, s.base + "-" + side)
             } else {
                 XCTAssertEqual(s.id, s.base)
@@ -371,7 +379,9 @@ final class PatientDevicesTests: XCTestCase {
         XCTAssertLessThan(mouth.anchor.y, DeviceSite.site(id: "trach")?.anchor.y ?? 0, "head at the top")
         XCTAssertLessThan(DeviceSite.site(id: "radial-right")?.anchor.x ?? 1, DeviceSite.site(id: "wrist-right")?.anchor.x ?? 0,
                           "the radial artery is on the thumb side")
-        XCTAssertEqual(Set(all.filter(\.back).map(\.base)), ["esp", "thoracic-spine", "lumbar-spine", "popliteal"])
+        // 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this I may have missed"): the flank, for
+        // the nephrostomy tube, is a back site like the ESP block.
+        XCTAssertEqual(Set(all.filter(\.back).map(\.base)), ["esp", "thoracic-spine", "lumbar-spine", "popliteal", "flank"])
         XCTAssertEqual(DeviceSite.find("radial", side: "left")?.id, "radial-left")
         XCTAssertNil(DeviceSite.find("radial", side: nil), "a paired site needs its side")
         XCTAssertNil(DeviceSite.find("nowhere", side: nil))
@@ -403,7 +413,8 @@ final class PatientDevicesTests: XCTestCase {
         XCTAssertEqual(DeviceSite.likelyKinds(at: try XCTUnwrap(DeviceSite.site(id: "femoral-artery-left"))),
                        [.arterial, .iabp, .impella, .ecmoReturn, .other])
         XCTAssertEqual(DeviceSite.likelyKinds(at: try XCTUnwrap(DeviceSite.site(id: "ij-right"))).first, .cvc)
-        XCTAssertEqual(DeviceSite.likelyKinds(at: try XCTUnwrap(DeviceSite.site(id: "lumbar-spine"))), [.epidural, .spinal, .other])
+        // 1.15 (Ben, Nov 23): a lumbar drain goes at the lumbar spine site too.
+        XCTAssertEqual(DeviceSite.likelyKinds(at: try XCTUnwrap(DeviceSite.site(id: "lumbar-spine"))), [.epidural, .spinal, .lumbarDrain, .other])
         XCTAssertEqual(DeviceSite.likelyKinds(at: try XCTUnwrap(DeviceSite.site(id: "heart"))), [.lvad, .other])
         let options = DeviceSite.options(near: ac.anchor)
         XCTAssertEqual(options.first?.kind, .piv)
@@ -432,11 +443,17 @@ final class PatientDevicesTests: XCTestCase {
 
     func testKinds() {
         // 1.12 (helper N) deliberately added five kinds, before Other: cerebral oximetry, TEE probe, defib pads, BIS/SedLine, bronchial blocker.
-        XCTAssertEqual(DeviceKind.allCases.count, 30)
+        // 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this I may have missed")
+        // added sixteen more, before Other: the feeding and gastric tubes, the urinary tubes and stomas, the surgical drains, and the neuro and
+        // implanted devices.
+        XCTAssertEqual(DeviceKind.allCases.count, 46)
         XCTAssertEqual(DeviceKind.allCases.map(\.label), ["PIV", "A-line", "CVL", "PAC", "PICC", "IO", "ETT", "Trach", "ECMO drainage",
                                                           "ECMO return", "LVAD", "IABP", "Impella", "ProtekDuo", "Epidural", "Spinal", "Block",
                                                           "Catheter", "Foley", "Epicardial wires", "Pacemaker/ICD", "AV fistula", "HD catheter", "Chest tube",
-                                                          "Cerebral oximetry", "TEE probe", "Defib pads", "BIS/SedLine", "Bronchial blocker", "Other"])
+                                                          "Cerebral oximetry", "TEE probe", "Defib pads", "BIS/SedLine", "Bronchial blocker",
+                                                          "NG/OG tube", "PEG/G-tube", "Ostomy", "Rectal tube", "Nephrostomy tube", "Ureteral stent", "Drain",
+                                                          "Wound vac", "PD catheter", "EVD", "Lumbar drain", "VP shunt", "Port", "Intrathecal pump",
+                                                          "Nerve stimulator", "Insulin pump/CGM", "Other"])
         XCTAssertEqual(DeviceKind.piv.colorRole, .line)
         XCTAssertEqual(DeviceKind.cvc.colorRole, .central)
         XCTAssertEqual(DeviceKind.picc.colorRole, .central)

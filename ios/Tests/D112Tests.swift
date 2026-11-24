@@ -314,12 +314,13 @@ final class D112Tests: XCTestCase {
 
     // MARK: Note 18: notable medications as chips with doses
 
-    func testTheChipsAreBensNineInHisOrder() {
+    func testTheChipsAreBensTenInHisOrder() {
+        // 1.12 (Ben, Nov 23): Methadone added, last: the list was nine and is now ten.
         XCTAssertEqual(PatientNotableMeds.options.map(\.label),
-                       ["Milrinone bolus", "Inhaled milrinone", "TXA", "Amicar", "PCC", "Fibrinogen concentrate", "Factor VIIa", "Cyanokit", "Methylene blue"])
+                       ["Milrinone bolus", "Inhaled milrinone", "TXA", "Amicar", "PCC", "Fibrinogen concentrate", "Factor VIIa", "Cyanokit", "Methylene blue", "Methadone"])
         XCTAssertEqual(Array(PatientNotableMeds.options.map(\.full)[3...7]), ["Amicar (aminocaproic acid)", "PCC (Kcentra)", "Fibrinogen concentrate",
                                                                       "Factor VIIa (NovoSeven)", "Cyanokit (hydroxocobalamin)"])
-        XCTAssertEqual(Set(PatientNotableMeds.options.map(\.id)).count, 9, "unique ids")
+        XCTAssertEqual(Set(PatientNotableMeds.options.map(\.id)).count, 10, "unique ids")
         XCTAssertFalse(PatientNotableMeds.options.contains { $0.id.lowercased().contains("dobut") || $0.label.lowercased().contains("dobut") }, "dobutamine is an infusion only")
         XCTAssertNotNil(InfusionEntry.drug(id: "dobutamine"))
     }

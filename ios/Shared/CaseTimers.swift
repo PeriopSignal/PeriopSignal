@@ -207,8 +207,12 @@ struct HeparinCourse: Codable, Equatable {
     var doses: [TimedEntry] = []
     var acts: [TimedEntry] = []
     var protamine: [TimedEntry] = []
-    var bypassOn: Date?
-    var bypassOff: Date?
+    /// 1.15 (Ben, Nov 23: "Have ability to change bypass start time. And add total bypass time to handoff (have ability to add new bypass
+    /// run too)"): the runs of bypass and the runs of aortic cross-clamp, each in start-time order (BypassRuns.swift). Before this a
+    /// course kept one `bypassOn` and one `bypassOff`; those two are still WRITTEN, as the latest run's start and end, so a build
+    /// before this one that opens the case shows the same on-bypass state, and READ when a record has no runs.
+    var bypassRuns: [BypassRun] = []
+    var clampRuns: [BypassRun] = []
     /// The ACT reminder's switch was last turned on at this time (1.10: "Start timer"; 1.12: the switch; a dose never turns it
     /// on). The first check falls due `actEvery` after the later of this and the last ACT.
     var actStart: Date?
@@ -229,8 +233,16 @@ struct HeparinCourse: Codable, Equatable {
         doses = (try? c.decodeIfPresent([TimedEntry].self, forKey: .doses)) ?? []
         acts = (try? c.decodeIfPresent([TimedEntry].self, forKey: .acts)) ?? []
         protamine = (try? c.decodeIfPresent([TimedEntry].self, forKey: .protamine)) ?? []
-        bypassOn = try? c.decodeIfPresent(Date.self, forKey: .bypassOn)
-        bypassOff = try? c.decodeIfPresent(Date.self, forKey: .bypassOff)
+        // A record with runs reads them; an older one has only the two times, which read as one run (`legacyRuns`).
+        let savedRuns = (try? c.decodeIfPresent([BypassRun].self, forKey: .bypassRuns)) ?? []
+        if savedRuns.isEmpty {
+            let on = try? c.decodeIfPresent(Date.self, forKey: .bypassOn)
+            let off = try? c.decodeIfPresent(Date.self, forKey: .bypassOff)
+            bypassRuns = Self.legacyRuns(on: on, off: off)
+        } else {
+            bypassRuns = savedRuns.sorted { $0.start < $1.start }
+        }
+        clampRuns = ((try? c.decodeIfPresent([BypassRun].self, forKey: .clampRuns)) ?? []).sorted { $0.start < $1.start }
         actStart = try? c.decodeIfPresent(Date.self, forKey: .actStart)
         actOff = (try? c.decodeIfPresent(Bool.self, forKey: .actOff)) ?? false
         // A retired preset reads as the purpose's current one: 1.9's bypass preset was 450 s (reference.json 1.9.0);
@@ -239,6 +251,31 @@ struct HeparinCourse: Codable, Equatable {
         if !userGoal, !deviceAlt, let g = goal, let retired = Self.retiredPresets[purpose], abs(g - retired.old) < 0.5 {
             goal = retired.now
         }
+    }
+
+    /// `bypassOn` and `bypassOff` are the legacy keys (the latest bypass run's start and end); `bypassRuns` and `clampRuns` are 1.15's.
+    enum CodingKeys: String, CodingKey {
+        case purpose, goal, userGoal, deviceAlt, actEvery, doses, acts, protamine, bypassOn, bypassOff, actStart, actOff, bypassRuns, clampRuns
+    }
+
+    /// As it was written before, plus the runs. The legacy keys carry the latest bypass run (its start, and its end when it has
+    /// one), so a build before this one that opens the case still reads the right on-bypass state; it ignores the new keys.
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(purpose, forKey: .purpose)
+        try c.encodeIfPresent(goal, forKey: .goal)
+        try c.encode(userGoal, forKey: .userGoal)
+        try c.encode(deviceAlt, forKey: .deviceAlt)
+        try c.encode(actEvery, forKey: .actEvery)
+        try c.encode(doses, forKey: .doses)
+        try c.encode(acts, forKey: .acts)
+        try c.encode(protamine, forKey: .protamine)
+        try c.encodeIfPresent(bypassRuns.last?.start, forKey: .bypassOn)
+        try c.encodeIfPresent(bypassRuns.last?.end, forKey: .bypassOff)
+        try c.encodeIfPresent(actStart, forKey: .actStart)
+        try c.encode(actOff, forKey: .actOff)
+        if !bypassRuns.isEmpty { try c.encode(bypassRuns, forKey: .bypassRuns) }
+        if !clampRuns.isEmpty { try c.encode(clampRuns, forKey: .clampRuns) }
     }
 
     /// Presets an earlier version saved, by purpose id, and the preset that replaces each.
@@ -277,15 +314,15 @@ struct HeparinCourse: Codable, Equatable {
     var lastACT: TimedEntry? { acts.filter { $0.baseline != true }.max { $0.time < $1.time } }
     var lastDose: TimedEntry? { doses.max { $0.time < $1.time } }
     var lastProtamine: TimedEntry? { protamine.max { $0.time < $1.time } }
-    /// Bypass started and not yet ended.
-    var onBypass: Bool { bypassOn != nil && (bypassOff == nil || bypassOff! < bypassOn!) }
+    /// Bypass started and not yet ended: the latest bypass run has no end.
+    var onBypass: Bool { bypassRuns.last?.isOpen ?? false }
     var reversed: Bool { !protamine.isEmpty }
     /// Nothing logged yet: the purpose can still be changed or cleared.
     var isBlank: Bool { doses.isEmpty && acts.isEmpty && protamine.isEmpty && actStart == nil }
 
-    /// Only heparin doses are recorded: no ACT, no protamine, no bypass time, and the ACT reminder is off (1.12, Nov 12: what "+ Heparin"
+    /// Only heparin doses are recorded: no ACT, no protamine, no bypass or cross-clamp run, and the ACT reminder is off (1.12, Nov 12: what "+ Heparin"
     /// on the Medications page, or a typed dose, leaves).
-    var isRecordOnly: Bool { !doses.isEmpty && acts.isEmpty && protamine.isEmpty && bypassOn == nil && !actRunning }
+    var isRecordOnly: Bool { !doses.isEmpty && acts.isEmpty && protamine.isEmpty && bypassRuns.isEmpty && clampRuns.isEmpty && !actRunning }
 }
 
 // MARK: - The Heparin & ACT timeline (1.12 follow-up, Ben, Nov 12)

@@ -58,7 +58,10 @@ final class S112Tests: XCTestCase {
     func testTheBundledFileDecodesWithTheSection() throws {
         let p = try XCTUnwrap(bundleFile.prophylaxis)
         XCTAssertEqual(p.groups.count, 14)
-        XCTAssertEqual(p.groups.flatMap(\.procedures).count, 55)
+        // Nov 23 (Ben, "approve all"): 163 operations. The operations the guideline does not name were added (each carries Periop
+        // Signal's reading and a flag), and every group ends with "Operation not listed". It was 55 before. Nov 23 check: 157; seven
+        // rows were removed (their operations belong with rows the guideline names) and one heart retransplant row was added.
+        XCTAssertEqual(p.groups.flatMap(\.procedures).count, 157)
         XCTAssertEqual(p.mrsaAgent, "vancomycin")
         XCTAssertFalse(p.info.about.isEmpty)
         XCTAssertEqual(p.info.noDose, "Dose not in this app")
@@ -112,7 +115,14 @@ final class S112Tests: XCTestCase {
             let row = try XCTUnwrap(section.rows?.first { $0.first == ref.row }, "\(ref.row) is a row of \(ref.section)")
             XCTAssertEqual(v.recommended?.text, row[1], "\(p.id)/\(v.id) recommended")
             XCTAssertEqual(v.allergy?.text, row[2], "\(p.id)/\(v.id) allergy")
-            XCTAssertEqual(v.evidence, row[3], "\(p.id)/\(v.id) evidence")
+            if p.id == "carotid", v.id == "patch" {
+                // Nov 23: the guideline's text says carotid endarterectomy "may benefit" from prophylaxis with a patch, with no
+                // data behind it, so this answer shows the vascular agents with NO evidence grade (its note says why). The
+                // table's own row keeps its grade.
+                XCTAssertNil(v.evidence, "carotid patch or graft: no evidence grade by design")
+            } else {
+                XCTAssertEqual(v.evidence, row[3], "\(p.id)/\(v.id) evidence")
+            }
             reached.insert(ref.section + "|" + ref.row)
         } } }
         for section in card.sections where section.kind == .table {
@@ -177,8 +187,18 @@ final class S112Tests: XCTestCase {
     // MARK: - The inputs
 
     func testAGroupWithOneProcedureSelectsItAtOnceAndANewProcedureForgetsTheAnswer() {
+        // Nov 23: the Ophthalmic group has several rows now (it had one), so no group of the file selects its procedure at
+        // once any more. The code path is covered with a group built here.
+        var dd = d
+        dd.groups.append(ProphylaxisGroup(id: "solo", name: "Ophthalmic", procedures: [
+            ProphylaxisProcedure(id: "ophthalmic", name: "Ophthalmic", variants: [ProphylaxisVariant(id: "only", outside: "No row.")]),
+        ]))
+        XCTAssertGreaterThan(d.group("ophthalmic")?.procedures.count ?? 0, 1)
+        var several = ProphylaxisInput()
+        several.chooseGroup("ophthalmic", data: d)
+        XCTAssertNil(several.procedure, "several rows: the user picks")
         var i = ProphylaxisInput()
-        i.chooseGroup("ophthalmic", data: d)
+        i.chooseGroup("solo", data: dd)
         XCTAssertEqual(i.procedure, "ophthalmic", "one procedure: selected at once")
         i.chooseGroup("cardiac", data: d)
         XCTAssertNil(i.procedure, "several: the user picks")
@@ -189,8 +209,8 @@ final class S112Tests: XCTestCase {
         short.chooseProcedure("colorectal", data: d)
         XCTAssertEqual(short.summary(d), "Bowel & Hernia · Colon or rectal surgery (colectomy, rectal resection)", "the group as its chip says it")
         var same = ProphylaxisInput()
-        same.chooseGroup("ophthalmic", data: d)
-        XCTAssertEqual(same.summary(d), "Ophthalmic", "a name is not said twice")
+        same.chooseGroup("solo", data: dd)
+        XCTAssertEqual(same.summary(dd), "Ophthalmic", "a name is not said twice")
         i.chooseGroup("biliary", data: d)
         i.chooseProcedure("lap", data: d)
         i.chooseVariant("high", data: d)
@@ -293,7 +313,9 @@ final class S112Tests: XCTestCase {
         XCTAssertEqual(second.slots[0].lines.map(\.agent), ["metronidazole"])
         XCTAssertEqual(second.slots[1].lines.map(\.agent), ["gentamicin", "ciprofloxacin", "levofloxacin"])
         XCTAssertEqual(try line(a, "gentamicin").redose, "No routine redose")
-        XCTAssertEqual(a.notes, want.notes, "the notes are shown in full")
+        // Nov 23: the notes are not printed on the card any more; they are the first paragraphs of the result's info, in full.
+        XCTAssertEqual(a.notes, want.notes, "the notes are kept in full")
+        XCTAssertEqual(Array(a.info.prefix(a.notes.count)), want.notes, "and come first behind the info link")
     }
 
     func testAnOptionalSlotKeepsItsFlag() throws {
@@ -370,16 +392,31 @@ final class S112Tests: XCTestCase {
     }
 
     func testThePrefillLeavesOutOperationsThatAreOftenEmergenciesOrAnotherRow() throws {
-        // Removed after an independent check of the mapping (Nov 16): each of these selects no table row.
-        for id in ["hartmann", "colonic-volvulus", "obturator-hernia", "aneurysm-clipping", "revision-tka", "revision-tha", "femoral-nail", "hemothorax",
-                   "turp", "holep", "turbt", "cystolitholapaxy"] {
+        // Removed after an independent check of the mapping (Nov 16): each of these selects no table row. Nov 23: re-derived from
+        // the data. femoral-nail (now the femoral intramedullary nail row) and cystolitholapaxy (now the cystoscopic bladder stone
+        // row) open a row, so they are gone from this list. Where the operation's specialty matches a group, the group opens on
+        // its "Operation not listed" row (it opened the bare group before); where none matches it opens nothing, as before.
+        let notListed: [String: String] = ["obturator-hernia": "lowergi", "aneurysm-clipping": "neurosurgery", "revision-tka": "orthopedic",
+                                           "revision-tha": "orthopedic", "turp": "urologic", "holep": "urologic", "turbt": "urologic"]
+        for (id, group) in notListed {
             XCTAssertNotNil(ProcedureCatalog.byID(id), id)
-            XCTAssertNil(ProphylaxisEngine.prefill(record: caseWith([try planned(id)]), data: d).procedure, id)
+            let p = ProphylaxisEngine.prefill(record: caseWith([try planned(id)]), data: d)
+            XCTAssertEqual(p.group, group, id)
+            XCTAssertEqual(p.procedure, ProphylaxisEngine.notListedID, id)
+        }
+        for id in ["hartmann", "colonic-volvulus", "hemothorax"] {
+            XCTAssertNotNil(ProcedureCatalog.byID(id), id)
+            let p = ProphylaxisEngine.prefill(record: caseWith([try planned(id)]), data: d)
+            XCTAssertNil(p.group, id)
+            XCTAssertNil(p.procedure, id)
         }
         // A specialty whose operations the group's rows do not all describe opens no group: an esophagectomy is not a lung resection.
-        for id in ["ivor-lewis", "angiogram-diagnostic", "donor-nephrectomy", "blepharoplasty"] {
+        // (blepharoplasty was in this list: it names an eyelid row of the Plastic Surgery group now.)
+        for id in ["ivor-lewis", "angiogram-diagnostic", "donor-nephrectomy"] {
             XCTAssertNil(ProphylaxisEngine.prefill(record: caseWith([try planned(id)]), data: d).group, id)
         }
+        XCTAssertEqual(ProphylaxisEngine.prefill(record: caseWith([try planned("blepharoplasty")]), data: d).procedure,
+                       "x-blepharoplasty-or-eyelid-surgery")
     }
 
     func testLiverTransplantNamesCefotaximeWithNoDoseAndNeverStartsIt() throws {
@@ -519,27 +556,35 @@ final class S112Tests: XCTestCase {
         XCTAssertEqual(ProphylaxisEngine.answer(j, record: adult(), data: d, timers: t).state, .question)
     }
 
-    func testAnAorticValveReplacementSelectsTheCardiacGroupOnly() throws {
+    func testAnAorticValveReplacementOpensTheValveReplacementRow() throws {
+        // Nov 23: it selected the Cardiac group only ("no table row names a valve replacement"); Ben approved Periop Signal's
+        // reading, so it opens the "Valve replacement, surgical" row (the same agents as the coronary bypass row, flagged).
         let r = caseWith(PlannedProcedure.parse("AVR"))
         XCTAssertEqual(r.procedures.first?.catalogID, "avr")
         let p = ProphylaxisEngine.prefill(record: r, data: d)
         XCTAssertEqual(p.group, "cardiac")
-        XCTAssertNil(p.procedure, "no table row names a valve replacement")
+        XCTAssertEqual(p.procedure, "x-valve-replacement-surgical-avr-mvr-t")
         XCTAssertEqual(p.procedureCaption, "From the case: " + r.procedures[0].title)
         var i = ProphylaxisInput()
         i.apply(p, data: d)
         XCTAssertEqual(i.group, "cardiac")
-        XCTAssertNil(i.procedure)
+        XCTAssertEqual(i.procedure, "x-valve-replacement-surgical-avr-mvr-t")
     }
 
     func testAHerniaRepairAndTheFirstMatchingProcedureWin() throws {
         let hernia = ProphylaxisEngine.prefill(record: caseWith([try planned("inguinal-hernia-open")]), data: d)
         XCTAssertEqual(hernia.group, "lowergi")
         XCTAssertEqual(hernia.procedure, "hernia")
-        // The catalog match beats an earlier procedure that only matches a specialty.
-        let two = ProphylaxisEngine.prefill(record: caseWith([try planned("avr"), try planned("cabg")]), data: d)
+        // The catalog match beats an earlier procedure that only matches a specialty (a revision knee: Orthopedic's "Operation not
+        // listed"). It was an aortic valve replacement before Nov 23, which now has a row of its own.
+        let cabg = try planned("cabg")
+        let two = ProphylaxisEngine.prefill(record: caseWith([try planned("revision-tka"), cabg]), data: d)
         XCTAssertEqual(two.procedure, "cabg")
         XCTAssertEqual(two.group, "cardiac")
+        XCTAssertEqual(two.procedureCaption, "From the case: " + cabg.title)
+        // Two operations that both open rows: the first one wins.
+        let both = ProphylaxisEngine.prefill(record: caseWith([try planned("avr"), cabg]), data: d)
+        XCTAssertEqual(both.procedure, "x-valve-replacement-surgical-avr-mvr-t")
     }
 
     func testNoProcedureOrOneOutsideEveryGroupPrefillsNothing() throws {

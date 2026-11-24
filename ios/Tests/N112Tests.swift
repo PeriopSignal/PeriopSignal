@@ -519,14 +519,20 @@ final class N112Tests: XCTestCase {
 
     func testThePickerGroupsTheOtherList() {
         let groups = DeviceKind.pickerGroups
-        XCTAssertEqual(groups.map(\.title), ["Airway", "Monitors", "Pacing & pads", "Support", "Regional", "Access & drains", "Other"])
+        // 1.15 (Ben, Nov 23: "Add ostomies, peg tube, G-tube to lines and devices. Add other items similar to this I may have missed"): the
+        // "Access & drains" group became Access, GI, Urinary, Drains and Neuro, and Other holds the insulin pump/CGM. The other four are as they were.
+        XCTAssertEqual(groups.map(\.title), ["Airway", "Monitors", "Pacing & pads", "Support", "Regional", "Access", "GI", "Urinary", "Drains", "Neuro", "Other"])
         XCTAssertEqual(groups[0].entries.map(\.title), ["Tracheostomy", "Double-lumen tube", "Bronchial blocker"])
         XCTAssertEqual(groups[1].entries.map(\.title), ["TEE probe", "Cerebral oximetry", "BIS/SedLine"])
         XCTAssertEqual(groups[2].entries.map(\.title), ["Epicardial pacing wires", "Pacemaker/ICD", "Defib pads"])
         XCTAssertEqual(groups[3].entries.map(\.kind), [.ecmoDrainage, .ecmoReturn, .lvad, .iabp, .impella, .protekDuo])
         XCTAssertEqual(groups[4].entries.map(\.kind), [.epidural, .spinal, .block, .perineuralCatheter])
-        XCTAssertEqual(groups[5].entries.map(\.kind), [.picc, .intraosseous, .dialysisCatheter, .avFistula, .foley, .chestTube])
-        XCTAssertEqual(groups[6].entries.map(\.kind), [.other])
+        XCTAssertEqual(groups[5].entries.map(\.kind), [.picc, .intraosseous, .dialysisCatheter, .avFistula, .port])
+        XCTAssertEqual(groups[6].entries.map(\.kind), [.gastricTube, .feedingTube, .feedingTube, .ostomy, .rectalTube])
+        XCTAssertEqual(groups[7].entries.map(\.kind), [.foley, .nephrostomy, .ureteralStent])
+        XCTAssertEqual(groups[8].entries.map(\.kind), [.chestTube, .surgicalDrain, .woundVac, .pdCatheter])
+        XCTAssertEqual(groups[9].entries.map(\.kind), [.evd, .lumbarDrain, .vpShunt, .intrathecalPump, .neurostimulator])
+        XCTAssertEqual(groups[10].entries.map(\.kind), [.insulinPump, .other])
         for g in groups { XCTAssertFalse(g.entries.isEmpty, g.title) }
     }
 
@@ -543,12 +549,16 @@ final class N112Tests: XCTestCase {
         for k in before { XCTAssertTrue(kinds.contains(k), "\(k) is still offered") }
         for k in five { XCTAssertTrue(kinds.contains(k), "\(k) is offered") }
         XCTAssertEqual(DeviceKind.buttons, [.piv, .arterial, .cvc, .pac, .ett], "the five buttons are as they were")
-        // The double-lumen tube is the one row that is not a kind of its own: an ETT with the DLT detail.
+        // The double-lumen tube is a row that is not a kind of its own: an ETT with the DLT detail. 1.15 (Ben, Nov 23) added one more, the
+        // J-tube: a feeding tube that starts with the J-tube type.
         let extra = entries.filter { !$0.detail.isEmpty }
-        XCTAssertEqual(extra.count, 1)
+        XCTAssertEqual(extra.count, 2)
         XCTAssertEqual(extra.first?.title, "Double-lumen tube")
         XCTAssertEqual(extra.first?.kind, .ett)
         XCTAssertEqual(extra.first?.detail, "DLT")
+        XCTAssertEqual(extra.last?.title, "J-tube")
+        XCTAssertEqual(extra.last?.kind, .feedingTube)
+        XCTAssertEqual(extra.last?.detail, "J-tube")
         XCTAssertFalse(DeviceKind.more.contains(.ett), "ETT stays a button")
     }
 

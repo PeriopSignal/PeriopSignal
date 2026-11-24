@@ -189,6 +189,8 @@ enum PatientBriefs {
             out.append(workupBlock(r, assess: assess, kind: kind, now: now))
             out.append(imagingBlock(r))
             out.append(intraopTEEBlock(r, now: now))
+            out.append(runTimeBlock(r, .bypass, now: now))
+            out.append(runTimeBlock(r, .clamp, now: now))
             out.append(labsBlock(r, kind: kind, now: now))
             out.append(medicationsBlock(r, hist: hist, kind: kind))
             out.append(infusionsBlock(r, now: now))
@@ -453,6 +455,16 @@ enum PatientBriefs {
         return SummaryBlock(key: "tee", label: "Intraoperative TEE", text: parts.joined(separator: "\n"))
     }
 
+    /// Bypass time and cross-clamp time. Ben, Nov 23: "Have ability to change bypass start time. And add total bypass time to handoff
+    /// (have ability to add new bypass run too)"; asked how it should show he chose "Total only", one line, the sum of all runs, and the
+    /// cross-clamp the same way ("Bypass and cross-clamp"). "Bypass time: 1 h 52 min (2 runs)"; a run still going says so with the time so
+    /// far and when it started. No line without a run. Only the handoff has them (not the Preprocedure Summary), and nothing else about
+    /// heparin, ACTs or protamine is handed off (Ben, Nov 23: "Heparin should not be added to handoff").
+    private static func runTimeBlock(_ r: PatientRecord, _ kind: BypassRunKind, now: Date) -> SummaryBlock {
+        let text = r.timers.heparin?.handoffLine(kind, now: now, time: { PatientSummary.time($0, now: now) }) ?? ""
+        return SummaryBlock(key: kind.rawValue, label: kind.handoffLabel, text: text)
+    }
+
     // MARK: Labs
 
     /// Labs (1.12, Ben's note 8): no fishbone figures; two columns, "Preop" and "Intraop" (the Preprocedure Summary has the
@@ -499,9 +511,9 @@ enum PatientBriefs {
             lines.append("Antibiotics: " + antibiotics.map(\.handoffText).joined(separator: "; "))
             marks += antibiotics.filter(\.overdue).map(\.handoffText)
         }
-        // 1.12 follow-up (Ben, Nov 12): the heparin doses of Case Timers' one Heparin & ACT log, with their total. The ACT and protamine
-        // entries of that log are not printed here (the handoff has never printed them).
-        if let heparin = CaseHeparin.text(r, now: now) { lines.append(heparin) }
+        // Ben, Nov 23: "Heparin should not be added to handoff". The heparin doses of Case Timers' Heparin & ACT log were listed here
+        // from Nov 12; they stay on the Intraoperative tab's row, the medications page and in Case Timers, and are no longer handed
+        // off. A heparin infusion still running is a drip and is listed with the infusions above, as before.
         var meds = PatientNotableMeds.lines(c)
         let factors = trimmed(c.factors)
         if !factors.isEmpty { meds.append(factors) }

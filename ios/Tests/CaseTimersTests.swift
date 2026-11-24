@@ -167,7 +167,9 @@ final class CaseTimersTests: XCTestCase {
         XCTAssertNil(CaseTimerEngine.protamineIssues(mg: 300, course: h, purpose: p, rules: d.protamine).worst.flatMap { $0 >= .confirm ? $0 : nil })
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 400, course: h, purpose: p, rules: d.protamine).needsConfirm, "1.33 mg per 100 U")
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 800, course: h, purpose: p, rules: d.protamine).blocks, "2.67 mg per 100 U")
-        h.bypassOn = t0
+        // Ben, Nov 23: "Have ability to change bypass start time ... (have ability to add new bypass run too)". The one bypassOn time is
+        // now the start of the first bypass run; "still running" (an open latest run) is read as before.
+        h.startRun(.bypass, at: t0)
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 200, course: h, purpose: p, rules: d.protamine).needsConfirm, "bypass still running")
     }
 
