@@ -1,7 +1,143 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-23T09:08:41+00:00",
+ "generatedAt": "2026-11-25T09:08:37+00:00",
  "posts": [
+  {
+   "id": "jama-2026-pitstop-prehospital-ceftriaxone-sepsis",
+   "date": "2026-11-24",
+   "dateApprox": false,
+   "addedAt": "2026-11-25",
+   "journal": "JAMA",
+   "jshort": "JAMA",
+   "kind": "RCT",
+   "topics": [
+    "criticalCare"
+   ],
+   "headline": "PITSTOP: ceftriaxone given by paramedics before arrival does not lower hospital mortality in suspected sepsis",
+   "summary": "A placebo-controlled trial in four Ontario paramedic services randomized 2,091 adults with suspected sepsis and hypotension to 1 g intramuscular ceftriaxone in the ambulance or placebo, with antibiotics otherwise given in the emergency department.",
+   "takeHome": [
+    "Among 2,048 analysed adults with suspected sepsis, earlier antibiotics in the ambulance did not reduce mortality compared with usual emergency department care.",
+    "Hospital mortality to day 90 was 18.0% (182/1009) with ceftriaxone vs 18.4% (186/1011) with placebo; risk ratio 0.97 (95% CI 0.81-1.17), P=.77.",
+    "All 17 secondary outcomes were similar between groups; 92% of patients still received hospital antibiotics about four hours after paramedic arrival."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Guidelines push for antibiotics within an hour of recognizing septic shock, and the supporting evidence is largely observational. Several health systems have built paramedic sepsis pathways on that premise. PITSTOP is the first large placebo-controlled test of treating sepsis before the patient reaches the hospital.\n\n**What they did.** Paramedics in four Ontario services enrolled adults with suspected infection, fever of at least 38.0 C and systolic pressure under 100 mm Hg. In a 2 x 2 factorial design, patients received 1 g intramuscular ceftriaxone or placebo in the ambulance (the fluid comparison is reported separately). All patients could receive open-label antibiotics in the emergency department. The primary outcome was hospital mortality to day 90.\n\n**What they found.** Of 2,091 randomized, 2,048 were analysed. Study drug was given about 37 to 39 minutes after paramedic arrival. Mortality was 18.0% with ceftriaxone vs 18.4% with placebo (risk ratio 0.97, 95% CI 0.81-1.17). No secondary outcome differed. The placebo group still received hospital antibiotics about 253 minutes after paramedic arrival, so the contrast was roughly four hours of earlier treatment.\n\n**Caveats.** The population was old (median 75), with suspected rather than confirmed sepsis, and a single intramuscular antibiotic. The registered primary outcome on ClinicalTrials.gov, mortality to day 90, matches the one reported. The trial cannot speak to patients in profound shock or to sicker populations.\n\n**For anesthesiologists.** This tempers the urge to treat every minute of antibiotic delay as lethal in undifferentiated sepsis. It does not change the case for prompt, appropriate antibiotics in a patient with known septic shock or a surgical source, where timing and source control still matter in the operating room and the ICU.",
+   "url": "https://doi.org/10.1001/jama.2026.25627",
+   "impact": 3,
+   "trialName": "PITSTOP",
+   "firstAuthor": "Scales",
+   "title": "Prehospital Antibiotics for Patients With Suspected Sepsis",
+   "glance": {
+    "design": "Multicentre placebo-controlled RCT, 4 Ontario paramedic services, 2x2 factorial",
+    "n": "2,048 adults with suspected sepsis and SBP <100 mm Hg",
+    "outcome": "Hospital mortality to day 90",
+    "result": "18.0% vs 18.4%, risk ratio 0.97 (0.81-1.17); no difference"
+   },
+   "quiz": {
+    "question": "In PITSTOP, paramedics gave adults with suspected sepsis and hypotension 1 g intramuscular ceftriaxone or placebo. What happened to hospital mortality to day 90?",
+    "options": [
+     "Fell from 18.4% to 12%, with the benefit confined to patients treated within 30 minutes",
+     "Rose with ceftriaxone, because of more adverse reactions in the ambulance",
+     "Did not differ: 18.0% with ceftriaxone vs 18.4% with placebo (risk ratio 0.97)",
+     "Fell modestly with ceftriaxone, but only after adjusting for age and blood pressure"
+    ],
+    "answer": 2,
+    "explanation": "Mortality was 18.0% (182/1009) with ceftriaxone vs 18.4% (186/1011) with placebo, risk ratio 0.97 (95% CI 0.81-1.17), and all 17 secondary outcomes were similar. The trial enrolled older adults with suspected, not confirmed, sepsis, and the placebo group still received hospital antibiotics about four hours after paramedic arrival."
+   }
+  },
+  {
+   "id": "jama-2026-pitstop-prehospital-fluids-sepsis",
+   "date": "2026-11-24",
+   "dateApprox": false,
+   "addedAt": "2026-11-25",
+   "journal": "JAMA",
+   "jshort": "JAMA",
+   "kind": "RCT",
+   "topics": [
+    "criticalCare"
+   ],
+   "headline": "PITSTOP: liberal ambulance fluids (up to 2 L) do not lower mortality versus restrictive usual care in suspected sepsis",
+   "summary": "The fluid half of the Ontario paramedic sepsis trial randomized 1,686 hypotensive adults to up to 2 L of saline regardless of blood pressure or to fluids only when systolic pressure fell below 90 mm Hg.",
+   "takeHome": [
+    "A more liberal prehospital fluid strategy for suspected sepsis did not reduce mortality compared with more restrictive usual care.",
+    "Hospital mortality to day 90 was 18.0% (149/830) with liberal fluids vs 18.3% (149/816) with usual care; risk ratio 0.98 (95% CI 0.80-1.20), P=.82.",
+    "Liberal patients received a median of 1,500 mL vs 500 mL; all 17 secondary outcomes were similar and pulmonary edema was infrequent."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Early large-volume crystalloid is a staple of sepsis bundles, yet the evidence for a fixed volume, especially before hospital arrival, is thin and the downsides in older patients with limited cardiac reserve are real. PITSTOP-Fluids tests that directly in the ambulance.\n\n**What they did.** In the same 2 x 2 factorial trial as the ceftriaxone comparison, four Ontario paramedic services randomized adults with suspected infection, fever of at least 38.0 C and systolic pressure under 100 mm Hg. One arm received up to 2 L of normal saline regardless of subsequent pressure. The usual-care arm received fluids only when systolic pressure was under 90 mm Hg and stopped once it reached 100 mm Hg. The strategies ran until transfer of care in the emergency department. The primary outcome was hospital mortality to day 90.\n\n**What they found.** Of 1,686 randomized, 1,646 were analysed. Most patients in both arms got a bolus (97.4% vs 85.3%), but volumes differed by a median of about 910 mL (1,500 mL vs 500 mL). Mortality was 18.0% vs 18.3% (risk ratio 0.98, 95% CI 0.80-1.20). None of 17 secondary outcomes differed, including vasopressor use, ventilation and dialysis, and adverse events such as pulmonary edema were infrequent.\n\n**Caveats.** Median age was 76, the diagnosis was suspected sepsis, and the contrast covers only the prehospital and early emergency department window.\n\n**For anesthesiologists.** Neither extra early fluid nor restraint changed survival here, which fits a move away from reflexive large boluses toward reassessing volume status and starting vasopressors early. For frail or cardiac patients, the trial supports not chasing a pressure target with litres of saline alone.",
+   "url": "https://doi.org/10.1001/jama.2026.25614",
+   "impact": 2,
+   "trialName": "PITSTOP",
+   "firstAuthor": "Scales",
+   "title": "Prehospital Fluid Resuscitation for Patients With Suspected Sepsis",
+   "glance": {
+    "design": "Multicentre RCT, 4 Ontario paramedic services, 2x2 factorial (fluids arm)",
+    "n": "1,646 adults with suspected sepsis and SBP <100 mm Hg",
+    "outcome": "Hospital mortality to day 90",
+    "result": "18.0% vs 18.3%, risk ratio 0.98 (0.80-1.20); no difference"
+   },
+   "quiz": {
+    "question": "PITSTOP-Fluids compared up to 2 L of saline in the ambulance with fluids only when systolic pressure was under 90 mm Hg. Which result matches the trial?",
+    "options": [
+     "Liberal fluids cut mortality by about a third, with more pulmonary edema in transit",
+     "Hospital mortality was similar: 18.0% with liberal fluids vs 18.3% with usual care",
+     "Liberal fluids raised mortality to 24%, driven by excess pulmonary edema",
+     "Liberal fluids reduced vasopressor use and dialysis but not mortality"
+    ],
+    "answer": 1,
+    "explanation": "Mortality was 18.0% (149/830) with liberal fluids vs 18.3% (149/816) with usual care, risk ratio 0.98 (95% CI 0.80-1.20). The liberal arm received a median 1,500 mL vs 500 mL, yet all 17 secondary outcomes, including vasopressors and dialysis, were similar. Participants were older adults with suspected sepsis, so the result may not extend to other groups."
+   }
+  },
+  {
+   "id": "circ-2026-tri-fr-extended-follow-up-tricuspid-teer",
+   "date": "2026-11-23",
+   "dateApprox": false,
+   "addedAt": "2026-11-25",
+   "journal": "Circulation",
+   "jshort": "Circ",
+   "kind": "Trial update",
+   "topics": [
+    "cardiac",
+    "echo"
+   ],
+   "headline": "TRI-FR extended follow-up: tricuspid TEER cuts heart failure hospitalization or death over a median 31 months",
+   "summary": "The French randomized trial of 300 patients with severe symptomatic tricuspid regurgitation, comparing transcatheter edge-to-edge repair plus medical therapy with medical therapy alone, now reports clinical events over a median follow-up of 30.8 months.",
+   "takeHome": [
+    "T-TEER plus optimized medical therapy reduced first composite events (HF hospitalization, tricuspid surgery, CV death) vs medical therapy alone: HR 0.56 (0.36-0.88).",
+    "Recurrent HF hospitalization fell with T-TEER (rate ratio 0.52, 95% CI 0.32-0.84); CV death or tricuspid surgery alone did not differ significantly.",
+    "Severe or greater tricuspid regurgitation at the last core lab assessment was present in 6.77% with T-TEER vs 53.5% with medical therapy alone."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** The first-year TRI-FR report showed better symptoms and health status after tricuspid TEER, but guidelines and payers still ask whether the repair changes events. Longer randomized follow-up is the evidence that was missing.\n\n**What they did.** TRI-FR randomized 300 patients with severe symptomatic tricuspid regurgitation, 152 to T-TEER plus optimized medical therapy and 148 to medical therapy alone, across French and Belgian centers. This report is a secondary analysis of extended follow-up. Prespecified analyses looked at time to first heart failure hospitalization, tricuspid surgery or cardiovascular death, recurrent heart failure hospitalizations, and a 12-month landmark cohort.\n\n**What they found.** Over a median 30.8 months there were 101 heart failure hospitalizations (17 fatal), 5 further cardiovascular deaths and 11 tricuspid surgeries. First composite events were lower with T-TEER (HR 0.56, 95% CI 0.36-0.88) and recurrent hospitalizations were lower (rate ratio 0.52). Cardiovascular death or surgery on its own was not significantly different (HR 0.75, 95% CI 0.33-1.71). In the landmark cohort of 276 the HR was 0.40. Residual severe or greater regurgitation was 6.77% vs 53.5%.\n\n**Caveats.** The ClinicalTrials.gov primary endpoint was the Packer clinical composite at 12 months, so these event analyses are secondary and should be read as supportive, not definitive.\n\n**For anesthesiologists.** More tricuspid TEER cases are reaching the echo lab, often in sedated or anesthetized patients with right heart failure and device leads. Durable event reduction strengthens the case for referral, and intraprocedural TEE planning of leaflet grasp remains the key skill.",
+   "url": "https://doi.org/10.1161/circulationaha.126.080397",
+   "impact": 2,
+   "trialName": "TRI-FR",
+   "firstAuthor": "Donal",
+   "title": "Transcatheter Edge-to-Edge Repair for Severe Isolated Tricuspid Regurgitation After Extended Follow-Up: The TRI-FR Randomized Clinical Trial",
+   "glance": {
+    "design": "Extended follow-up of multicentre RCT: T-TEER plus medical therapy vs medical therapy",
+    "n": "300 patients with severe symptomatic tricuspid regurgitation",
+    "outcome": "First HF hospitalization, tricuspid surgery or CV death; median 30.8 months",
+    "result": "HR 0.56 (95% CI 0.36-0.88), P=0.0109; recurrent HFH rate ratio 0.52"
+   },
+   "quiz": {
+    "question": "In the TRI-FR extended follow-up (median 30.8 months), what did tricuspid TEER plus medical therapy achieve versus medical therapy alone?",
+    "options": [
+     "Lower cardiovascular death or tricuspid surgery alone (HR 0.75, statistically significant)",
+     "No difference in any clinical event after the first year",
+     "Fewer first composite events (HR 0.56) and fewer recurrent HF hospitalizations (rate ratio 0.52)",
+     "Fewer first composite events, but more severe residual regurgitation (53.5% vs 6.77%)"
+    ],
+    "answer": 2,
+    "explanation": "T-TEER reduced first composite events (HR 0.56, 95% CI 0.36-0.88) and recurrent HF hospitalization (rate ratio 0.52, 95% CI 0.32-0.84), while CV death or tricuspid surgery alone was not significant (HR 0.75, 95% CI 0.33-1.71). Severe or greater TR was 6.77% with T-TEER vs 53.5%; this is a secondary analysis, not the registered 12-month primary."
+   }
+  },
   {
    "id": "anaesthesia-2026-ofa-laparoscopic-cholecystectomy-obas",
    "date": "2026-11-20",
