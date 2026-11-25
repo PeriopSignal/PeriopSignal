@@ -45,6 +45,12 @@
     ],
     "answer": 2,
     "explanation": "Mortality was 18.0% (182/1009) with ceftriaxone vs 18.4% (186/1011) with placebo, risk ratio 0.97 (95% CI 0.81-1.17), and all 17 secondary outcomes were similar. The trial enrolled older adults with suspected, not confirmed, sepsis, and the placebo group still received hospital antibiotics about four hours after paramedic arrival."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-pitstop-prehospital-ceftriaxone-sepsis.mp3",
+    "seconds": 205,
+    "bytes": 1641644,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -90,6 +96,12 @@
     ],
     "answer": 1,
     "explanation": "Mortality was 18.0% (149/830) with liberal fluids vs 18.3% (149/816) with usual care, risk ratio 0.98 (95% CI 0.80-1.20). The liberal arm received a median 1,500 mL vs 500 mL, yet all 17 secondary outcomes, including vasopressors and dialysis, were similar. Participants were older adults with suspected sepsis, so the result may not extend to other groups."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-pitstop-prehospital-fluids-sepsis.mp3",
+    "seconds": 206,
+    "bytes": 1650092,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -136,6 +148,12 @@
     ],
     "answer": 2,
     "explanation": "T-TEER reduced first composite events (HR 0.56, 95% CI 0.36-0.88) and recurrent HF hospitalization (rate ratio 0.52, 95% CI 0.32-0.84), while CV death or tricuspid surgery alone was not significant (HR 0.75, 95% CI 0.33-1.71). Severe or greater TR was 6.77% with T-TEER vs 53.5%; this is a secondary analysis, not the registered 12-month primary."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circ-2026-tri-fr-extended-follow-up-tricuspid-teer.mp3",
+    "seconds": 206,
+    "bytes": 1647596,
+    "voice": "kokoro:af_heart"
    }
   },
   {
