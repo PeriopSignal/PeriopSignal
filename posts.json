@@ -51,6 +51,26 @@
     "seconds": 205,
     "bytes": 1641644,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Prehospital Antibiotics for Patients With Suspected Sepsis",
+    "authors": [
+     "Scales DC",
+     "Rogowsky A",
+     "Seymour CW",
+     "Burry L",
+     "Christenson J",
+     "Daneman N",
+     "Drennan IR",
+     "Hillier M",
+     "Jenneson S",
+     "Klein G",
+     "Mazzulli T",
+     "Moran P"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.25627",
+    "year": 2026
    }
   },
   {
@@ -102,6 +122,26 @@
     "seconds": 206,
     "bytes": 1650092,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Prehospital Fluid Resuscitation for Patients With Suspected Sepsis",
+    "authors": [
+     "Scales DC",
+     "Rogowsky A",
+     "Seymour CW",
+     "Burry L",
+     "Christenson J",
+     "Daneman N",
+     "Drennan IR",
+     "Hillier M",
+     "Jenneson S",
+     "Klein G",
+     "Mazzulli T",
+     "Moran P"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.25614",
+    "year": 2026
    }
   },
   {
@@ -154,6 +194,26 @@
     "seconds": 206,
     "bytes": 1647596,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Transcatheter Edge-to-Edge Repair for Severe Isolated Tricuspid Regurgitation After Extended Follow-Up: The TRI-FR Randomized Clinical Trial",
+    "authors": [
+     "Donal E",
+     "Dreyfus J",
+     "Leurent G",
+     "Nejjari M",
+     "Auffret V",
+     "Guerin P",
+     "Modine T",
+     "Le Roux PY",
+     "Ganivet A",
+     "Sportouch-Dukhan C",
+     "Lavie-Badie Y",
+     "Rouleau F"
+    ],
+    "journal": "Circulation",
+    "doi": "10.1161/circulationaha.126.080397",
+    "year": 2026
    }
   },
   {
