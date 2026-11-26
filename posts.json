@@ -45,6 +45,12 @@
     ],
     "answer": 3,
     "explanation": "Deaths were 187 (33.6%) with Ringer's lactate and 180 (33.0%) with saline, relative risk 1.02 (95% CI 0.86-1.21, p=0.80), with no serious adverse events. Patients on dialysis or admitted straight from the operating room or PACU were excluded."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lrm-2026-fissh-ringers-lactate-vs-saline-septic-shock.mp3",
+    "seconds": 194,
+    "bytes": 1550828,
+    "voice": "kokoro:af_heart"
    }
   },
   {
