@@ -1,7 +1,52 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-25T09:08:37+00:00",
+ "generatedAt": "2026-11-26T09:13:24+00:00",
  "posts": [
+  {
+   "id": "lrm-2026-fissh-ringers-lactate-vs-saline-septic-shock",
+   "date": "2026-11-24",
+   "dateApprox": false,
+   "addedAt": "2026-11-26",
+   "journal": "Lancet Respir Med",
+   "jshort": "LRM",
+   "kind": "RCT",
+   "topics": [
+    "criticalCare"
+   ],
+   "headline": "FISSH: Ringer's lactate and saline give the same 30-day mortality in septic shock (33.6% vs 33.0%)",
+   "summary": "A blinded Canadian and Saudi trial randomized 1,113 adults with septic shock to Ringer's lactate or 0.9% saline for every bolus and maintenance fluid through ICU day 30.",
+   "takeHome": [
+    "Ringer's lactate compared with saline had no effect on 30-day in-hospital mortality in critically ill patients with septic shock.",
+    "Deaths: 187 (33.6%) with Ringer's lactate vs 180 (33.0%) with saline; relative risk 1.02 (95% CI 0.86-1.21), p=0.80.",
+    "Patients received a mean of 5,844 mL of study fluid, and there were no serious adverse events."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Saline remains one of the most widely used fluids in the world, even though low-chloride solutions have physiologic appeal and a possible mortality signal in earlier work. FISSH was designed as a direct, blinded, patient-important comparison in the setting where fluid volumes are largest: septic shock.\n\n**What they did.** Thirty academic and community hospitals in Canada and Saudi Arabia enrolled adults (16 years or older) with suspected infection and either hypotension after a 1 L bolus (systolic under 90 or mean arterial pressure under 65 mm Hg) or lactate above 4 mmol/L, within 6 hours of emergency department presentation or ICU consultation. They were randomized 1:1 to Ringer's lactate or 0.9% saline for all bolus and maintenance fluid throughout ICU stay up to day 30. Bedside clinicians, patients and analysts were masked. The primary outcome was 30-day in-hospital mortality, analysed by intention to treat.\n\n**What they found.** Of 1,113 randomized (557 and 546 analysed), mean APACHE II was 24.7 and mean lactate 4.8 mmol/L. Deaths were 33.6% with Ringer's lactate and 33.0% with saline (relative risk 1.02, 95% CI 0.86-1.21). No serious adverse events were reported.\n\n**Caveats.** Patients on dialysis, with new raised intracranial pressure, with burns over 10% of body surface area, or admitted to ICU straight from the operating room or PACU were excluded, so the result does not speak to those groups.\n\n**For anesthesiologists.** In septic shock, the choice between Ringer's lactate and saline did not change survival here, so fluid type should not delay resuscitation. Postoperative patients were excluded, so intraoperative and post-surgical fluid choices need their own evidence.",
+   "url": "https://doi.org/10.1016/s2213-2600(26)00347-4",
+   "impact": 2,
+   "trialName": "FISSH",
+   "firstAuthor": "Rochwerg",
+   "title": "Ringer's lactate versus saline in the fluids in septic shock (FISSH) trial: a multicentre, blinded, parallel-group, randomised controlled trial",
+   "glance": {
+    "design": "Multicentre blinded RCT, 30 hospitals in Canada and Saudi Arabia",
+    "n": "1,113 adults with septic shock",
+    "outcome": "30-day in-hospital mortality",
+    "result": "33.6% vs 33.0%, relative risk 1.02 (0.86-1.21); no difference"
+   },
+   "quiz": {
+    "question": "In FISSH, adults with septic shock received only Ringer's lactate or only 0.9% saline for all fluids in the ICU. Which result matches the trial's primary outcome?",
+    "options": [
+     "Ringer's lactate cut 30-day in-hospital mortality by about a quarter",
+     "Saline lowered 30-day in-hospital mortality but increased serious adverse events",
+     "Ringer's lactate lowered mortality only in patients with lactate above 4 mmol/L",
+     "Mortality was similar: 33.6% with Ringer's lactate vs 33.0% with saline"
+    ],
+    "answer": 3,
+    "explanation": "Deaths were 187 (33.6%) with Ringer's lactate and 180 (33.0%) with saline, relative risk 1.02 (95% CI 0.86-1.21, p=0.80), with no serious adverse events. Patients on dialysis or admitted straight from the operating room or PACU were excluded."
+   }
+  },
   {
    "id": "jama-2026-pitstop-prehospital-ceftriaxone-sepsis",
    "date": "2026-11-24",
