@@ -1,6 +1,4 @@
-[0;93m2026-11-25 09:09:45.778209905 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-3 post(s) to synthesize with kokoro:af_heart
-  jama-2026-pitstop-prehospital-ceftriaxone-sepsis: 205 s, 1603 KB, 97 s to make
-  jama-2026-pitstop-prehospital-fluids-sepsis: 206 s, 1611 KB, 95 s to make
-  circ-2026-tri-fr-extended-follow-up-tricuspid-teer: 206 s, 1608 KB, 94 s to make
-synthesized 3, failed 0, 7351 characters, 5 min
+[0;93m2026-11-26 09:18:56.348058024 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+1 post(s) to synthesize with kokoro:af_heart
+  lrm-2026-fissh-ringers-lactate-vs-saline-septic-shock: 194 s, 1514 KB, 67 s to make
+synthesized 1, failed 0, 2305 characters, 1 min
